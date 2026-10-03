@@ -281,7 +281,7 @@ export function mountScene(container, { variant, preview = false } = {}) {
               : active === 2
                 ? i === 4
                 : i > 4;
-        o.mesh.material.color.set(on ? colors[i] : 0x344c5e);
+        o.mesh.material.color.set(on ? colors[i] : 0x536d80);
         o.mesh.scale.x = on ? 1.12 : 1;
         o.button.classList.toggle("active", on);
       });
@@ -409,7 +409,7 @@ export function mountScene(container, { variant, preview = false } = {}) {
     camera.position.set(0, 9, mobile ? 25 : 16);
     if (preview) {
       controls.target.x = variant === "osi-model" ? -2 : 0;
-      camera.position.set(controls.target.x + 2, 8, 14);
+      camera.position.set(controls.target.x + 2, variant === "osi-model" ? 3.7 : 5, 9);
     }
     if (variant === "number-systems") {
       objects.forEach((o, i) => {
