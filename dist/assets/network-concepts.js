@@ -71,6 +71,11 @@ function diagram(l, i) {
     return `<div class="bundle-diagram"><div class="${i === 1 ? "unavailable" : ""}">MEMBER 1 · ${i === 1 ? "DOWN" : i === 2 ? "NOT BUNDLED" : "1 Gbps"}</div><div>MEMBER 2 · 1 Gbps</div><strong>PORT-CHANNEL · logical link</strong></div>`;
   return "";
 }
+export function conceptPreview(l) {
+  const s = l.states[0],
+    illustration = diagram(l, 0);
+  return `<strong class="preview-state-title">${esc(s.headline)}</strong>${illustration || `<div class="preview-fields">${s.rows.map(([name, value]) => `<div><span>${esc(name)}</span><strong>${esc(value)}</strong></div>`).join("")}</div>`}`;
+}
 export function conceptSurface(l) {
   const stage =
     l.section === "foundation"

@@ -166,16 +166,29 @@ export const networkLessons = [
   chapter(
     "gateway",
     "ทำไมอุปกรณ์เชื่อมต่อไม่ได้",
-    "แก้ Default gateway ให้ตรงกับ Router ที่เข้าถึงได้",
-    "Client 192.168.10.25/24 ต้องใช้ Gateway 192.168.10.1 ในสถานการณ์นี้ การได้ IP แล้วไม่รับประกันว่าติดต่อ Server ต่างเครือข่ายได้ IP ของ Server ไม่ใช่ Default gateway ของ Client และเลขท้าย .254 ไม่เป็น Gateway โดยอัตโนมัติ",
-    "ค่า Gateway ใดทำให้ Client ไปยัง Server ต่างเครือข่ายได้ในสถานการณ์นี้?",
-    ["192.168.10.1", "192.168.10.254", "10.0.0.10"],
+    "เข้า LAN ได้ แต่ไปต่างเครือข่ายไม่ได้: ตรวจ Default gateway",
+    "Default gateway คือ IP ของ Router ฝั่งที่เชื่อมกับ LAN ของเรา ใช้เป็นทางออกเมื่อปลายทางอยู่นอก subnet และไม่มี route ที่เจาะจงกว่า ในตัวอย่าง /24 นี้ Computer 192.168.10.25 กับ PC ใน LAN 192.168.10.50 อยู่เครือข่ายเดียวกัน จึงส่งถึงกันผ่าน Switch โดยไม่ผ่าน Router แต่ Server 10.0.0.10 อยู่อีกเครือข่าย ต้องส่งผ่าน Router 192.168.10.1 การมี IP อย่างเดียวจึงยังไม่พอสำหรับไปต่างเครือข่าย",
+    "Ping เครื่องใน LAN ได้ แต่ Server ต่างเครือข่ายไม่ได้ และแก้ Gateway แล้ว Server ตอบกลับ หลักฐานนี้บอกอะไร?",
+    [
+      "Gateway เดิมผิด แต่การส่งใน LAN ยังทำงานได้",
+      "DNS เสียแน่นอน แม้ทดสอบด้วย IP",
+      "สายขาดทั้งหมด จึงไม่มีเครื่องใดติดต่อได้",
+    ],
     0,
-    "เลือก IP ของ Router ที่กำหนดไว้บน LAN นี้",
+    "การส่งใน subnet เดียวกันไม่ใช้ Default gateway ส่วนการไป Server ใน Lab นี้ต้องใช้ Router 192.168.10.1 เลข .1 หรือ .254 ไม่ใช่กฎตายตัว ต้องดู IP จริงของ Router",
     {
       section: "services",
       visual: "rack",
-      tag: "TROUBLESHOOTING",
+      scene: "gateway",
+      tag: "TROUBLESHOOTING / DEFAULT GATEWAY",
+      scenario:
+        "คอมพิวเตอร์มี IP และสาย Link Up แต่ตั้ง Gateway เป็น 192.168.10.254 ซึ่งไม่มีอุปกรณ์ใช้ใน Lab นี้ ลองพิสูจน์ว่าปัญหาอยู่ตรงไหน",
+      steps: [
+        "เลือก PC ใน LAN แล้ว Ping ด้วย Gateway เดิม",
+        "เลือก Server ต่างเครือข่าย แล้วดูว่าหยุดขั้นตอนไหน",
+        "เปลี่ยน Gateway เป็น IP ของ Router และทดสอบซ้ำ",
+      ],
+      work: "ลองเลือกไม่มี Gateway: เครื่องใน LAN ยังตอบไหม? จากนั้นเลือก IP ของ Server มาเป็น Gateway แล้วอธิบายว่าทำไมใช้ไม่ได้",
       source: "https://www.rfc-editor.org/rfc/rfc1122",
     },
   ),
@@ -287,11 +300,18 @@ export function networkControls(id) {
       ["999", "999 · ไม่มี entry ที่ P Router"],
     ]);
   if (id === "gateway")
-    return select("gateway", "Default gateway", [
-      ["192.168.10.254", "192.168.10.254 (ค่าเริ่มต้น)"],
-      ["192.168.10.1", "192.168.10.1"],
-      ["10.0.0.10", "10.0.0.10"],
-    ]);
+    return (
+      select("gateway-target", "ปลายทางที่จะ Ping", [
+        ["local", "PC ใน LAN · 192.168.10.50"],
+        ["remote", "Server ต่างเครือข่าย · 10.0.0.10"],
+      ]) +
+      select("gateway", "Default gateway ของ Computer", [
+        ["192.168.10.254", "192.168.10.254 (ค่าเริ่มต้น)"],
+        ["192.168.10.1", "192.168.10.1"],
+        ["10.0.0.10", "10.0.0.10"],
+        ["none", "ไม่มี Default gateway"],
+      ])
+    );
   if (id === "dns")
     return select("hostname", "ชื่อที่ต้องการค้นหา", [
       ["ops.example.test", "ops.example.test"],
@@ -448,17 +468,84 @@ export function simulateNetwork(id, v) {
             "เปลี่ยนเป็น label 100 ที่มี entry ในตารางเพื่อส่งต่อ",
           ];
   } else if (id === "gateway") {
-    result.ok = v.gateway === "192.168.10.1";
-    result.path = result.ok ? [0, 1, 2, 3] : [0, 1];
-    result.lines = result.ok
+    const local = v["gateway-target"] === "local",
+      gw = v.gateway;
+    result.target = local ? "192.168.10.50" : "10.0.0.10";
+    result.ok = local || gw === "192.168.10.1";
+    result.code = local
+      ? "local"
+      : result.ok
+        ? "remote-pass"
+        : gw === "none"
+          ? "no-route"
+          : gw === "10.0.0.10"
+            ? "off-link"
+            : "arp-fail";
+    result.path = local
+      ? [0, 1, 4]
+      : result.ok
+        ? [0, 1, 2, 3]
+        : result.code === "arp-fail"
+          ? [0, 1]
+          : [];
+    result.lines = local
       ? [
-          "✓ Client → Switch → Gateway 192.168.10.1 → Server 10.0.0.10",
-          "เชื่อมต่อสำเร็จ: ตั้งค่า Default gateway ตรงกับ Router แล้ว",
+          "1 · /24 ทำให้ Computer และ 192.168.10.50 อยู่ใน subnet 192.168.10.0/24 เดียวกัน",
+          "2 · ARP หา MAC ของ PC ปลายทาง แล้ว Switch ส่ง frame ไป PC โดยไม่ผ่าน Router",
+          "✓ 3 · PC ตอบ ICMP Echo Reply กลับมา: Gateway ผิดหรือไม่มี Gateway ก็ไม่กระทบเส้นทางใน LAN นี้",
         ]
-      : [
-          "✕ Client → Switch → หยุดก่อนถึง Gateway",
-          `ไม่มี Router ที่ใช้ ${v.gateway} บน LAN นี้ ลองเปลี่ยนเป็น 192.168.10.1`,
-        ];
+      : result.ok
+        ? [
+            "1 · 10.0.0.10 อยู่นอก subnet จึงเลือก Default route ผ่าน 192.168.10.1",
+            "2 · ARP ได้ MAC ของ Router: Ethernet frame ส่งถึง Router แต่ destination IP ยังเป็น 10.0.0.10",
+            "3 · Router ส่งต่อไป Server; Lab ตั้ง route ขากลับไว้แล้ว และอนุญาต ICMP",
+            "✓ 4 · Server ตอบ ICMP Echo Reply กลับมา: แก้ Gateway ถูกจุด",
+          ]
+        : result.code === "no-route"
+          ? [
+              "✕ ปลายทางอยู่นอก subnet แต่ไม่มี Default gateway หรือ route อื่น จึงไม่มีเส้นทางส่งออก",
+              "ตรวจ Default route ก่อน ยังไม่ถึงขั้นส่ง frame ไป Router",
+            ]
+          : result.code === "off-link"
+            ? [
+                "✕ 10.0.0.10 เป็น IP ของ Server ต่าง subnet ไม่ใช่ Router ที่ Computer เข้าถึงโดยตรงบน LAN นี้",
+                "การใส่ IP ของปลายทางเป็น Gateway ไม่ได้สร้างทางไปถึงมัน; ใช้ 192.168.10.1 ใน Lab นี้",
+              ]
+            : [
+                "1 · ปลายทางอยู่นอก subnet จึงพยายามส่งผ่าน Gateway 192.168.10.254",
+                "2 · ARP ถามหา 192.168.10.254 บน LAN แต่ไม่มีเครื่องใช้ IP นี้ จึงไม่มีคำตอบ",
+                "✕ ยังส่ง ICMP packet ไป Router ไม่ได้ ไม่ใช่ Server ปฏิเสธ และยังสรุปว่า DNS เสียไม่ได้",
+              ];
+    result.labels = local
+      ? ["ARP → PC / ICMP", "FRAME → PC", "ECHO REPLY"]
+      : result.ok
+        ? [
+            "DEST IP 10.0.0.10",
+            "FRAME → ROUTER",
+            "ROUTE → SERVER",
+            "ECHO REPLY",
+          ]
+        : ["ARP: WHO HAS .254?", "NO ARP REPLY"];
+    result.events = result.labels.map((value, i) => ({
+      kind: local
+        ? "LAN / ไม่ผ่าน Gateway"
+        : result.ok
+          ? "REMOTE / ผ่าน Gateway"
+          : "ARP / หา Gateway ไม่พบ",
+      value,
+      detail: result.lines[Math.min(i, result.lines.length - 1)],
+    }));
+    if (!result.events.length)
+      result.events = [
+        {
+          kind: "LOCAL ROUTE CHECK",
+          value:
+            result.code === "no-route"
+              ? "ไม่มี Default route"
+              : "Gateway อยู่นอก LAN",
+          detail: result.lines[0],
+        },
+      ];
   } else if (id === "dns") {
     result.ok = v.hostname === "ops.example.test";
     result.path = result.ok ? [0, 1, 2, 3] : [];

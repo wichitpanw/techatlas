@@ -7,7 +7,8 @@
 - Network 46 บท: เฟส 0, Switching, IPv4/VLSM/ARP/ICMP, Transport, IPv6, Routing/OSPF/HSRP, Services, Security, Wireless, Automation และ MPLS
 - 3D มี floating IP, topology แยกสำหรับ DNS/VLAN/L2/L3/MPLS และข้อมูลแต่ละ hop; Concept labs เปรียบเทียบสถานการณ์ มีเครื่องมือบิต, OSI stack, Encapsulation, STP, OSPF, VLSM และ DHCP
 - เฟส 0 มี 3D ครบ 7 บท: ส่วนประกอบเครื่อง, บิต 8 ตัว, อุปกรณ์, สาย/สถานะ Link, OSI/TCP-IP, การห่อ Header และ Computer → Internet เลือกโมเดล/ป้ายเพื่อเปลี่ยนสถานการณ์ได้
-- การ์ด Explore สร้างภาพจากบทนั้นโดยตรง: โมเดลพื้นฐาน, topology รายหัวข้อ, ข้อมูลสถานการณ์ของ Concept lab และโค้ดเริ่มต้นของ Python ไม่ใช้ topology เดียวแทนทุกบท
+- การ์ด Explore ใช้ renderer และผังเดียวกับบท 3D จริง ไม่วาด topology แยก; Concept lab ใช้แผนภาพ/ข้อมูลสถานการณ์แรกชุดเดียวกับเนื้อหา และ Python ใช้โค้ดเริ่มต้นของบทนั้น
+- Gateway lab เปรียบเทียบ Ping ใน LAN กับต่าง subnet มี Gateway ผิด/ถูก/ไม่มี/อยู่นอก LAN พร้อมหลักฐาน ARP, ผลคำสั่งจำลอง และภารกิจเปรียบเทียบก่อน–หลัง
 - Python 28 บท อิงเอกสารใน docs รันจริงด้วย Pyodide มี input(), editable modules, แบบฝึกท้ายบท 6 ข้อ และตรวจหลายชุดข้อมูล
 - Explore, เส้นทางอิสระ, แบบฝึกหัด, Credits, พจนานุกรมศัพท์ และความคืบหน้า/draft ผ่าน localStorage
 - ข้อมูลอุปกรณ์ทั้งหมดเป็นข้อมูลสมมติ ไม่มีระบบบัญชีหรือการเชื่อมต่อบริษัท

@@ -3,7 +3,10 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { laptop, appliance, rack, material } from "./scene.js";
 
 // The model depicts forwarding roles, not a packet capture or a live network.
-export function mountScene(container, { variant = "network" } = {}) {
+export function mountScene(
+  container,
+  { variant = "network", preview = false } = {},
+) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
   renderer.shadowMap.enabled = true;
@@ -42,6 +45,7 @@ export function mountScene(container, { variant = "network" } = {}) {
   scene.add(grid);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
+  controls.enabled = !preview;
   controls.minDistance = 8;
   controls.maxDistance = 55;
   controls.maxPolarAngle = Math.PI * 0.47;
@@ -67,6 +71,17 @@ export function mountScene(container, { variant = "network" } = {}) {
     ["Server", "10.0.0.10/24", "server", 5, -1, "ให้บริการปลายทาง"],
   ];
   const layouts = {
+    gateway: [
+      ...standard,
+      [
+        "PC ใน LAN",
+        "192.168.10.50/24",
+        "client",
+        -1.8,
+        3.8,
+        "อยู่ subnet เดียวกับ Computer ไม่ต้องผ่าน Router",
+      ],
+    ],
     subnet: [
       [
         "Host A",
@@ -240,6 +255,7 @@ export function mountScene(container, { variant = "network" } = {}) {
   const data = layouts[variant] || standard;
   const overlay = document.createElement("div");
   overlay.className = "device-labels";
+  overlay.hidden = preview;
   container.append(overlay);
   const nodes = data.map(([name, ip, type, x, z, role], i) => {
     const model =
@@ -298,27 +314,34 @@ export function mountScene(container, { variant = "network" } = {}) {
     };
   });
   const edges =
-    variant === "subnet"
-      ? []
-      : variant === "dns"
-        ? [
-            [0, 1],
-            [0, 2],
-          ]
-        : variant === "vlan"
+    variant === "gateway"
+      ? [
+          [0, 1],
+          [1, 2],
+          [2, 3],
+          [1, 4],
+        ]
+      : variant === "subnet"
+        ? []
+        : variant === "dns"
           ? [
               [0, 1],
-              [1, 2],
-              [2, 3],
-              [1, 4],
+              [0, 2],
             ]
-          : variant === "layer2"
+          : variant === "vlan"
             ? [
                 [0, 1],
                 [1, 2],
-                [1, 3],
+                [2, 3],
+                [1, 4],
               ]
-            : data.slice(1).map((_, i) => [i, i + 1]);
+            : variant === "layer2"
+              ? [
+                  [0, 1],
+                  [1, 2],
+                  [1, 3],
+                ]
+              : data.slice(1).map((_, i) => [i, i + 1]);
   for (const [a, b] of edges) {
     const p = nodes[a].model.position
         .clone()
@@ -362,7 +385,8 @@ export function mountScene(container, { variant = "network" } = {}) {
     raf;
   const projected = new THREE.Vector3();
   const reset = () => {
-    if (container.clientWidth < 550) camera.position.set(0, 18, 35);
+    if (preview) camera.position.set(0, 6, 10);
+    else if (container.clientWidth < 550) camera.position.set(0, 18, 35);
     else camera.position.set(0, 10, 17);
     controls.target.set(0, 0.4, 0);
     controls.update();
@@ -374,7 +398,7 @@ export function mountScene(container, { variant = "network" } = {}) {
     renderer.setSize(w, h);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
-    if (w < 550) camera.position.set(0, 18, 35);
+    if (!preview && w < 550) camera.position.set(0, 18, 35);
   });
   resize.observe(container);
   function position(element, point, offset = 0) {

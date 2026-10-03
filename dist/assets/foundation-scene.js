@@ -3,7 +3,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { appliance, laptop, material, box } from "./scene.js";
 
 // Functional 3D teaching models: hardware, bits, protocol layers and link state.
-export function mountScene(container, { variant } = {}) {
+export function mountScene(container, { variant, preview = false } = {}) {
   container.dataset.variant = variant;
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
@@ -15,6 +15,7 @@ export function mountScene(container, { variant } = {}) {
     camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100),
     controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
+  controls.enabled = !preview;
   controls.enablePan = false;
   controls.minDistance = 7;
   controls.maxDistance = 45;
@@ -35,6 +36,7 @@ export function mountScene(container, { variant } = {}) {
   scene.add(grid);
   const layer = document.createElement("div");
   layer.className = "foundation-labels";
+  layer.hidden = preview;
   container.append(layer);
   const objects = [],
     colors = [
@@ -86,6 +88,7 @@ export function mountScene(container, { variant } = {}) {
   };
   function showInfo(title, detail) {
     const status = container.querySelector(".foundation-status");
+    if (!status) return;
     status.replaceChildren();
     const strong = document.createElement("strong"),
       span = document.createElement("span");
@@ -397,13 +400,17 @@ export function mountScene(container, { variant } = {}) {
   renderer.domElement.addEventListener("pointerdown", pointerDown);
   renderer.domElement.addEventListener("pointerup", pointerUp);
   function reset() {
-    const mobile = container.clientWidth < 550;
+    const mobile = !preview && container.clientWidth < 550;
     controls.target.set(
       0,
       variant === "osi-model" || variant === "encapsulation" ? 1.4 : 0,
       0,
     );
     camera.position.set(0, 9, mobile ? 25 : 16);
+    if (preview) {
+      controls.target.x = variant === "osi-model" ? -2 : 0;
+      camera.position.set(controls.target.x + 2, 8, 14);
+    }
     if (variant === "number-systems") {
       objects.forEach((o, i) => {
         o.mesh.position.x = mobile
@@ -461,7 +468,11 @@ export function mountScene(container, { variant } = {}) {
         y = 170 + Math.floor(o.index / 2) * 68;
       }
       for (let tries = 0; tries < 12; tries++) {
-        if (variant === "osi-model" || (variant === "number-systems" && w < 550)) break;
+        if (
+          variant === "osi-model" ||
+          (variant === "number-systems" && w < 550)
+        )
+          break;
         const hit = placed.find(
           (p) =>
             Math.abs(x - p.x) < (bw + p.bw) / 2 + 6 &&

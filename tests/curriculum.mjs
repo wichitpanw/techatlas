@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { pythonLessons } from "../dist/assets/python-curriculum.js";
+import { conceptPreview } from "../dist/assets/network-concepts.js";
 import {
   networkLessons,
   simulateNetwork,
@@ -31,6 +32,7 @@ for (const l of all) {
   assert(l.title && l.explain && l.source && l.reason);
   assert(l.choices[l.answer]);
   if (l.conceptLab) {
+    assert(conceptPreview(l).includes("preview-state-title"));
     assert(l.states.length >= 2);
     for (const s of l.states) assert(s.rows.length && s.headline && s.detail);
   }
@@ -75,6 +77,21 @@ assert.match(
 );
 assert.equal(simulateNetwork("mpls", { "incoming-label": "999" }).ok, false);
 assert.equal(simulateNetwork("gateway", { gateway: "192.168.10.1" }).ok, true);
+for (const gateway of ["none", "192.168.10.254", "10.0.0.10", "192.168.10.1"]) {
+  const local = simulateNetwork("gateway", {
+    gateway,
+    "gateway-target": "local",
+  });
+  assert.equal(local.ok, true);
+  assert.deepEqual(local.path, [0, 1, 4]);
+  const remote = simulateNetwork("gateway", {
+    gateway,
+    "gateway-target": "remote",
+  });
+  assert.equal(remote.ok, gateway === "192.168.10.1");
+  if (gateway === "none" || gateway === "10.0.0.10")
+    assert.deepEqual(remote.path, []);
+}
 assert.equal(
   simulateNetwork("gateway", { gateway: "192.168.10.254" }).ok,
   false,

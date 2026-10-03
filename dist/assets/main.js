@@ -287,6 +287,8 @@ function pythonSurface(l) {
     )}<div class="input-panel"><label for="stdin">ข้อมูลนำเข้าสำหรับ input()</label><p>หนึ่งบรรทัดต่อหนึ่ง input() ใส่ข้อมูลไว้ก่อนกดรัน${l.inputs ? " · ตัวอย่างตามโจทย์เตรียมไว้ให้แล้ว" : " · ถ้าโค้ดไม่มี input() ให้เว้นว่างได้"}</p><textarea id="stdin" rows="${l.inputs?.includes("\n") ? 3 : 2}" spellcheck="false" aria-label="ข้อมูลนำเข้า Python">${escapeHTML(typeof draft.inputs === "string" ? draft.inputs : l.inputs || "")}</textarea></div><div class="editor-actions"><button class="button small" id="run-code" disabled>กำลังเตรียม Python…</button><button class="button light small" id="reset-code">เริ่มโค้ดใหม่</button><span id="python-status" aria-live="polite">เตรียมเครื่องรัน</span></div><div id="input-prompts" class="prompt-log"></div><pre class="output" id="output" role="log" aria-live="polite">ผลลัพธ์จะปรากฏที่นี่</pre></div><div class="question-box"><p class="eyebrow">YOUR PRACTICE</p><h3>เป้าหมายของแบบฝึกนี้</h3><p class="notice">ผลลัพธ์เมื่อใช้ข้อมูลตัวอย่างที่ให้ไว้${l.tests ? " · ระบบตรวจข้อมูลชุดอื่นด้วยเพื่อให้โปรแกรมใช้ได้จริง" : ""}</p><pre class="output expected-output">${escapeHTML(l.expected)}</pre><button class="hint" id="hint">ขอคำใบ้</button><button class="hint" id="solution">ดูตัวอย่างเฉลย</button><div class="feedback" id="feedback" aria-live="polite">${progress[l.id] ? "✓ คุณเคยผ่านภารกิจนี้แล้ว ทบทวนได้อีกครั้ง" : ""}</div><div id="checks"></div></div>`;
 }
 function labReference(l) {
+  if (l.id === "gateway")
+    return `<section class="gateway-report"><h3>อ่านหลักฐานหลังทดลอง</h3><div id="gateway-observation" aria-live="polite">เริ่มจาก Ping เครื่องใน LAN แล้วค่อยเปลี่ยนเป็น Server ต่างเครือข่าย</div><h3>คำสั่งตัวอย่าง · ผลจำลอง ไม่ใช่การตรวจเครื่องของคุณ</h3><pre id="gateway-command">ipconfig\nIPv4 Address: 192.168.10.25\nSubnet Mask: 255.255.255.0\nDefault Gateway: 192.168.10.254</pre><p>Windows ใช้ ipconfig / route print; Linux ใช้ ip addr / ip route แล้วใช้ ping ทดสอบ IP ปลายทาง</p><p>Lab สมมติว่าสายและ Switch ปกติ, ARP cache เริ่มว่าง, Router มี route ไป–กลับ และทุกเครื่องอนุญาต ICMP ไม่มี DNS เพราะทดสอบด้วย IP โดยตรง ในระบบจริง Ping ไม่ตอบอาจเกิดจาก Firewall หรือปัญหาอื่นได้ด้วย</p><div id="gateway-checklist" aria-live="polite">ภารกิจ: ลอง LAN → ลอง Server ด้วย Gateway ผิด → แก้ Gateway แล้วลอง Server อีกครั้ง</div></section>`;
   if (l.id === "layer2")
     return '<div class="lab-table"><h3>MAC table · VLAN10</h3><table><tr><th>MAC</th><th>Port</th></tr><tr><td>02:00:00:00:00:01</td><td>1 · PC A</td></tr><tr id="mac-entry"><td>02:00:00:00:00:02</td><td>2 · PC B</td></tr></table></div>';
   if (l.id === "layer3")
@@ -298,7 +300,12 @@ function labReference(l) {
   return "";
 }
 function networkSurface(l) {
-  return `<div class="network-view enhanced-view" id="network-scene"><div class="scene-note">${l.tag} · DRAG TO EXPLORE</div><div class="live-concept" id="live-concept" aria-live="polite"><span>พร้อมทดลอง</span><strong>${l.id === "dns" ? "Domain ↔ IP" : l.id === "mpls" ? "IP → LABEL → IP" : l.id === "vlan" ? "VLAN10 / VLAN20" : l.id === "layer2" ? "FRAME / MAC" : l.id === "layer3" ? "PACKET / ROUTE" : "สำรวจอุปกรณ์และที่อยู่"}</strong></div><div class="scene-legend"><span>ลากหมุน · เลื่อนซูม · กดป้ายอุปกรณ์ดูข้อมูล</span><span>แบบจำลองเพื่อการเรียนรู้</span></div></div><div class="device-inspector" id="device-inspector" aria-live="polite">เลือกป้ายที่ลอยเหนืออุปกรณ์ เพื่อดู IP, MAC และหน้าที่</div><div class="control-panel"><div class="controls">${l.id === "dns" ? '<label>รูปแบบการค้นหา<select id="dns-mode"><option value="forward">Domain → IP (A record)</option><option value="reverse">IP → Domain (PTR record)</option><option value="missing">ชื่อที่ไม่มีข้อมูล (NXDOMAIN)</option></select></label>' : networkControls(l.id)}<button class="button" id="send-packet">${l.id === "subnet" ? "ดูช่วง IP" : l.id === "dns" ? "ค้นหา DNS" : "เริ่มทดลอง"}</button><button class="button light" id="reset-view">รีเซ็ตมุมมอง</button></div><div class="trace" id="trace" role="status" aria-live="polite">เลือกค่าแล้วเริ่มทดลอง สังเกตข้อมูลที่เปลี่ยนและอุปกรณ์ที่ตัดสินใจ</div></div>${labReference(l)}<div class="question-box"><p class="eyebrow">YOUR MISSION</p><h3>${l.question}</h3><div class="choices">${l.choices.map((s, i) => `<button class="choice" data-answer="${i}">${s}</button>`).join("")}</div><button class="hint" id="hint">ขอคำใบ้</button><div class="feedback" id="feedback" aria-live="polite">${progress[l.id] ? "✓ คุณเคยผ่านภารกิจนี้แล้ว" : ""}</div></div>`;
+  return (
+    (l.id === "gateway"
+      ? '<section class="gateway-guide"><p class="eyebrow">เริ่มจากสองคำถาม</p><h3>ปลายทางอยู่ใน LAN ของเรา หรืออยู่อีกเครือข่าย?</h3><p><strong>ใน LAN:</strong> Computer → Switch → PC · ไม่ผ่าน Router<br><strong>ต่างเครือข่าย:</strong> Computer → Switch → Router → Server</p><p>Gateway คือ “ทางออก” ไม่ใช่ IP ของ Server และไม่จำเป็นต้องลงท้าย .1 เสมอ ใน Lab นี้ Router ใช้ <strong>192.168.10.1</strong> ส่วน .254 ไม่มีอุปกรณ์ใช้งาน</p><ol><li>ใช้ Gateway เดิม .254 แล้ว Ping PC ใน LAN — สังเกตว่า Router ไม่อยู่ในเส้นทาง</li><li>คง .254 ไว้ แล้วเปลี่ยนไป Ping Server — ดูว่า ARP หา Gateway ไม่พบ</li><li>เปลี่ยน Gateway เป็น .1 แล้ว Ping Server ซ้ำ — เปรียบเทียบผลก่อนและหลัง</li></ol></section>'
+      : "") +
+    `<div class="network-view enhanced-view" id="network-scene"><div class="scene-note">${l.tag} · DRAG TO EXPLORE</div><div class="live-concept" id="live-concept" aria-live="polite"><span>พร้อมทดลอง</span><strong>${l.id === "dns" ? "Domain ↔ IP" : l.id === "mpls" ? "IP → LABEL → IP" : l.id === "vlan" ? "VLAN10 / VLAN20" : l.id === "layer2" ? "FRAME / MAC" : l.id === "layer3" ? "PACKET / ROUTE" : "สำรวจอุปกรณ์และที่อยู่"}</strong></div><div class="scene-legend"><span>ลากหมุน · เลื่อนซูม · กดป้ายอุปกรณ์ดูข้อมูล</span><span>แบบจำลองเพื่อการเรียนรู้</span></div></div><div class="device-inspector" id="device-inspector" aria-live="polite">เลือกป้ายที่ลอยเหนืออุปกรณ์ เพื่อดู IP, MAC และหน้าที่</div><div class="control-panel"><div class="controls">${l.id === "dns" ? '<label>รูปแบบการค้นหา<select id="dns-mode"><option value="forward">Domain → IP (A record)</option><option value="reverse">IP → Domain (PTR record)</option><option value="missing">ชื่อที่ไม่มีข้อมูล (NXDOMAIN)</option></select></label>' : networkControls(l.id)}<button class="button" id="send-packet">${l.id === "subnet" ? "ดูช่วง IP" : l.id === "dns" ? "ค้นหา DNS" : l.id === "gateway" ? "ทดลอง Ping" : "เริ่มทดลอง"}</button><button class="button light" id="reset-view">รีเซ็ตมุมมอง</button></div><div class="trace" id="trace" role="status" aria-live="polite">เลือกค่าแล้วเริ่มทดลอง สังเกตข้อมูลที่เปลี่ยนและอุปกรณ์ที่ตัดสินใจ</div></div>${labReference(l)}<div class="question-box"><p class="eyebrow">YOUR MISSION</p><h3>${l.question}</h3><div class="choices">${l.choices.map((s, i) => `<button class="choice" data-answer="${i}">${s}</button>`).join("")}</div><button class="hint" id="hint">ขอคำใบ้</button><div class="feedback" id="feedback" aria-live="polite">${progress[l.id] ? "✓ คุณเคยผ่านภารกิจนี้แล้ว" : ""}</div></div>`
+  );
 }
 function renderLesson(id) {
   if (id === "offline") id = "practice-list";
@@ -590,6 +597,7 @@ function concept(event) {
   el.classList.add("changed");
 }
 function visualEvents(l, result, values) {
+  if (l.id === "gateway") return result.events;
   if (l.id === "subnet") {
     const p = Number(values.prefix),
       size = 2 ** (32 - p);
@@ -724,6 +732,7 @@ function initNetwork(l) {
   });
   let experimented = false,
     success = false;
+  const gatewayEvidence = new Set();
   const trace = document.querySelector("#trace");
   sceneEl.addEventListener("device-inspect", (event) => {
     const d = event.detail;
@@ -766,6 +775,12 @@ function initNetwork(l) {
       trace.textContent = "เปลี่ยนค่าแล้ว กดเริ่มทดลองเพื่ออ่านผลใหม่";
       trace.classList.remove("error");
       experimented = false;
+      if (l.id === "gateway") {
+        document.querySelector("#gateway-observation").textContent =
+          "เปลี่ยนค่าแล้ว ผลเดิมไม่ใช่ผลของค่าปัจจุบัน กดทดลอง Ping เพื่ออ่านหลักฐานใหม่";
+        document.querySelector("#gateway-command").textContent =
+          `ipconfig\nIPv4 Address: 192.168.10.25\nSubnet Mask: 255.255.255.0\nDefault Gateway: ${readValues().gateway === "none" ? "(ไม่ได้ตั้ง)" : readValues().gateway}`;
+      }
     }),
   );
   document.querySelector("#send-packet").addEventListener("click", async () => {
@@ -817,6 +832,30 @@ function initNetwork(l) {
       .map((line) => `<div>${escapeHTML(line)}</div>`)
       .join("");
     trace.classList.toggle("error", !result.ok);
+    if (l.id === "gateway") {
+      gatewayEvidence.add(
+        result.code === "local"
+          ? "lan"
+          : result.ok
+            ? "remote-pass"
+            : "remote-fail",
+      );
+      document.querySelector("#gateway-observation").textContent =
+        result.code === "local"
+          ? "หลักฐาน: LAN ตอบกลับ แม้ Gateway ไม่ถูกต้อง จึงไม่ควรเริ่มแก้ทุกอย่างพร้อมกัน ต่อไปทดสอบ Server ต่างเครือข่ายด้วย Gateway เดิม"
+          : result.ok
+            ? "หลักฐาน: เปลี่ยนเฉพาะ Gateway แล้ว Server ตอบกลับ สาเหตุในสถานการณ์นี้คือ Gateway เดิมไม่ถูกต้อง"
+            : "หลักฐาน: ไปต่างเครือข่ายไม่ได้ อ่านจุดหยุดด้านบน แล้วตรวจว่าตั้ง Gateway เป็น Router บน LAN นี้หรือยัง";
+      document.querySelector("#gateway-command").textContent =
+        `ipconfig\nIPv4 Address: 192.168.10.25\nSubnet Mask: 255.255.255.0\nDefault Gateway: ${values.gateway === "none" ? "(ไม่ได้ตั้ง)" : values.gateway}\n\nping ${result.target}\n${result.ok ? `Reply from ${result.target} (ผลจำลอง)` : `ไม่สำเร็จ: ${result.lines.at(-1)}\nข้อความ Error จริงอาจต่างกันตาม OS และค่าระบบ`}`;
+      document.querySelector("#gateway-checklist").textContent = [
+        ["lan", "ทดสอบ LAN"],
+        ["remote-fail", "พบปัญหาเมื่อไปต่างเครือข่าย"],
+        ["remote-pass", "แก้ Gateway แล้ว Server ตอบ"],
+      ]
+        .map(([key, text]) => `${gatewayEvidence.has(key) ? "✓" : "○"} ${text}`)
+        .join(" · ");
+    }
     if (!result.ok)
       concept({
         kind: "STOP / ตรวจสาเหตุ",
@@ -844,9 +883,10 @@ function initNetwork(l) {
           "ทดลองด้วยตัวควบคุมก่อนตอบ เพื่อสังเกตสิ่งที่เกิดขึ้น";
         return;
       }
-      if (l.id === "gateway" && !success) {
+      if (l.id === "gateway" && (gatewayEvidence.size < 3 || !success)) {
         feedback.className = "feedback bad";
-        feedback.textContent = "แก้ Gateway แล้วทดลองส่งให้สำเร็จก่อน";
+        feedback.textContent =
+          "ลองให้ครบ: LAN ตอบ → Server ไม่ตอบด้วย Gateway ผิด → แก้เป็น 192.168.10.1 แล้ว Server ตอบ จากนั้นตอบจากหลักฐานที่เห็น";
         return;
       }
       const pass = Number(button.dataset.answer) === l.answer;

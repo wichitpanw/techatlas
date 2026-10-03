@@ -1859,6 +1859,118 @@ footer a {
 .foundation-label[hidden] {
   display: none;
 }
+.gateway-guide,
+.gateway-report {
+  padding: 24px;
+  background: #f5faf9;
+  color: #183d48;
+  border: 1px solid #d5e3e3;
+}
+.gateway-guide h3,
+.gateway-report h3 {
+  margin: 0 0 12px;
+}
+.gateway-guide p,
+.gateway-guide li,
+.gateway-report p {
+  font-size: 16px;
+  line-height: 1.8;
+}
+.gateway-guide li + li {
+  margin-top: 8px;
+}
+.gateway-report pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 16px;
+  background: #102a36;
+  color: #bce8df;
+  font: 14px/1.7 monospace;
+  border-radius: 8px;
+}
+#gateway-observation,
+#gateway-checklist {
+  padding: 14px;
+  background: #e0f1ec;
+  margin-bottom: 20px;
+  line-height: 1.8;
+}
+.card-visual canvas {
+  pointer-events: none;
+}
+.card-visual [hidden] {
+  display: none !important;
+}
+.lesson-card-preview {
+  position: absolute;
+  inset: 30px 16px 30px;
+  color: #d0e9eb;
+  overflow: hidden;
+  font-size: 12px;
+}
+.lesson-card-preview pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font: 13px/1.6 monospace;
+  color: #7ce4c6;
+}
+.preview-state-title {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 8px;
+  color: #7ce4c6;
+}
+.preview-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.preview-fields > div {
+  border: 1px solid #487080;
+  padding: 6px;
+  border-radius: 6px;
+}
+.preview-fields span,
+.preview-fields strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.lesson-card-preview .topology-diagram {
+  height: 140px;
+  width: 100%;
+  margin-bottom: 0;
+}
+.card-visual:has(.lesson-card-preview) {
+  height: 230px;
+}
+.lesson-card-preview .service-sequence {
+  gap: 4px;
+  margin: 0;
+}
+.lesson-card-preview .service-sequence > div {
+  padding: 6px;
+  font-size: 11px;
+  min-width: 0;
+}
+.lesson-card-preview .address-allocation,
+.lesson-card-preview .bundle-diagram {
+  margin: 0;
+}
+.lesson-card-preview .bundle-diagram {
+  padding: 8px;
+}
+.lesson-card-preview .bundle-diagram > div {
+  padding: 5px;
+  margin-bottom: 5px;
+  font-size: 12px;
+}
+.lesson-card-preview .address-allocation {
+  min-height: 80px;
+}
+.lesson-card-preview .address-allocation > div {
+  padding: 8px 4px;
+  font-size: 12px;
+}
 .foundation-stage[data-variant="osi-model"] {
   height: 700px;
 }
