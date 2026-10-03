@@ -10,6 +10,9 @@ import {
   orderedSections,
 } from "../dist/assets/network-foundations.js";
 const all = arrangeNetwork(networkLessons);
+assert.deepEqual(all.slice(7,16).map(l => l.id), [
+  "layer2", "address", "subnet", "gateway", "arp-icmp", "vlan", "stp", "etherchannel", "vlsm"
+]);
 assert.equal(new Set(all.map((l) => l.id)).size, all.length);
 for (const section of orderedSections)
   assert(all.some((l) => l.section === section.id));
