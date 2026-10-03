@@ -108,6 +108,7 @@ function clearWorker() {
 }
 function cleanup() {
   generation++;
+  main.onclick = null;
   lazyObserver?.disconnect();
   for (const scene of scenes.values()) scene.dispose();
   scenes.clear();
@@ -179,8 +180,7 @@ function card(l) {
 }
 function renderExplore() {
   main.className = "";
-  main.innerHTML = `${intro("<strong>ห้องทดลอง</strong>เทคโนโลยี", "เลือกหมวดที่สนใจ แล้วเรียนตามลำดับภายในหมวดนั้น")}<section class="hero"><div class="hero-copy"><p class="eyebrow">EXPLORE THE CONNECTION</p><span class="chip">NETWORK LAB</span><h2>จากเครื่องของคุณ<br>สู่โลก<em> Internet</em></h2><p>เห็นที่อยู่ IP สำรวจอุปกรณ์ และดูว่าข้อมูล<br>เปลี่ยนอย่างไรในแต่ละขั้นตอน</p><a class="button" href="#lesson/internet">สำรวจ Computer → Internet</a><a class="hero-secondary" href="#lesson/python-start">หรือเริ่ม Python จากศูนย์</a></div><div class="hero-stage" id="hero-scene"></div><div class="hero-tags"><span>COMPUTER</span><span>— GATEWAY — ISP —</span><span>INTERNET</span></div></section><div class="filterbar" role="group" aria-label="กรองบทเรียน"><button class="filter active" data-filter="all">ทั้งหมด ${lessons.length}</button><button class="filter" data-filter="network">Network ${networkLessons.length}</button><button class="filter" data-filter="python">Python ${pythonLessons.length}</button><button class="filter" data-filter="completed">ผ่านแล้ว</button><label class="search"><input id="search" type="search" placeholder="ค้นหาหัวข้อ เช่น VLAN, List…" aria-label="ค้นหาบทเรียน"></label></div><div id="catalog"></div><section class="future" aria-label="หมวดที่วางแผนไว้">${["JavaScript", "TypeScript", "Node.js", "AI"].map((name) => `<a class="future-item" href="#path"><strong>${name}</strong><span>หมวดอิสระ · อยู่ในแผนระยะถัดไป</span></a>`).join("")}</section>`;
-  addScene(document.querySelector("#hero-scene"), { hero: true });
+  main.innerHTML = `${intro("วันนี้อยาก<strong>สำรวจเรื่องไหน?</strong>", "เลือกเรื่องที่สนใจ เห็นภาพ ทดลอง และค้นหาคำตอบด้วยตัวเอง", "TECHATLAS · LEARN BY EXPLORING")}<section class="subject-grid" aria-label="หมวดการเรียนรู้"><button class="subject-tile network-subject" data-subject="network"><span class="subject-code">01 / NETWORK</span><h2>เครือข่าย</h2><p>อุปกรณ์เชื่อมต่อกันอย่างไร ข้อมูลเดินทางไปไหน</p><span>${networkLessons.length} บท · แบบจำลองและภารกิจ</span></button><button class="subject-tile python-subject" data-subject="python"><span class="subject-code">02 / PYTHON</span><h2>เขียนโปรแกรม Python</h2><p>เริ่มจากศูนย์ เขียนโค้ดและทดลองรันด้วยตัวเอง</p><span>${pythonLessons.length} บท · รันโค้ดในหน้าเรียน</span></button><article class="subject-tile planned-subject"><span class="subject-code">03 / PROGRAMMING</span><h2>พัฒนาเว็บไซต์และบริการ</h2><p>JavaScript · TypeScript · Node.js</p><span>กำลังเตรียมบทเรียน</span></article><article class="subject-tile planned-subject"><span class="subject-code">04 / ARTIFICIAL INTELLIGENCE</span><h2>ปัญญาประดิษฐ์</h2><p>เข้าใจ AI ทดลองใช้งาน และตรวจสอบคำตอบ</p><span>กำลังเตรียมบทเรียน</span></article></section><div class="filterbar" role="group" aria-label="กรองบทเรียน"><button class="filter active" data-filter="all">ภาพรวมทุกหมวด</button><button class="filter" data-filter="network">Network ${networkLessons.length}</button><button class="filter" data-filter="python">Python ${pythonLessons.length}</button><button class="filter" data-filter="completed">ผ่านแล้ว</button><label class="search"><input id="search" type="search" placeholder="ค้นหาหัวข้อ เช่น VLAN, List…" aria-label="ค้นหาบทเรียน"></label></div><div id="catalog"></div>`;
   let filter = "all";
   function draw() {
     const query = document.querySelector("#search").value.trim().toLowerCase();
@@ -199,6 +199,12 @@ function renderExplore() {
         .map((course) => {
           const subset = visible.filter((l) => l.track === course.id);
           if (!subset.length) return "";
+          if (filter === "all" && !query) {
+            const featuredIds = course.id === "network" ? ["internet", "vlan", "dns"] : ["python-start", "variables", "conditions"];
+            const featured = featuredIds.map((id) => subset.find((l) => l.id === id)).filter(Boolean);
+            for (const lesson of subset) if (featured.length < 3 && !featured.includes(lesson)) featured.push(lesson);
+            return `<section class="subject-showcase"><div class="section-heading"><span class="section-index">${course.id === "network" ? "NET" : "PY"}</span><h2>${course.name}</h2><span class="desc">${course.id === "network" ? "มองให้เห็นการทำงานของเครือข่าย" : "เรียนพื้นฐานผ่านการเขียนโค้ดจริง"}</span><button class="show-subject" data-subject="${course.id}">ดูทั้งหมด ${subset.length} บท</button></div><div class="cards">${featured.map(card).join("")}</div></section>`;
+          }
           return `<section><div class="section-heading"><span class="section-index">${course.id === "network" ? "NET" : "PY"}</span><h2>${course.name}</h2><span class="desc">${course.description}</span></div>${course.id === "python" ? `<p class="reference-strip">เริ่มจากศูนย์ · เปิดเรียนได้โดยไม่ต้องผ่าน Network</p>` : ""}${course.sections
             .map((section) => {
               const list = subset.filter((l) => l.section === section.id);
@@ -212,15 +218,21 @@ function renderExplore() {
     lazyScenes(root);
   }
   draw();
-  document.querySelectorAll("[data-filter]").forEach((button) =>
-    button.addEventListener("click", () => {
-      filter = button.dataset.filter;
+  function chooseFilter(value) {
+      filter = value;
+      document.querySelector("#search").value = "";
       document
         .querySelectorAll("[data-filter]")
-        .forEach((b) => b.classList.toggle("active", b === button));
+        .forEach((b) => b.classList.toggle("active", b.dataset.filter === value));
       draw();
-    }),
-  );
+  }
+  document.querySelectorAll("[data-filter]").forEach((button) => button.addEventListener("click", () => chooseFilter(button.dataset.filter)));
+  main.onclick = function selectSubject(event) {
+    const button = event.target.closest("[data-subject]");
+    if (!button) return;
+    chooseFilter(button.dataset.subject);
+    document.querySelector(".filterbar").scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   document.querySelector("#search").addEventListener("input", draw);
 }
 function renderPath() {
