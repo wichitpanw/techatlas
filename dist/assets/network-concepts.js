@@ -72,7 +72,14 @@ function diagram(l, i) {
   return "";
 }
 export function conceptSurface(l) {
-  return `<section class="concept-workbench"><p class="eyebrow">${l.id === "number-systems" ? "BIT LAB" : "OBSERVE · CHANGE · EXPLAIN"}</p><h2>${esc(l.title)}</h2><p>ตัวอย่างจำลองสำหรับบทนี้ ไม่เชื่อมต่อหรือแก้ไขอุปกรณ์จริง</p>${l.id === "number-systems" ? '<div class="bit-lab"><label>Decimal (0–255)<input id="decimal" type="number" min="0" max="255" value="192"></label><div class="bit-buttons" id="bit-buttons"></div><div class="bit-values" id="bit-values" aria-live="polite"></div></div>' : ""}<div class="scenario-tabs" role="group" aria-label="เลือกสถานการณ์">${l.states.map((s, i) => `<button class="scenario-tab" data-state="${i}">${esc(s.label)}</button>`).join("")}</div><div id="concept-result" aria-live="polite"><p>เลือกสถานการณ์ด้านบนเพื่อเริ่มทดลอง</p></div><button class="button light small" id="next-state">ดูสถานการณ์ถัดไป</button></section><div class="question-box"><p class="eyebrow">YOUR MISSION</p><h3>${esc(l.question)}</h3><div class="choices">${l.choices.map((s, i) => `<button class="choice" data-answer="${i}">${esc(s)}</button>`).join("")}</div><button class="hint" id="hint">ขอคำใบ้</button><div class="feedback" id="feedback" aria-live="polite"></div></div>`;
+  const stage =
+    l.section === "foundation"
+      ? `<div class="network-view foundation-stage" id="foundation-scene" data-state="0" data-value="192"><div class="foundation-status" aria-live="polite"><strong>${esc(l.title)}</strong><span>ลากหมุน · เลื่อนซูม · กดป้ายเพื่อสำรวจ</span></div><div class="foundation-tools"><button class="button light small" data-reset-3d>รีเซ็ตมุมมอง</button>${l.id === "physical" ? '<label>ชนิดสาย<select id="cable-type"><option value="utp">UTP · สัญญาณไฟฟ้า</option><option value="fiber">Fiber · สัญญาณแสง</option></select></label>' : ""}<span>3D INTERACTIVE · แบบจำลองเพื่อการเรียนรู้</span></div></div>`
+      : "";
+  return (
+    stage +
+    `<section class="concept-workbench"><p class="eyebrow">${l.id === "number-systems" ? "BIT LAB" : "OBSERVE · CHANGE · EXPLAIN"}</p><h2>${esc(l.title)}</h2><p>ตัวอย่างจำลองสำหรับบทนี้ ไม่เชื่อมต่อหรือแก้ไขอุปกรณ์จริง</p>${l.id === "number-systems" ? '<div class="bit-lab"><label>Decimal (0–255)<input id="decimal" type="number" min="0" max="255" value="192"></label><div class="bit-buttons" id="bit-buttons"></div><div class="bit-values" id="bit-values" aria-live="polite"></div></div>' : ""}<div class="scenario-tabs" role="group" aria-label="เลือกสถานการณ์">${l.states.map((s, i) => `<button class="scenario-tab" data-state="${i}">${esc(s.label)}</button>`).join("")}</div><div id="concept-result" aria-live="polite"><p>เลือกสถานการณ์ด้านบนเพื่อเริ่มทดลอง</p></div><button class="button light small" id="next-state">ดูสถานการณ์ถัดไป</button></section><div class="question-box"><p class="eyebrow">YOUR MISSION</p><h3>${esc(l.question)}</h3><div class="choices">${l.choices.map((s, i) => `<button class="choice" data-answer="${i}">${esc(s)}</button>`).join("")}</div><button class="hint" id="hint">ขอคำใบ้</button><div class="feedback" id="feedback" aria-live="polite"></div></div>`
+  );
 }
 export function initConcept(l, onComplete) {
   let visited = new Set(),
@@ -82,15 +89,23 @@ export function initConcept(l, onComplete) {
     visited.add(i);
     const s = l.states[i],
       root = document.querySelector("#concept-result");
+    const stage = document.querySelector("#foundation-scene");
+    if (stage) {
+      stage.dataset.state = i;
+      stage._foundationState = s;
+      stage.dispatchEvent(
+        new CustomEvent("foundation-state", { detail: { index: i, state: s } }),
+      );
+    }
     root.className = "concept-result" + (s.ok ? "" : " problem");
     root.innerHTML = `<p class="state-count">สถานการณ์ ${i + 1} / ${l.states.length}</p><h3>${esc(s.headline)}</h3>${diagram(l, i)}<div class="mechanism-fields">${s.rows.map(([name, value]) => `<div class="mechanism-field"><span>${esc(name)}</span><strong>${esc(value)}</strong></div>`).join("")}</div><p class="state-explanation">${esc(s.detail)}</p>`;
-    document.querySelectorAll("[data-state]").forEach((b) => {
+    document.querySelectorAll("button[data-state]").forEach((b) => {
       b.classList.toggle("active", Number(b.dataset.state) === i);
       b.setAttribute("aria-pressed", String(Number(b.dataset.state) === i));
     });
   };
   document
-    .querySelectorAll("[data-state]")
+    .querySelectorAll("button[data-state]")
     .forEach((b) =>
       b.addEventListener("click", () => draw(Number(b.dataset.state))),
     );
@@ -109,6 +124,16 @@ export function initConcept(l, onComplete) {
         return `<button class="bit ${on ? "on" : ""}" data-weight="${weight}" aria-pressed="${on}" aria-label="บิตน้ำหนัก ${weight}"><small>${weight}</small><strong>${on ? 1 : 0}</strong></button>`;
       }).join("");
       values.innerHTML = `<span>Binary <strong>${n.toString(2).padStart(8, "0")}</strong></span><span>Decimal <strong>${n}</strong></span><span>Hex <strong>${n.toString(16).toUpperCase().padStart(2, "0")}</strong></span>`;
+      const result = document.querySelector("#concept-result");
+      const weights = Array.from({ length: 8 }, (_, i) => 2 ** (7 - i)).filter(
+        (weight) => n & weight,
+      );
+      result.innerHTML = `<h3>ค่าที่กำลังทดลอง · ${n}</h3><div class="mechanism-fields"><div class="mechanism-field"><span>Binary</span><strong>${n.toString(2).padStart(8, "0")}</strong></div><div class="mechanism-field"><span>Decimal</span><strong>${n}</strong></div><div class="mechanism-field"><span>Hex</span><strong>${n.toString(16).toUpperCase().padStart(2, "0")}</strong></div></div><p>รวมเฉพาะน้ำหนักของบิตที่เป็น 1: ${weights.join(" + ") || "0"} = ${n}</p>`;
+      const stage = document.querySelector("#foundation-scene");
+      if (stage) {
+        stage.dataset.value = n;
+        stage.dispatchEvent(new CustomEvent("foundation-bits", { detail: n }));
+      }
     };
     input.addEventListener("input", () => {
       const n = Number(input.value);
@@ -122,6 +147,13 @@ export function initConcept(l, onComplete) {
       if (b) show(Number(input.value) ^ Number(b.dataset.weight));
     });
     show(192);
+    document
+      .querySelectorAll("button[data-state]")
+      .forEach((b) =>
+        b.addEventListener("click", () =>
+          show(Number(b.dataset.state) === 0 ? 192 : 252),
+        ),
+      );
   }
   document.querySelectorAll("[data-answer]").forEach((b) =>
     b.addEventListener("click", () => {
@@ -137,4 +169,5 @@ export function initConcept(l, onComplete) {
       if (pass) onComplete();
     }),
   );
+  if (l.section === "foundation") draw(0);
 }

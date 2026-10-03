@@ -118,7 +118,11 @@ async function addScene(el, options = {}) {
   if (!el) return null;
   try {
     const module = await import(
-      options.interactive ? "./lab-scene.js" : "./scene.js"
+      options.foundation
+        ? "./foundation-scene.js"
+        : options.interactive
+          ? "./lab-scene.js"
+          : "./scene.js"
     );
     if (version !== generation || !el.isConnected) return null;
     const scene = module.mountScene(el, options);
@@ -168,7 +172,7 @@ function intro(title, description, label = "EXPLORE AT YOUR OWN PACE") {
   return `<section class="intro"><div><p class="eyebrow">${label}</p><h1>${title}</h1><p>${description}</p></div><span class="number">NETWORK · PYTHON · DEVELOPMENT · AI</span></section>`;
 }
 function card(l) {
-  return `<a class="card ${progress[l.id] ? "done" : ""}" href="#lesson/${l.id}"><div class="card-visual" data-card-scene="${l.visual}"><span class="label">${l.tag}</span><span class="lab-badge">${l.track === "python" ? "LIVE PYTHON" : l.conceptLab ? "CONCEPT LAB" : "3D INTERACTIVE"}</span></div><div class="card-body"><h3>${l.title}</h3><p>${l.subtitle}</p><div class="card-meta"><span>${l.time} นาที · ${l.track === "python" ? "เขียนและรันโค้ด" : "ทดลองได้ทันที"}</span><span class="${progress[l.id] ? "complete-badge" : "go"}">${progress[l.id] ? "✓ ผ่านแล้ว" : "เปิดบทเรียน ↗"}</span></div></div></a>`;
+  return `<a class="card ${progress[l.id] ? "done" : ""}" href="#lesson/${l.id}"><div class="card-visual" data-card-scene="${l.visual}"><span class="label">${l.tag}</span><span class="lab-badge">${l.track === "python" ? "LIVE PYTHON" : l.conceptLab && l.section !== "foundation" ? "CONCEPT LAB" : "3D INTERACTIVE"}</span></div><div class="card-body"><h3>${l.title}</h3><p>${l.subtitle}</p><div class="card-meta"><span>${l.time} นาที · ${l.track === "python" ? "เขียนและรันโค้ด" : "ทดลองได้ทันที"}</span><span class="${progress[l.id] ? "complete-badge" : "go"}">${progress[l.id] ? "✓ ผ่านแล้ว" : "เปิดบทเรียน ↗"}</span></div></div></a>`;
 }
 function renderExplore() {
   main.className = "";
@@ -312,8 +316,14 @@ function renderLesson(id) {
     feedback.textContent = l.hint;
   });
   if (l.track === "python") initPython(l);
-  else if (l.conceptLab) initConcept(l, () => complete(l.id));
-  else initNetwork(l);
+  else if (l.conceptLab) {
+    initConcept(l, () => complete(l.id));
+    if (l.section === "foundation")
+      addScene(document.querySelector("#foundation-scene"), {
+        foundation: true,
+        variant: l.id,
+      });
+  } else initNetwork(l);
 }
 
 function inputLines(value) {

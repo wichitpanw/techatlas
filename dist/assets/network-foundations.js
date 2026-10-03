@@ -1551,6 +1551,20 @@ export const orderedSections = [
 ];
 export function arrangeNetwork(original) {
   const all = [...original, ...foundationLessons];
+  const devices = all.find((l) => l.id === "devices");
+  if (devices.states.length === 4)
+    devices.states.push(
+      state(
+        "ส่งสัญญาณผ่าน Hub",
+        "HUB / PHYSICAL REPEATER",
+        [
+          ["ข้อมูลที่ใช้", "สัญญาณ ไม่อ่าน MAC table"],
+          ["พอร์ตอื่น", "ทำซ้ำสัญญาณออกพอร์ตอื่น"],
+          ["Collision domain", "แชร์ร่วมกันตาม Ethernet Hub แบบดั้งเดิม"],
+        ],
+        "Hub ไม่เลือกพอร์ตตาม destination MAC",
+      ),
+    );
   const order = {
     foundation: [
       "computer-os",
