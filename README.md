@@ -1,14 +1,15 @@
 # TechAtlas
 
-เว็บไซต์ห้องทดลองภาษาไทยสำหรับคนเริ่มต้นในบริษัทโทรคมนาคม เส้นทาง Network → Python → JavaScript → TypeScript/Node.js → AI
+เว็บไซต์ห้องทดลองภาษาไทย แยก Network และ Python เป็นหลักสูตรอิสระ โดย Warapon Wichitpan
 
 ## รุ่นแรก
 
-- Network 6 บท พร้อมฉากอุปกรณ์ 3 มิติ หมุน/ซูม ส่ง Packet แก้ Gateway ทดลอง DNS/Protocol และแบ่ง Subnet
-- Python 6 บท รันโค้ดจริงด้วย Pyodide ใน Web Worker แสดง error และหยุดโปรแกรมที่เกิน 8 วินาที
-- Explore, เส้นทางการเรียน, โปรเจกต์สะสม, พจนานุกรมศัพท์ และความคืบหน้าผ่าน localStorage
+- Network 46 บท: เฟส 0, Switching, IPv4/VLSM/ARP/ICMP, Transport, IPv6, Routing/OSPF/HSRP, Services, Security, Wireless, Automation และ MPLS
+- 3D มี floating IP, topology แยกสำหรับ DNS/VLAN/L2/L3/MPLS และข้อมูลแต่ละ hop; Concept labs เปรียบเทียบสถานการณ์ มีเครื่องมือบิต, OSI stack, Encapsulation, STP, OSPF, VLSM และ DHCP
+- Python 28 บท อิงเอกสารใน docs รันจริงด้วย Pyodide มี input(), editable modules, แบบฝึกท้ายบท 6 ข้อ และตรวจหลายชุดข้อมูล
+- Explore, เส้นทางอิสระ, แบบฝึกหัด, Credits, พจนานุกรมศัพท์ และความคืบหน้า/draft ผ่าน localStorage
 - ข้อมูลอุปกรณ์ทั้งหมดเป็นข้อมูลสมมติ ไม่มีระบบบัญชีหรือการเชื่อมต่อบริษัท
-- Python สำหรับข้อมูล, JavaScript, TypeScript, Node.js และ AI แสดงเป็นเส้นทางระยะถัดไป ไม่ได้เป็นบทเรียนที่เปิดใช้งานในรุ่นนี้
+- JavaScript, TypeScript, Node.js และ AI เป็นหมวดระยะถัดไป ยังไม่เปิดบทเรียน
 
 ## เปิดในเครื่อง
 
@@ -24,10 +25,17 @@ Three.js 0.180.0, Pyodide 0.27.7 และ font โหลดจาก CDN จึ
 
 ## โครงสร้าง
 
-- `dist/assets/app.js`: บทเรียน UI การทดลอง และความคืบหน้า
+- `dist/assets/main.js`: UI routes, การทดลอง และความคืบหน้า
+- `dist/assets/network-foundations.js`: ลำดับเฟสและสถานการณ์ Network
+- `dist/assets/network-concepts.js`: Concept labs และแผนภาพเชิงกลไก
+- `dist/assets/network-curriculum.js`: Network 3D labs และ forwarding logic
+- `dist/assets/python-curriculum.js`: หลักสูตรและแบบฝึก Python
+- `dist/assets/lab-scene.js`: Topology, ป้าย IP และ packet metadata ของ 3D labs
 - `dist/assets/scene.js`: ฉาก Three.js ของ Client, Switch, Router และ Server
 - `dist/assets/python-worker.js`: runtime Python และ scope ใหม่สำหรับแต่ละรอบ
 
 ## ตรวจรับ
 
 ตรวจ Network ทั้ง Gateway ผิด/ถูก, DNS ไม่มีชื่อ, Protocol/Port ไม่ตรง, การส่งใน LAN และช่วง subnet /24 /25 /26 ตรวจ Python ทั้งโค้ดถูก, syntax error, ข้อมูลว่าง, key ที่หาย และ infinite loop ตรวจ progress หลัง reload, filter/search, glossary, navigation และ responsive layout
+
+`node tests/curriculum.mjs` ตรวจ 46 บท Network, forwarding cases และ Python 54 solution/input cases ด้วย CPython ควบคู่กับการตรวจ Pyodide ในเบราว์เซอร์
