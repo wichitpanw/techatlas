@@ -1,5 +1,13 @@
 // Version date describes this content edition, not a generated page-view date.
 export const updates=[
+  {date:'2026-10-04',version:'2026.10.04.5',title:'Network: ภาพตรงกลไก และทดลองโปรโตคอลได้ลึกขึ้น',items:[
+    {lesson:'dhcp',name:'DHCP: DORA และ Lease',detail:'เพิ่ม T1/T2, renewal/rebinding, expiry/NAK และป้าย IP ตามสถานะ Client พร้อมปรับเวลาและคำตอบ Server'},
+    {lesson:'tcp-handshake',name:'TCP Byte stream',detail:'เพิ่มข้อมูลหาย/สลับลำดับ, cumulative ACK, buffer, window และ FIN/RST พร้อมอ่าน seq/ack จริงตามแบบจำลอง'},
+    {lesson:'dns',name:'DNS hierarchy และ Cache',detail:'Root/TLD referral, authoritative answer, A/AAAA/CNAME และแยก NXDOMAIN/SERVFAIL/timeout; เพิ่ม negative cache ในบท Cache'},
+    {lesson:'mtu-pmtud',name:'MTU / MSS / PMTUD',detail:'บทใหม่หลัง TCP เทียบขนาด IP packet กับ link MTU ใน 3D แล้วดู ICMP/ส่งใหม่/black hole ทั้ง IPv4 และ IPv6'},
+    {lesson:'hsrp',name:'ภาพและศัพท์ที่ตรงบริบท',detail:'แก้ R1 Active/Unavailable และความหมาย Priority แยก HSRP/STP/QoS'},
+    {lesson:'cloud-hybrid',name:'Cloud และ Internet',detail:'แก้นิยาม public subnet, ภาพ CIDR overlap/on-link ARP และไม่แสดง TCP/TLS พร้อมเมื่อ uplink เสีย; แยก NAT กับ proxy และ Load balancer L4/L7'},
+  ]},
   {date:'2026-10-04',version:'2026.10.04.4',title:'Python ต่อจากพื้นฐาน และปรับตัวนับเข้าชม',items:[
     {lesson:'comprehension',name:'Python ต่อยอด 13 บท',detail:'เพิ่ม Bitwise, Comprehension, zip/Search, Arguments/Scope, Iterator/Generator, OOP, Files, CSV/JSON และ Sorting พร้อมภารกิจและภาพจากการรันจริง'},
     {lesson:'class-object',name:'OOP และข้อมูลของ Object',detail:'ทดลอง self/__init__, ข้อมูลแยกแต่ละ instance, classmethod และ inheritance ดูค่าที่อ่านจริงและ call stack'},

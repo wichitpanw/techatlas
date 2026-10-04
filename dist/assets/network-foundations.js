@@ -1,6 +1,7 @@
 import {qualityLessons} from './network-quality.js';
 import {telecomLessons} from './telecom-labs.js';
 import {serviceLessons} from './service-tools.js';
+import {coreLessons,coreOverrides} from './network-core-lessons.js';
 // Every state is an explicit educational example; no commands touch a real device.
 const state = (label, headline, rows, detail, ok = true) => ({
   label,
@@ -1631,7 +1632,7 @@ export const foundationLessons = [
     "proxy-lb",
     "services",
     "Proxy, Reverse Proxy และ Load Balancer",
-    "ทั้งสามเป็นตัวกลางระดับ application แต่ทำหน้าที่ต่างกัน Forward proxy เป็นตัวแทนฝั่ง Client: Client ตั้งค่าให้ส่งคำขอผ่าน proxy และ Server ปลายทางเห็น IP ของ proxy Reverse proxy เป็นตัวแทนฝั่ง Server: Client เห็นเพียงที่อยู่เดียว (VIP) แต่ข้างหลังอาจมีหลายเครื่อง Load balancer กระจายคำขอไปยังกลุ่ม server และใช้ health check ตัดเครื่องที่ไม่พร้อมออกจาก pool Load balancer จำนวนมากทำหน้าที่ reverse proxy ด้วย Proxy ต่างจาก VPN: proxy ส่งต่อเฉพาะ application ที่ตั้งค่าไว้ ส่วน VPN สร้าง tunnel ระดับเครือข่ายตามนโยบาย อัลกอริทึม round robin ในบทนี้เป็นตัวอย่างหนึ่ง ไม่ใช่ทุกผลิตภัณฑ์",
+    "Forward proxy เป็นตัวแทนฝั่ง Client ส่วน Reverse proxy รับแทนฝั่ง Server บทนี้จำลองตัวกลางระดับ application (L7) ที่จบ connection แล้วเปิด connection ใหม่ไป backend Load balancer กระจาย traffic ไปยังกลุ่ม server และใช้ health check เลือกเครื่องที่พร้อม มีทั้งแบบ L4 ที่เลือกจากข้อมูล transport และแบบ L7 ที่อ่าน application request ไม่ใช่ทุกแบบเป็น L7 หรือจบ TLS Proxy ต่างจาก VPN ซึ่งสร้าง tunnel ตามนโยบาย อัลกอริทึม round robin ในบทนี้เป็นตัวอย่าง ไม่ใช่กฎของทุกผลิตภัณฑ์",
     [
       state(
         "Forward proxy",
@@ -1810,7 +1811,7 @@ export const foundationLessons = [
     "cloud-vpc",
     "cloud",
     "Cloud VPC: Subnet, Route Table และ Gateway",
-    "Virtual private cloud (VPC) คือเครือข่ายเสมือนที่กำหนดช่วง CIDR เอง แบ่งเป็น subnet และใช้ route table กำหนดว่า traffic ไปทางใด Subnet ที่มี route 0.0.0.0/0 ไป Internet gateway และ instance มี public IP เรียกว่า public subnet ส่วน private subnet ออก Internet ผ่าน NAT gateway ได้แต่ Internet เริ่มเชื่อมต่อเข้ามาโดยตรงไม่ได้ Security group/firewall rule ควบคุมการเข้าออกอีกชั้นหนึ่ง ชื่อบริการต่างกันตาม provider (AWS, Google Cloud, Azure) บทนี้ใช้ศัพท์กลางและเป็นแบบจำลอง",
+    "Virtual private cloud (VPC) คือเครือข่ายเสมือนที่กำหนด CIDR และ route table บทนี้ใช้แบบจำลอง AWS-style: public subnet มี route ตรงไป Internet gateway ไม่ได้ตัดสินจากการมี public IP ของทุก instance สำหรับ instance ติดต่อ Internet แบบ IPv4 ผ่าน IGW ต้องมี public IPv4 mapping และกฎอนุญาตด้วย private subnet ไม่มี route ตรงไป IGW; ตัวอย่างนี้ใช้ NAT gateway สำหรับขาออก การมี NAT ไม่อนุญาตให้ Internet เริ่ม connection เข้า VM โดยอัตโนมัติ รูปแบบ gateway/security ของ cloud อื่นอาจต่างกัน",
     [
       state(
         "Public subnet",
@@ -1843,6 +1844,13 @@ export const foundationLessons = [
         "ตรวจ route table ก่อนสรุปว่า VM มีปัญหา",
         false,
       ),
+      state(
+        "Public subnet แต่ VM ไม่มี Public IPv4",
+        "ROUTE ไป IGW มี แต่ PUBLIC MAPPING ไม่มี",
+        [["Subnet type", "Public (ตาม route)"], ["VM", "10.0.1.10 เท่านั้น"], ["ผล", "IPv4 ผ่าน IGW ตรง ๆ ไม่ได้"]],
+        "มี route ไป IGW ไม่ได้รับประกันว่า VM ติดต่อ Internet ได้ ต้องแยก address mapping กับ rules",
+        false,
+      ),
     ],
     "VM ใน private subnet ต้องการดาวน์โหลดแพตช์จาก Internet แต่ไม่ต้องการให้ Internet เข้ามาโดยตรง ควรให้ route 0.0.0.0/0 ชี้ไปที่ใด?",
     ["NAT gateway", "Subnet เดียวกันเท่านั้น", "Load balancer ฝั่ง Client"],
@@ -1854,7 +1862,7 @@ export const foundationLessons = [
     "cloud-hybrid",
     "cloud",
     "Hybrid Cloud และ Hub-and-Spoke",
-    "การเชื่อม on-premises เข้า Cloud ทำได้ด้วย site-to-site VPN บน Internet หรือ dedicated connection จาก provider ทั้งสองแบบต้องวางแผน CIDR ไม่ให้ซ้อนกัน เพราะ Router แยกไม่ได้ว่าปลายทางอยู่ฝั่งไหน และต้องมี route ทั้งสองทิศทาง ในแบบ hub-and-spoke แต่ละ spoke เชื่อมกับ hub ที่เก็บบริการร่วมหรือ firewall แต่หลาย provider ไม่ให้ peering ส่งต่อผ่านตัวกลาง (non-transitive) จึงไม่ได้แปลว่า spoke A คุยกับ spoke B ได้เอง ต้องมี router กลางหรือบริการ transit ตามที่ provider รองรับ ตัวอย่างเป็นแบบจำลองและไม่แสดงราคาหรือคุณสมบัติเฉพาะผลิตภัณฑ์",
+    "การเชื่อม on-premises เข้า Cloud ทำได้ด้วย site-to-site VPN หรือ dedicated connection ต้องตรวจ CIDR และ route ทั้งสองทิศทาง หากช่วง IP ซ้อน Host อาจคิดว่าปลายทางอยู่บน link ของตน จึง ARP หาใน LAN แทนส่งเข้า tunnel Router ไม่ได้หยุดเลือก route: local/connected route หรือ policy อาจเลือกคนละเครือข่ายกับที่เราต้องการ บริการบางแบบ เช่น AWS VPC peering ปฏิเสธ CIDR overlap ตั้งแต่สร้าง connection ส่วน hub-and-spoke ต้องมี routing/transit และนโยบายจริง ไม่ใช่ peering แล้วส่งข้าม spoke ได้อัตโนมัติ",
     [
       state(
         "On-prem → Cloud ผ่าน VPN",
@@ -1872,7 +1880,7 @@ export const foundationLessons = [
         [
           ["On-prem", "10.0.0.0/16"],
           ["Cloud VPC", "10.0.0.0/16"],
-          ["ปัญหา", "ไม่รู้ว่า 10.0.0.20 อยู่ฝั่งไหน"],
+          ["ปัญหา", "Host ถือว่า 10.0.0.20 อยู่ on-link จึงไม่ส่งผ่าน VPN"],
         ],
         "ต้องวางแผน CIDR ก่อนเชื่อมต่อ",
         false,
@@ -1889,9 +1897,9 @@ export const foundationLessons = [
       ),
     ],
     "On-prem และ VPC ใช้ 10.0.0.0/16 เหมือนกัน แล้วเชื่อมกันด้วย VPN จะมีปัญหาอะไร?",
-    ["CIDR ซ้อนกัน route ระบุปลายทางไม่ชัดเจน", "VPN เข้ารหัสไม่ได้", "ต้องเปลี่ยน DNS TTL"],
+    ["CIDR ซ้อน: Host อาจเลือก On-link LAN แทน Cloud", "VPN เข้ารหัสไม่ได้", "ต้องเปลี่ยน DNS TTL"],
     0,
-    "ช่วง IP ที่ซ้อนกันทำให้ Router ตัดสินใจเส้นทางไม่ได้อย่างถูกต้อง",
+    "Host/route lookup ยังตัดสินใจได้ แต่เลือก local path แทน remote network ที่ตั้งใจเชื่อม",
     "https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html",
   ),
 ];
@@ -1922,7 +1930,7 @@ export const orderedSections = [
     title:section.title.replace(/^เฟส \d+(?:\.\d+)?/,number?`เฟส ${phase} · ขั้นที่ ${number}`:`เฟส ${phase}`)};
 });
 export function arrangeNetwork(original) {
-  const all = [...original, ...foundationLessons, ...qualityLessons, ...serviceLessons, ...telecomLessons];
+  const all = [...original, ...foundationLessons, ...qualityLessons, ...serviceLessons, ...telecomLessons, ...coreLessons].map(l=>({...l,...coreOverrides[l.id]}));
   const devices = all.find((l) => l.id === "devices");
   if (devices.states.length === 4)
     devices.states.push(
@@ -1952,7 +1960,7 @@ export function arrangeNetwork(original) {
     vlan: ["vlan"],
     "switching-advanced": ["stp", "etherchannel"],
     "subnet-planning": ["vlsm"],
-    transport: ["protocols", "tcp-handshake", "https", "network-quality", "video-buffer", "qos-queues", "rate-control"],
+    transport: ["protocols", "tcp-handshake", "mtu-pmtud", "https", "network-quality", "video-buffer", "qos-queues", "rate-control"],
     ipv6: ["ipv6-address", "slaac"],
     routing: ["layer3", "static-routing", "inter-vlan", "ospf", "hsrp"],
     services: ["dns", "dns-cache", "mail", "nat-pat", "proxy-lb", "monitoring"],

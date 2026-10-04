@@ -6,12 +6,12 @@
 
 ## Production
 
-- https://techatlas-aoh.pages.dev · release 2026.10.04.4 · immutable https://609c43c4.techatlas-aoh.pages.dev
-- Network **63** / Python **48** บท / พจนานุกรม **285** รายการ
+- https://techatlas-aoh.pages.dev · release 2026.10.04.5 · immutable https://1add9443.techatlas-aoh.pages.dev
+- Network **64** / Python **48** บท / พจนานุกรม **320** รายการ
 - Internet เหลือบทเดียว ฉากใหม่ 13 จุด เป็นบทสุดท้ายเฟส 4 หลัง Cloud; #lesson/packet ส่งต่อ #lesson/internet และรักษาความคืบหน้า
 - ลำดับร่วม Explore/Path/ก่อน–ถัดไป: เฟส 0 → เฟส 1 ขั้น 01–14 → เฟส 2 WAN/Provider/MPLS → เฟส 3 Cloud → เฟส 4 Internet
 - Telecom แผนสิบชุดส่งมอบในขอบเขตแบบจำลองแล้ว: CLI/evidence, troubleshooting/repair/retest/rollback, FTTH, subscriber, quality, QoS/video/token bucket, enterprise, BGP, CGNAT/IPv6, NOC
-- Network 61 บทมีภาพ 3D; VLSM/IPv6 addressing ใช้เครื่องมือ 2D เพื่อคำนวณตามข้อยกเว้น ไม่จำลองระบบบริษัทจริง
+- Network 62 บทมีภาพ 3D; VLSM/IPv6 addressing ใช้เครื่องมือ 2D เพื่อคำนวณตามข้อยกเว้น ไม่จำลองระบบบริษัทจริง
 - Python รันจริง Pyodide Worker; Tab/Shift+Tab, trace highlight และจอผลลัพธ์อ่านชัด
 - Programming/AI คงการ์ด 03/04 กำลังเตรียมบทเรียน ปิด route และไม่รวม draft assets ใน release
 - Feedback เตรียม mailto/คัดลอก ไม่มี backend ticket หรืออัปโหลดรูป
@@ -46,7 +46,7 @@
 
 ## Git/Deploy
 
-- private repo https://github.com/wichitpanw/techatlas · origin/main · baseline e3dac69 commit/push สำเร็จ
+- private repo https://github.com/wichitpanw/techatlas · origin/main · baseline ก่อน Network .5 คือ 243d5eb; ดู commit ล่าสุดจาก Git log
 - GitHub CLI บัญชี wichitpanw credentials อยู่นอก repo ห้ามพิมพ์ token
 - Pages techatlas Git Provider = No ตามการตรวจรอบ push 2026-10-04 จึง deploy แยกจาก Git
 - รอบนี้ผู้ใช้อนุมัติแล้ว; รอบถัดไปต้องขออนุมัติใหม่ก่อน commit/push/deploy
@@ -63,7 +63,27 @@
 - CLOUDFLARE-FREEPLAN.md เป็น quota/snapshot รอบก่อน ไม่ใช่ account usage ปัจจุบัน
 - เรียบเรียงอ้างอิงใหม่ ไม่เผยแพร่ PDF/ebook ไม่รับประกันสิทธิ์จากการให้เครดิตอย่างเดียว
 
+## รายละเอียดรุ่น 2026.10.04.5 · เผยแพร่แล้ว
+
+- ผู้ใช้อนุมัติ deploy ด้วยข้อความ “อนุมัติ” หลังสรุปงาน; deploy Cloudflare Pages สำเร็จ 2026-10-04 จากนั้นอนุมัติ commit/push แยกด้วยข้อความ “commit push เลย” ขอบเขต Network .5, tests และเอกสาร ใช้ข้อความ commit `Improve network core lessons and interactive models` ไม่ deploy ซ้ำในรอบ Git
+- Network **64** / Python **48** บท / glossary **320** รายการ; Network มี 3D 62 บท อีกสองบทคงเครื่องมือคำนวณ 2D ตามเหตุผลเดิม
+- แก้ HSRP normal/failover labels และ Priority ตามบริบท; AWS-style public subnet ขึ้นกับ route ไม่ใช่ instance มี public IP; overlap ให้เห็น host เลือก on-link/ARP; uplink เสียไม่แสดง TCP/TLS พร้อม; NAT และ L4/L7 LB ไม่เหมารวม
+- DHCP บทเดิมเพิ่ม DORA ผ่าน relay, T1/T2, renewal/rebinding, expiry/NAK; TCP บทเดิมเพิ่ม sequence/ACK, out-of-order buffer, retransmission, window, FIN/RST พร้อมกล่องช่วง byte ใน 3D แยกยังไม่พร้อม/รอช่องว่าง/พร้อมอ่าน
+- DNS บทเดิมเพิ่ม resolver→Root→TLD→authoritative และ cache/errors/AAAA/CNAME/PTR; DNS Cache เพิ่ม elapsed/TTL/negative cache; หมายเลข server/address เป็นข้อมูลจำลอง ไม่ถาม DNS จริง
+- เพิ่ม MTU/MSS/PMTUD หลัง TCP ก่อน HTTPS พร้อม 3D byte ruler/MTU boundary, IPv4 DF/IPv6 Packet Too Big และ ICMP filtered black hole; สมมติ first-hop LAN MTU1600, TCP/IP header ไม่มี options ไม่จำลอง PLPMTUD หรือ tunnel overhead ทุกแบบ
+- core lessons ใช้ IDs เดิมรักษา progress; ต้องเดินอย่างน้อยสองสถานการณ์จนจบก่อน quiz ผ่าน ไม่ผ่านจากคลิกเปลี่ยน tab อย่างเดียว มีโจทย์/คำศัพท์/guide ใหม่
+- tests/network-core.mjs ผ่าน: 36 scenarios ที่แก้/เพิ่ม, 75 TCP window/fault combinations, 80 MTU combinations, DHCP/DNS boundaries และ regression A1–A7/order/glossary
+- Browser tests/network-review-20261004.html แบบ ids ตรวจเฉพาะ 11 บทที่แก้: canvas/play/pause/reset/scenario/steps ผ่าน ไม่มี horizontal overflow ที่ iframe1150px; ไม่ตรวจบทที่ไม่ได้แก้ซ้ำ
+- Browser tests/network-core-ui.html ตรวจ 5 core lessons ผ่าน: quiz gate, two completed scenarios, custom input/evidence และ MTU invalid bounds; TCP รอบแรก assertion ใช้ข้อความเก่า rwnd=0 แทน Receive window=0 จึงแก้ diagnostic และตรวจเฉพาะ TCP ใหม่ผ่าน รวมตรวจ 3D buffer ก่อนเติมช่องว่าง delivered0/buffer100 และหลังเติม delivered200
+- ตรวจภาพ MTU และ TCP byte buffer ด้วยสายตา เก็บภาพ /tmp/techatlas-mtu-20261004.png และ /tmp/techatlas-tcp-20261004.png; แก้ป้าย sidebar core ให้เป็นขั้นการทดลองทั่วไป ไม่ค้างชื่อสถานการณ์แรกเมื่อเลือกกรณีอื่น; ไม่อ้างว่าทุกมุมกล้อง/ทุกจอมือถือผ่าน
+- clean release `/tmp/techatlas-release-6vStRI/dist` ตัด AI/Programming draft แล้ว deploy ด้วย Wrangler4.147.0 ไป Pages techatlas branch main; ไม่ทำ D1 migration หรือเปลี่ยน config/แพ็กเกจ
+- หลัง deploy ตรวจเว็บหลักแบบ read-only: homepage HTTP200; updates.js, network-core-lessons.js, network-core-models.js, network-mechanism-scene.js, network-foundations.js และ lesson-terms.js HTTP200 และเนื้อหา byte-for-byte ตรง clean release; GET /api/visits HTTP200 ตอบ total/metric ไม่สร้างเซสชันทดสอบใน Production
+- รอบ audit ถัดไป Monitoring/FTTH/Wireless และ Provider advanced ยังอยู่ Planned ไม่อ้างว่าหลักสูตรครบมาตรฐานทั้งหมด
+
 ## Planned
+
+- Network expert audit baseline .4: 63 หน้า / 146 curriculum states / 121 mechanism scenario builds รายละเอียด `NETWORK-EXPERT-AUDIT-2026-10-04.md`; A1–A7 และกลุ่ม DHCP/TCP/DNS/MTU เผยแพร่ใน .5 แล้ว รอบ Monitoring/FTTH/Wireless และ Provider advanced ยังไม่ทำ
+- Diagnostic ใหม่ `tests/network-review-20261004.html`: rendering/controls ของ 63 หน้า ตรวจ iframe 1150px; เครื่องมือรอบแรกมี pause false-positive เมื่อจบอัตโนมัติ แก้ diagnostic และตรวจเฉพาะ 14 หน้าเดิมผ่าน ไม่อ้างว่าทุกมุมกล้อง/มือถือผ่าน ชุด network-quality มี order assertion เก่าที่ต้องปรับตาม curriculum ก่อนใช้เป็น gate
 
 - Python Decorators/abstract classes/NumPy และ runtime server/socket/database ยังไม่ทำ
 - Programming JavaScript → TypeScript → Node.js; AI Neural Network → NLP/LLM/RAG/Tool calling ยังพัก

@@ -1,0 +1,47 @@
+<!doctype html><meta charset="utf-8"><title>Network review 2026-10-04</title>
+<h1>Network review · selected local lesson pages</h1><p>Diagnostic only: no production mutation. Checks rendering and controls, not protocol correctness by itself. The ids query selects the current review scope.</p>
+<button id="run">ตรวจทุกบท</button><pre id="report"></pre><iframe id="app" style="width:1150px;height:900px;border:0"></iframe>
+<script type="module">
+import {networkLessons} from '../dist/assets/network-curriculum.js';
+import {arrangeNetwork} from '../dist/assets/network-foundations.js';
+const frame=document.querySelector('#app'),report=document.querySelector('#report'),sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function until(f,ms=18000){const start=Date.now();while(!f()){if(Date.now()-start>ms)throw Error('timeout');await sleep(40);}}
+const results=[];
+document.querySelector('#run').onclick=async()=>{report.textContent='RUNNING\n';document.querySelector('#run').disabled=true;
+for(const lesson of arrangeNetwork(networkLessons).filter(l=>!new URLSearchParams(location.search).has('ids')||new URLSearchParams(location.search).get('ids').split(',').includes(l.id))){
+ const r={id:lesson.id,states:0,steps:0,canvas:false,playback:false};
+ try{
+ frame.src='../dist/?review=20261004#lesson/'+lesson.id;
+ await until(()=>frame.contentDocument?.querySelector('h1')?.textContent===lesson.title);
+ const d=frame.contentDocument;
+ await until(()=>d.querySelector('canvas')||d.querySelector('.no-webgl')||['vlsm','ipv6-address'].includes(lesson.id));
+ r.canvas=!!d.querySelector('canvas');
+ if(d.querySelector('.mechanism-error')?.textContent)throw Error(d.querySelector('.mechanism-error').textContent);
+ const tabs=[...d.querySelectorAll('button[data-state]')];
+ for(let i=0;i<tabs.length;i++){
+   d.querySelector(`button[data-state="${i}"]`).click();r.states++;
+   const steps=[...d.querySelectorAll('[data-mechanism-step]')];
+   for(let k=0;k<steps.length;k++){d.querySelector(`[data-mechanism-step="${k}"]`).click();r.steps++;if(!d.querySelector('.mechanism-evidence h3')?.textContent)throw Error('missing evidence');}
+ }
+ const ranges=[...d.querySelectorAll('input[type=range]')];
+ for(const range of ranges){range.value=range.max;range.dispatchEvent(new Event('input',{bubbles:true}));r.steps++;}
+ const play=d.querySelector('[data-mechanism-action=play],[data-internet=play],[data-osi-action=play],[data-play],[data-service-play]');
+ const range=d.querySelector('.mechanism-controls input[type=range],.internet-controls input[type=range],#osi-step');
+ const reset=d.querySelector('[data-mechanism-action=reset],[data-internet=reset],[data-osi-action=reset],[data-reset],[data-service-reset]');
+ if(play&&range){reset?.click();const start=Number(range.value);play.click();await until(()=>Number(range.value)>start,5000);if(Number(range.value)<Number(range.max))play.click();const stopped=range.value;await sleep(1500);if(range.value!==stopped)throw Error('pause failed');reset?.click();if(reset&&Number(range.value)!==0)throw Error('reset failed');r.playback=true;}
+ if(d.querySelector('#send-packet')){d.querySelector('#send-packet').click();await until(()=>!d.querySelector('#send-packet').disabled);r.playback=true;}
+ if(d.querySelector('.repair-lab'))for(const fault of ['vlan','route','uplink']){
+  const choice=d.querySelector('[data-repair-case]');choice.value=fault;choice.dispatchEvent(new Event('change',{bubbles:true}));
+  d.querySelector('[data-repair-test]').click();d.querySelector(`[data-probe="${fault==='uplink'?'link':fault}"]`).click();d.querySelector(`[data-fix="${fault}"]`).click();d.querySelector('[data-repair-test]').click();
+  if(!d.querySelector('[data-repair-status]').textContent.includes('Reply'))throw Error('repair failed '+fault);
+  d.querySelector('[data-rollback]').click();d.querySelector('[data-repair-test]').click();if(!d.querySelector('[data-repair-status]').textContent.includes('No reply'))throw Error('rollback failed');r.states++;
+ }
+ r.overflow=d.documentElement.scrollWidth>d.documentElement.clientWidth+2;
+ if(d.querySelector('.mechanism-error')?.textContent)throw Error(d.querySelector('.mechanism-error').textContent);
+ r.status='PASS';
+ }catch(e){r.status='FAIL';r.error=e.message;}
+ results.push(r);report.textContent+=JSON.stringify(r)+'\n';
+}
+report.textContent+='DONE '+results.length+' pages; failures '+results.filter(r=>r.status==='FAIL').length;document.querySelector('#run').disabled=false;
+};
+</script>

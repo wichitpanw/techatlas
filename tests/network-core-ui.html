@@ -1,0 +1,36 @@
+<!doctype html><meta charset="utf-8"><title>Network core UI verification</title>
+<h1>Core sandbox and quiz checks · local only</h1><button id="run">ตรวจ 5 บทที่ปรับ</button><pre id="report"></pre><iframe id="app" style="width:1150px;height:900px;border:0"></iframe>
+<script type="module">
+import {networkLessons} from '../dist/assets/network-curriculum.js';
+import {arrangeNetwork} from '../dist/assets/network-foundations.js';
+const lessons=arrangeNetwork(networkLessons),frame=document.querySelector('#app'),report=document.querySelector('#report');
+const sleep=ms=>new Promise(r=>setTimeout(r,ms)),assert=(v,m)=>{if(!v)throw Error(m)};
+async function until(f){const start=Date.now();while(!f()){if(Date.now()-start>20000)throw Error('timeout');await sleep(50);}}
+const cases=[['dhcp',{phase:'lease',elapsed:'800',response:'silent'},'INIT'],['tcp-handshake',{flow:'data',rwnd:'0',fault:'none'},'Receive window = 0'],['dns',{mode:'reverse'},'PTR'],['dns-cache',{elapsed:'120'},'203.0.113.81'],['mtu-pmtud',{icmp:'no',payload:'1460'},'Black hole']].filter(([id])=>!new URLSearchParams(location.search).has('ids')||new URLSearchParams(location.search).get('ids').split(',').includes(id));
+document.querySelector('#run').onclick=async()=>{
+ report.textContent='RUNNING\n';document.querySelector('#run').disabled=true;let failures=0;
+ for(const [id,params,expected] of cases){try{
+  const lesson=lessons.find(l=>l.id===id);frame.src='../dist/?core-ui=5#lesson/'+id;
+  await until(()=>frame.contentDocument?.querySelector('h1')?.textContent===lesson.title&&frame.contentDocument?.querySelector('canvas'));
+  const d=frame.contentDocument,root=d.querySelector('.mechanism-lab');
+  d.querySelector(`[data-answer="${lesson.answer}"]`).click();assert(d.querySelector('#feedback').textContent.includes('ขั้นสุดท้าย'),'quiz gate missing');
+  for(const s of [0,1]){d.querySelector(`[data-state="${s}"]`).click();const steps=d.querySelectorAll('[data-mechanism-step]');steps[steps.length-1].click();}
+  assert(root.dataset.observationReady==='true','observations missing');
+  d.querySelector(`[data-answer="${lesson.answer}"]`).click();assert(d.querySelector('#feedback').textContent.includes('ผ่านภารกิจ'),'quiz did not pass');
+  if(id==='tcp-handshake'){
+   d.querySelector('[data-state="4"]').click();let sawBuffered=false;
+   for(let i=0;i<d.querySelectorAll('[data-mechanism-step]').length;i++){d.querySelector(`[data-mechanism-step="${i}"]`).click();if(d.querySelector('canvas').dataset.bufferedBytes==='100'){sawBuffered=true;assert(d.querySelector('canvas').dataset.deliveredBytes==='0','gap incorrectly delivered');}}
+   assert(sawBuffered,'3D out-of-order buffer missing');assert(d.querySelector('canvas').dataset.deliveredBytes==='200','3D delivery missing');
+  }
+  d.querySelector('[data-state="0"]').click();const form=d.querySelector('.mechanism-inputs');
+  for(const [key,value] of Object.entries(params))form.elements.namedItem(key).value=value;
+  form.requestSubmit();assert(!d.querySelector('.mechanism-error').textContent,'custom input failed');
+  const steps=d.querySelectorAll('[data-mechanism-step]');let evidence='';
+  for(let i=0;i<steps.length;i++){d.querySelector(`[data-mechanism-step="${i}"]`).click();evidence+=d.querySelector('.mechanism-evidence').textContent;}
+  assert(evidence.toLowerCase().includes(expected.toLowerCase()),'custom result missing '+expected);
+  if(id==='mtu-pmtud'){form.elements.namedItem('mtu').value='1200';form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));assert(d.querySelector('.mechanism-error').textContent.length>0,'invalid bounds accepted');}
+  report.textContent+=id+' PASS: quiz gate, two completed scenarios, custom input, matching evidence\n';
+ }catch(e){failures++;report.textContent+=id+' FAIL '+e.message+'\n';}}
+ report.textContent+='DONE '+cases.length+' pages; failures '+failures;document.querySelector('#run').disabled=false;
+};
+</script>

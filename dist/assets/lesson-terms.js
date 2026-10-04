@@ -97,7 +97,12 @@ SSH|Secure Shell · โปรโตคอลเข้าถึง/จัดก�
 Ansible|เครื่องมือ Automation ที่สั่งจัดการระบบตามงานและ Inventory
 Terraform|เครื่องมือ Infrastructure as Code ที่จัดการ Resource ตาม Configuration/State
 FIFO|First In First Out · คิวที่นำงานเข้าก่อนออกก่อน
-Priority|ความสำคัญที่ใช้เลือกคิวตามนโยบาย; อาจทำให้คิวความสำคัญต่ำรอนาน
+Priority|ค่าความสำคัญ ความหมายและการเปรียบเทียบขึ้นกับโปรโตคอล ไม่ใช่กฎเดียวกันทุกบท
+HSRP Priority|ค่าที่ใช้ประกอบการเลือก Active Router; สูงกว่ามีความสำคัญมากกว่า การแย่งบทบาทกลับขึ้นกับ preemption และ tracking
+Bridge Priority|ส่วนหนึ่งของ Bridge ID ที่ STP ใช้เลือก Root; Bridge ID ต่ำกว่าดีกว่า มี MAC ใช้ตัดสินเมื่อค่าอื่นเท่ากัน
+Queue Priority|ความสำคัญของคิวตามนโยบาย QoS; อาจทำให้คิวสำคัญต่ำรอนาน ไม่ใช่ Priority เลือก Router
+Preemption|การอนุญาตให้ Router ที่มีความสำคัญสูงกว่ารับบท Active คืนตามการตั้งค่า ไม่ใช่สิ่งที่เปิดเหมือนกันทุกระบบ
+Tracking|ติดตามเงื่อนไข เช่น upstream reachability เพื่อนำไปปรับบทบาท/priority ตามนโยบาย
 Burst|ข้อมูลที่เข้ามามากในช่วงสั้น แม้อัตราเฉลี่ยอาจไม่สูง
 Stall|การเล่นสะดุดเพราะข้อมูลพร้อมใช้ไม่พอในช่วงนั้น
 Baseline|ค่าตั้งต้น/ผลก่อนเปลี่ยน ใช้เปรียบเทียบกับผลหลังแก้
@@ -107,6 +112,36 @@ DHCP REQUEST|Client ขอใช้ข้อเสนอ/ต่ออายุ�
 DHCP ACK|DHCP Acknowledgment · Server ยืนยันการจัดสรร IP และค่าตั้งที่ใช้ได้; ไม่ใช่ TCP ACK
 DHCP NAK|DHCP Negative Acknowledgment · Server ปฏิเสธคำขอที่ไม่เหมาะสม Client ต้องกลับไปขอค่าที่ถูกต้อง
 Lease|สิทธิ์ใช้ IP ตามระยะเวลาที่ DHCP Server กำหนด ต้องต่ออายุเมื่อถึงเวลา
+T1|เวลาเริ่ม RENEWING ของ DHCP lease; ค่าเริ่มต้น 1/2 ระยะ lease เมื่อ Server ไม่กำหนดต่าง
+T2|เวลาเริ่ม REBINDING ของ DHCP lease; ค่าเริ่มต้น 7/8 ระยะ lease เมื่อ Server ไม่กำหนดต่าง
+BOUND|สถานะ DHCP ที่ Client ได้ configuration และ lease ใช้ได้
+RENEWING|Client ต่ออายุ DHCP โดยขอ Server เดิมแบบ unicast ก่อน lease หมด
+REBINDING|Client ขอขยาย DHCP lease แบบ broadcast หลังไม่ได้คำตอบจนถึง T2
+giaddr|Gateway IP address ใน DHCP message ที่ Relay ใส่ให้ Server เลือก subnet/pool และส่งคำตอบกลับ
+ciaddr|Client IP address ใน DHCP message ขณะ Client มี configuration ใช้งานอยู่
+RTO|Retransmission Timeout · timer ที่ TCP ใช้ตัดสินส่งข้อมูลที่ยังไม่ถูก ACK ซ้ำ ไม่ใช่เวลาเดิมคงที่ทุก connection
+Receive window|พื้นที่รับข้อมูลที่ TCP receiver ประกาศ ใช้จำกัด outstanding bytes จากผู้ส่ง
+Congestion window|ขีดจำกัด outstanding bytes ฝั่ง TCP sender จาก congestion control ต่างจากพื้นที่ buffer ผู้รับ
+Cumulative ACK|TCP ACK ระบุ byte ถัดไปที่คาด ไม่ข้ามช่องว่างแม้ byte ช่วงหลังมาถึงแล้ว
+FIN|TCP flag สำหรับปิดทิศทางส่งอย่างเป็นลำดับ ใช้ sequence space 1
+RST|TCP flag ยกเลิก/ปฏิเสธ connection ต่างจากการรอ timeout
+TIME-WAIT|สถานะ TCP หลังผู้ปิดแบบ active รับ FIN และส่ง ACK สุดท้าย เพื่อจัดการ segment เก่าตาม protocol
+MSS|Maximum Segment Size · ข้อมูล TCP สูงสุดต่อ segment ตามที่ประกาศ ไม่รวม IP/TCP headers
+Path MTU|MTU ต่ำสุดตลอดเส้นทาง IP นั้น อาจต่างจาก MTU ของ LAN ต้นทาง
+PMTUD|Path MTU Discovery · ต้นทางเรียนขนาด packet ที่เส้นทางรองรับผ่าน error ที่เกี่ยวข้อง แล้วปรับขนาดส่ง
+DF|Don't Fragment · IPv4 flag ที่ห้าม router fragment packet; ถ้าเกิน MTU ต้องทิ้งและแจ้ง error ตามเงื่อนไข
+Packet Too Big|ICMPv6 error บอกว่า packet เกิน MTU ของทางออก Router IPv6 ไม่ fragment แทนต้นทาง
+Fragmentation|การแบ่ง IP packet เป็น fragments ไม่ใช่สิ่งเดียวกับ TCP segmentation
+Black hole|กรณี traffic ถูกทิ้งโดยต้นทางไม่ได้ข้อมูลที่ช่วยปรับการส่ง ไม่ได้หมายถึง router เลือก route ไม่ได้ทุกครั้ง
+Referral|คำตอบ DNS ที่ชี้ nameserver ของ zone ที่ใกล้ชื่อมากขึ้น แทนให้ IP ของบริการทันที
+Recursive resolver|ตัวรับคำถาม DNS จาก Client ที่ค้นคำตอบ/ตาม referral และจัดการ cache ตามการรองรับ
+Authoritative|DNS server ที่ตอบจากข้อมูล zone ที่รับผิดชอบ ไม่ใช่แค่คำตอบจาก cache
+TLD|Top-Level Domain เช่น .org; ใน hierarchy อยู่ถัดจาก Root
+CNAME|DNS alias จากชื่อหนึ่งไป canonical name; ต้องตาม record ที่ต้องการต่อ
+SERVFAIL|DNS response code ที่ resolver/server ทำคำขอไม่สำเร็จ ไม่ได้ยืนยันว่าไม่มีชื่อ
+Negative cache|Cache ของคำตอบเชิงลบ DNS เช่น NXDOMAIN ตามอายุที่กำหนด ไม่ใช่ cache timeout เป็นไม่มีชื่อ
+SOA|Start of Authority · DNS record ของ zone มีข้อมูลที่ใช้ประกอบ negative-cache TTL
+RCODE|DNS response code ที่บอกผล เช่น NOERROR, SERVFAIL, NXDOMAIN; timeout ยังไม่มี response ให้อ่าน RCODE
 NAT|Network Address Translation · แปลงที่อยู่ IP ตาม Mapping ไม่ใช่การเข้ารหัส
 PAT|Port Address Translation · ใช้ Port ร่วมกับ IP เพื่อแยกหลายการเชื่อมต่อที่แชร์ที่อยู่
 NTP|Network Time Protocol · ช่วยเทียบเวลาของเครื่องผ่านเครือข่าย
@@ -300,7 +335,9 @@ export function termsForLesson(lesson){
   if((e.name==='TCP ACK'&&dhcp)||(e.name.startsWith('DHCP ')&&!dhcp))return null;
   if(e.name==='ACK'&&(dhcp||/tcp/i.test(text)))return null;
   if(e.name==='NAK'&&dhcp)return null;
-  const keys=[e.name,...(aliases[e.name]||[])];let first=Infinity;
+  if(e.name==='Priority'&&['hsrp','stp','qos-queues'].includes(lesson.id))return null;
+  const contextual=e.name==='HSRP Priority'&&lesson.id==='hsrp'||e.name==='Bridge Priority'&&lesson.id==='stp'||e.name==='Queue Priority'&&lesson.id==='qos-queues';
+  const keys=[e.name,...(aliases[e.name]||[]),...(contextual?['Priority']:[])];let first=Infinity;
   for(const key of keys){const match=new RegExp(`(^|[^A-Za-z0-9_])${escapeRE(key)}(?=$|[^A-Za-z0-9_])`,'i').exec(text);if(match)first=Math.min(first,match.index);}
   return Number.isFinite(first)?{...e,first}:null;
  }).filter(Boolean).sort((a,b)=>a.first-b.first||b.name.length-a.name.length);

@@ -20,13 +20,30 @@ export function mountScene(container, {lesson, preview=false,initialModel}={}) {
     'automation-tools':['current','plan','desired'],sdn:['mgmt','control','data'],
     hsrp:['vip'],
   };
-  let model=initialModel||buildNetworkLab(lesson), stepIndex=0, meshGroup=new THREE.Group(),objects=[],links=[],messages=[],started=0;scene.add(meshGroup);
+  let model=initialModel||buildNetworkLab(lesson), stepIndex=0, meshGroup=new THREE.Group(),objects=[],links=[],messages=[],started=0,packetMeter=null,byteSlots=[];scene.add(meshGroup);
   const traffic=new THREE.Group();scene.add(traffic);
   function clearTraffic(){traffic.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});traffic.clear();for(const m of messages)m.label.remove();messages=[];}
   const positions=new Map();
   function clear(){clearTraffic();meshGroup.traverse(o=>{o.geometry?.dispose();for(const m of(Array.isArray(o.material)?o.material:[o.material])){m?.map?.dispose();m?.dispose();}});scene.remove(meshGroup);meshGroup=new THREE.Group();scene.add(meshGroup);labels.replaceChildren();objects=[];links=[];positions.clear();}
   function build(next){
-    model=next;clear();
+    model=next;clear();packetMeter=null;byteSlots=[];
+    if(lesson.id==='tcp-handshake'&&model.parameters.flow==='data'){
+      for(let i=0;i<2;i++){
+        const slot=new THREE.Mesh(new THREE.BoxGeometry(2.1,.3,.8),new THREE.MeshStandardMaterial({color:0x355666}));
+        slot.position.set(i*2.3-1.15,.35,3);meshGroup.add(slot);
+        const label=document.createElement('span');label.className='mechanism-flight';label.hidden=preview;labels.append(label);
+        byteSlots.push({slot,label,anchor:new THREE.Vector3(i*2.3-1.15,1,3)});
+      }
+    }
+    if(lesson.id==='mtu-pmtud'){
+      // A byte ruler, not a claim that packets are physical blocks on a wire.
+      const bar=new THREE.Mesh(new THREE.BoxGeometry(1,.45,.65),new THREE.MeshStandardMaterial({color:0x73dfc5}));
+      bar.position.set(-4,.5,3);meshGroup.add(bar);packetMeter=bar;
+      box(meshGroup,0,.12,3,8,.06,1,material(0x355666));
+      const boundary=-4+8*model.pathMTU/1600;
+      box(meshGroup,boundary,.7,3,.055,1.25,1.1,material(0xf4bd64));
+      for(let n=0;n<=1600;n+=400)box(meshGroup,-4+8*n/1600,.18,3,.025,.08,1.1,material(0x799aaa));
+    }
     for(const zone of model.zones||[]){const pad=new THREE.Mesh(new THREE.BoxGeometry(zone.width,.08,zone.depth),new THREE.MeshStandardMaterial({color:zone.color,transparent:true,opacity:.35}));pad.position.set(zone.x,-.02,zone.z);meshGroup.add(pad);}
     model.nodes.forEach((n,i)=>{
       const count=model.nodes.length;
@@ -48,6 +65,18 @@ export function mountScene(container, {lesson, preview=false,initialModel}={}) {
   }
   function show(index){
     stepIndex=Math.max(0,Math.min(index,model.steps.length-1));const frame=model.steps[stepIndex];
+    if(packetMeter){const length=8*frame.datagramBytes/1600;packetMeter.scale.x=length;packetMeter.position.x=-4+length/2;packetMeter.material.color.set(frame.datagramBytes>model.pathMTU?0xed8e7c:0x73dfc5);}
+    if(byteSlots.length){
+      const chunk=Math.min(Number(model.parameters.bytes),Number(model.parameters.rwnd),Number(model.parameters.cwnd));
+      let delivered=0,buffered=0;
+      for(const s of model.steps.slice(0,stepIndex+1))for(const [key,value] of s.fields){if(key==='Delivered bytes')delivered=Number(value);if(key==='Buffered out-of-order')buffered=parseInt(value,10);}
+      byteSlots.forEach((b,i)=>{
+        const ready=chunk>0&&delivered>=(i+1)*chunk,pending=i===1&&buffered>0;
+        b.slot.material.color.set(ready?0x73dfc5:pending?0xf4bd64:0x355666);
+        b.label.textContent=chunk?`${101+i*chunk}–${100+(i+1)*chunk} · ${ready?'พร้อมอ่าน':pending?'รอช่วงแรก':'ยังไม่พร้อม'}`:'Window 0 · ไม่ส่งข้อมูล';
+      });
+      renderer.domElement.dataset.deliveredBytes=String(delivered);renderer.domElement.dataset.bufferedBytes=String(buffered);
+    }
     decision.replaceChildren();const title=document.createElement('strong');title.textContent=frame.title;decision.append(title);
     for(const [key,value] of frame.fields.slice(0,3)){const row=document.createElement('span');row.textContent=`${key}: ${value}`;decision.append(row);}
     decision.classList.toggle('blocked',frame.status==='blocked');
@@ -82,6 +111,7 @@ export function mountScene(container, {lesson, preview=false,initialModel}={}) {
     placed.push({...best,w,h});element.style.left=best.x+'px';element.style.top=best.y+'px';
   }
   function tick(){if(disposed)return;raf=requestAnimationFrame(tick);controls.update();const placed=[];for(const o of objects){const p=o.anchor.clone().project(camera);o.button.hidden=preview||p.z>1||p.z< -1||(objects.length>8&&!model.steps[stepIndex].active.includes(o.id));place(o.button,p,placed);}
+    for(const b of byteSlots){const p=b.anchor.clone().project(camera);b.label.hidden=preview||p.z>1||p.z< -1;place(b.label,p,placed);}
     // Named transfers come from the teaching model, never inferred from every lit link.
     for(const m of messages){const progress=(reduced||preview)? .5:Math.min(1,(performance.now()-started)/1100);m.marker.position.lerpVectors(m.from,m.to,progress);const midpoint=m.from.clone().lerp(m.to,.5);midpoint.y+=.65+m.index*.28;const p=midpoint.project(camera);m.label.hidden=preview||p.z>1||p.z< -1;place(m.label,p,placed);}
     if(!preview&&!reduced)for(const l of links)if(model.steps[stepIndex].edges.includes(l.id))l.line.material.opacity=.78+Math.sin(performance.now()/450)*.2;

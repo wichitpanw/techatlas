@@ -179,6 +179,7 @@ export function initConcept(l, onComplete) {
   document.querySelectorAll("[data-answer]").forEach((b) =>
     b.addEventListener("click", () => {
       const f = document.querySelector("#feedback");
+      if(l.observationRequired&&document.querySelector('.mechanism-lab')?.dataset.observationReady!=='true'){f.className='feedback bad';f.textContent='เดินหรือเล่นอย่างน้อย 2 สถานการณ์จนถึงขั้นสุดท้าย แล้วอ่านหลักฐานก่อนตอบ';return;}
       if(l.id==='troubleshooting'&&document.querySelector('.workarea')?.dataset.repairReady!=='true'){f.className='feedback bad';f.textContent='ทำภารกิจแก้แล้วทดสอบซ้ำทั้งสามเคสก่อนตอบ';return;}
       if(telecomLessons.some(t=>t.id===l.id)&&document.querySelector('.mechanism-lab')?.dataset.providerReady!=='true'){f.className='feedback bad';f.textContent='เล่นอย่างน้อยสองสถานการณ์จนถึงขั้นสุดท้ายก่อนตอบ';return;}
       if(l.id==='troubleshooting'&&document.querySelector('.mechanism-lab')?.dataset.incidentReady!=='true'){

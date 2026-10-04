@@ -1,4 +1,5 @@
 import {telecomLessons,buildTelecom} from './telecom-labs.js';
+import {coreSpecs,coreDefaults,buildCoreLab} from './network-core-models.js';
 // Bounded teaching models, not a network emulator. Each lesson owns its mechanism.
 const spec = (mode, title, controls = []) => ({ mode, title, controls });
 const number = (key, label, value, min, max) => ({ key, label, value, min, max, type: 'number' });
@@ -56,6 +57,7 @@ for(const id of networkSpatialUpgrades){
   networkLabSpecs[id].mode='3d';
 }
 for(const lesson of telecomLessons)networkLabSpecs[lesson.id]=spec('3d',lesson.title);
+Object.assign(networkLabSpecs,coreSpecs);
 export function networkLabDefaults(lesson, scenario = 0) {
   const p = Object.fromEntries((networkLabSpecs[lesson.id]?.controls || []).map(c=>[c.key,c.value]));
   const presets = {
@@ -71,7 +73,7 @@ export function networkLabDefaults(lesson, scenario = 0) {
     'network-commands':[{command:'ip'},{command:'nslookup'},{command:'ping'}],
     pcap:[{frame:'3'},{frame:'4'},{frame:'2'}],
   };
-  return {...p,...presets[lesson.id]?.[scenario]};
+  return {...p,...presets[lesson.id]?.[scenario],...coreDefaults(lesson.id,scenario)};
 }
 const node = (id, name, address = '', kind = 'router') => ({ id, name, address, kind });
 const edge = (from, to, label = '') => ({ id: `${from}-${to}`, from, to, label });
@@ -100,6 +102,7 @@ export function buildNetworkLab(lesson, scenario = 0, parameters = {}) {
     if(c.type==='select'&&!c.options.some(([v])=>v===String(p[c.key])))throw Error('เลือก '+c.label+' จากตัวเลือกใน Lab');
     if(c.type==='number'&&(!Number.isInteger(Number(p[c.key]))||Number(p[c.key])<c.min||Number(p[c.key])>c.max))throw Error(c.label+' ต้องเป็นจำนวนเต็ม '+c.min+'–'+c.max);
   }
+  if(coreSpecs[lesson.id])return buildCoreLab(lesson,scenario,p);
   const s = lesson.states[scenario] || lesson.states[0];
   let nodes=pair(), links=[edge('client','server')], steps=[];
   const add=(...args)=>steps.push(step(...args));
@@ -509,12 +512,13 @@ export function buildNetworkLab(lesson, scenario = 0, parameters = {}) {
     }
     case 'cloud-vpc': {
       const T=(from,to,message)=>({from,to,message}),tr=(...t)=>Object.assign(steps.at(-1),{transfers:t});
-      const pub=scenario===0,none=scenario===2;
-      nodes=[node('vm','VM',pub?'10.0.1.10 + public IP':'10.0.2.10','client'),node('rt','Route table',pub?'0.0.0.0/0 → igw':none?'10.0.0.0/16 → local':'0.0.0.0/0 → nat-gw'),node('gw',pub?'Internet gateway':'NAT gateway',pub?'VPC edge':'อยู่ใน public subnet'),node('internet','Internet server','203.0.113.80','server')];
+      const pub=scenario===0||scenario===3,none=scenario===2;
+      nodes=[node('vm','VM',pub?scenario===3?'10.0.1.10 · ไม่มี public IPv4':'10.0.1.10 + public IP':'10.0.2.10','client'),node('rt','Route table',pub?'0.0.0.0/0 → igw':none?'10.0.0.0/16 → local':'0.0.0.0/0 → nat-gw'),node('gw',pub?'Internet gateway':'NAT gateway',pub?'AWS-style VPC edge':'อยู่ใน public subnet'),node('internet','Internet server','203.0.113.80','server')];
       links=[edge('vm','rt'),edge('rt','gw'),edge('gw','internet')];
       add('VM ส่งไป Internet','Security rule ขาออกต้องอนุญาต (กรณีนี้อนุญาต)',[['Source',pub?'10.0.1.10':'10.0.2.10'],['Destination','203.0.113.80:443']],['vm'],[]);tr(T('vm','rt','TCP/443 → 203.0.113.80'));
       if(none){add('Route table ไม่มี default route','มีเฉพาะ route ภายใน VPC',[['Match','10.0.0.0/16 → local เท่านั้น'],['0.0.0.0/0','ไม่มี']],['rt'],['vm-rt'],'blocked');add('ผลที่ VM เห็น','ตรวจ route table ก่อนสรุปว่า VM หรือ firewall มีปัญหา',[['ผล','ออก Internet ไม่ได้ (ไม่มีเส้นทาง)']],['vm'],[],'blocked');break;}
       add('Route table เลือก Target',pub?'default route ชี้ Internet gateway':'default route ชี้ NAT gateway',[['Route',pub?'0.0.0.0/0 → igw':'0.0.0.0/0 → nat-gw']],['rt'],['vm-rt']);
+      if(scenario===3){add('ไม่มี Public IPv4 mapping ของ VM','Subnet ยังเป็น public ตาม route แต่ IPv4 ผ่าน IGW โดยตรงในแบบ AWS นี้ต้องมี public mapping',[['Subnet type','Public'],['VM private IP','10.0.1.10'],['Public IPv4 mapping','ไม่มี'],['Result','ยังส่งถึง Internet server ไม่ได้']],['gw'],[],'blocked');break;}
       add(pub?'Gateway แปลง private ↔ public IP':'NAT gateway แปลง source',pub?'ตามแบบจำลอง VM เห็นเฉพาะ private IP; public IP ถูกแมปที่ gateway':'ใช้ public IP ของ NAT gateway ออกไป',[['Source หลังผ่านด่าน',pub?'public IP ของ VM (ตัวอย่าง 198.51.100.20)':'public IP ของ NAT gateway (ตัวอย่าง 198.51.100.30)']],['gw','internet'],['rt-gw','gw-internet']);tr(T('gw','internet','TCP/443 จาก public IP'));
       add('ขาเข้าต่างกัน',pub?'ถ้ามี public IP และ rule อนุญาต Internet เริ่มเชื่อมต่อเข้ามาได้':'ไม่มี public IP ของ VM Internet เริ่มเชื่อมต่อเข้ามาตรง ๆ ไม่ได้',[['Inbound จาก Internet',pub?'ได้เฉพาะ port ที่ rule อนุญาต':'เริ่มเชื่อมต่อเข้ามาไม่ได้']],['vm'],[],'ok');break;
     }
@@ -527,9 +531,9 @@ export function buildNetworkLab(lesson, scenario = 0, parameters = {}) {
         add('ถึง Spoke B','หลาย provider ไม่ให้ peering ส่งต่ออัตโนมัติ จึงต้องมีตัวกลางจริง',[['Delivered','10.2.0.20']],['hub','b'],['hub-b']);tr(T('hub','b','10.1.0.10 → 10.2.0.20'));break;
       }
       const bad=scenario===1,cloud=bad?'10.0.0.0/16':'10.0.0.0/16',onprem=bad?'10.0.0.0/16':'10.1.0.0/16';
-      nodes=[node('host','On-prem host',bad?'10.0.0.20':'10.1.0.20','client'),node('gwo','On-prem VPN gateway',onprem),node('gwc','Cloud VPN gateway',cloud),node('vm','Cloud VM','10.0.0.20','server')];links=[edge('host','gwo'),edge('gwo','gwc','VPN tunnel'),edge('gwc','vm')];
+      nodes=[node('host','On-prem host',bad?'10.0.0.10/16':'10.1.0.20/16','client'),node('gwo','On-prem VPN gateway',onprem),node('gwc','Cloud VPN gateway',cloud),node('vm','Cloud VM','10.0.0.20','server')];links=[edge('host','gwo'),edge('gwo','gwc','VPN tunnel'),edge('gwc','vm')];
       add('ตรวจ CIDR ทั้งสองฝั่ง','ก่อนเชื่อมต่อต้องแน่ใจว่าช่วง IP ไม่ซ้อน',[['On-prem',onprem],['Cloud VPC',cloud],['ซ้อนกัน',bad?'Yes':'No']],['gwo','gwc'],[],bad?'blocked':'ok');
-      if(bad){add('ปลายทาง 10.0.0.20 อยู่ฝั่งไหน','Router ตัดสินใจเส้นทางไม่ได้เพราะ prefix เหมือนกัน',[['Destination','10.0.0.20'],['Connected on-prem','10.0.0.0/16'],['Route via VPN','10.0.0.0/16']],['gwo'],[],'blocked');break;}
+      if(bad){add('Host เลือก On-link route','10.0.0.10/16 เห็นปลายทาง 10.0.0.20 อยู่ subnet เดียวกัน จึงไม่ใช้ gateway',[['Destination','10.0.0.20'],['Selected host route','10.0.0.0/16 → LAN'],['VPN tunnel','ยังไม่ได้รับ packet นี้']],['host']);add('ARP ใน LAN ไม่พบ Cloud VM','สมมติ LAN ไม่มีเครื่อง .20 จึงไม่มี ARP Reply; ไม่ได้ส่ง ARP ข้าม VPN และไม่ใช่ Router เลือกทางไม่ได้',[['ARP target','10.0.0.20'],['Result','No neighbor response'],['Next test','ตรวจ IP plan / overlap']],['host'],[],'blocked');break;}
       add('ส่งผ่าน Tunnel','Site-to-site VPN เข้ารหัสบน Internet ตามนโยบาย',[['Inner','10.1.0.20 → 10.0.0.20'],['Route on-prem','10.0.0.0/16 → tunnel']],['host','gwo','gwc'],['host-gwo','gwo-gwc']);tr(T('host','gwo','10.1.0.20 → 10.0.0.20'),T('gwo','gwc','Encrypted tunnel'));
       add('Cloud route ขากลับ','ฝั่ง Cloud ต้องมี route ไป on-prem ด้วย',[['Route cloud','10.1.0.0/16 → VPN gateway'],['Delivered','10.0.0.20']],['gwc','vm'],['gwc-vm']);tr(T('gwc','vm','10.1.0.20 → 10.0.0.20'));break;
     }
@@ -574,7 +578,7 @@ export function buildNetworkLab(lesson, scenario = 0, parameters = {}) {
       if(scenario===1&&i===1)frame.transfers=[transfer('ap1','auth','EAP / authentication ตามระบบ')];
     }
     if(lesson.id==='sdn')for(const linkId of frame.edges){const e=links.find(e=>e.id===linkId);frame.transfers.push(transfer(e.from,e.to,scenario===1?'User packet':scenario===2?'Forwarding entry':'Configuration'));}
-    if(lesson.id==='hsrp'){frame.nodeUpdates.r1=i===1?'192.168.10.2 · Unavailable':scenario===1&&i===2?'192.168.10.2 · Unavailable':'192.168.10.2 · Active';frame.nodeUpdates.r2=scenario===1&&i===2?'192.168.10.3 · Active':'192.168.10.3 · Standby';}
+    if(lesson.id==='hsrp'){frame.nodeUpdates.r1=scenario===1&&i>=1?'192.168.10.2 · Unavailable':'192.168.10.2 · Active';frame.nodeUpdates.r2=scenario===1&&i>=2?'192.168.10.3 · Active':'192.168.10.3 · Standby';}
     if(lesson.id==='wlc'&&scenario===2)frame.nodeUpdates.ap='Monitor · ไม่ให้บริการ Client';
   }
   return { id:lesson.id, title:definition.title, mode:definition.mode, nodes, links, steps, scenario:scenario, parameters:p };

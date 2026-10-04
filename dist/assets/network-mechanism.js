@@ -19,6 +19,7 @@ export function initMechanism(l,addScene){
   const notebook=new Map();
   const solved=new Set();
   const observedProvider=new Set();
+  const observations=new Set();
   if(l.id==='troubleshooting')special.insertAdjacentHTML('afterend','<section class="cli-notebook"><h3>ภารกิจ: วิเคราะห์สาม Incident</h3><p>เลือกเครื่องมือ กดทดลอง แล้วอ่านถึงขั้นสุดท้ายเพื่อเก็บหลักฐาน เลือกแนวทางตรวจต่อด้านล่างให้ถูกทั้งสามเคส ก่อนตอบคำถามท้ายบท</p><div data-incident-evidence aria-live="polite"></div><div class="choices"><button type="button" data-diagnosis="0">ตรวจสาย / NIC / interface</button><button type="button" data-diagnosis="1">ตรวจ Resolver / DNS record</button><button type="button" data-diagnosis="2">ตรวจ Listening service / Firewall policy</button></div><p data-incident-feedback role="status"></p></section>');
   if(l.id==='network-commands')special.insertAdjacentHTML('afterend','<section class="cli-notebook"><h3>ภารกิจ: เก็บหลักฐานก่อนสรุป</h3><p>เลือกสถานการณ์ แล้วใช้ ip, ping และ nslookup อ่านถึงขั้น “อ่านผลอย่างระวัง” ทั้งสามคำสั่ง จากนั้นเปรียบเทียบสิ่งที่ยืนยันได้กับสิ่งที่ยังต้องตรวจ ไม่ใช่การรัน CLI จริง</p><div data-cli-notebook aria-live="polite">ยังไม่มีหลักฐาน</div></section>');
   const stop=()=>{clearInterval(timer);timer=null;root.querySelector('[data-mechanism-action="play"]').textContent='▶ เล่นขั้นตอน';};
@@ -33,6 +34,10 @@ export function initMechanism(l,addScene){
       const full=model.steps[0].fields[0][1];special.innerHTML=`<h3>128 บิต = 8 × 16 บิต</h3><div class="mechanism-ipv6">${full.split(':').map((g,i)=>`<div><span>กลุ่ม ${i+1} · 16 bits</span><code>${g}</code></div>`).join('')}</div>`;
     }else if(l.id==='wireless-radio'){
       const channels=model.parameters.channels.split(',').map(Number);special.innerHTML=`<h3>Spectrum · ภาพเชิงแนวคิด (ไม่ใช่ Site survey)</h3><div class="mechanism-spectrum">${channels.map((c,i)=>`<div class="spectrum-band" style="left:${(c-1)*5}%;width:24%;top:${i*34}px">AP${i+1} · Channel ${c}</div>`).join('')}</div>`;
+    }else if(l.id==='mtu-pmtud'){
+      special.innerHTML='<h3>อ่านภาพขนาด</h3><p>แท่งสีในฉากยาวตามจำนวน Bytes ของ IP packet; เส้นตั้งคือ MTU ของ link แคบ ความยาวเทียบกันจากผลคำนวณเดียวกับหลักฐานด้านบน ไม่ใช่ภาพว่า packet มีขนาดเป็นวัตถุจริงบนสาย</p>';
+    }else if(l.id==='tcp-handshake'){
+      special.innerHTML='<h3>อ่านภาพ Byte stream</h3><p>ในโหมดส่งข้อมูล กล่องสองช่องแทนช่วง byte ที่ผู้รับต้องเรียง: สีเข้มยังไม่พร้อม สีเหลืองรับช่วงหลังแล้วแต่รอช่องว่าง สีเขียวพร้อมให้ application อ่าน เป็นภาพเชิงตรรกะ ไม่ใช่ผัง RAM จริง</p>';
     }else special.replaceChildren();
   }
   function draw(){
@@ -41,6 +46,7 @@ export function initMechanism(l,addScene){
     evidence.className='mechanism-evidence'+(frame.status==='blocked'?' problem':'');evidence.innerHTML=`<p class="state-count">${index+1} / ${model.steps.length} · ${esc(l.states[scenario].label)}${form?' · ค่าที่เลือกใน Sandbox':''}</p><h3>${esc(frame.title)}</h3><p>${esc(frame.detail)}</p><dl>${frame.fields.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd><code>${esc(v)}</code></dd></div>`).join('')}</dl>`;
     evidence.insertAdjacentHTML('beforeend',wireEvidence(frame));
     if(telecomLessons.some(t=>t.id===l.id)&&index===model.steps.length-1){observedProvider.add(scenario);root.dataset.providerReady=String(observedProvider.size>=2);}
+    if(l.observationRequired&&index===model.steps.length-1){observations.add(scenario);root.dataset.observationReady=String(observations.size>=2);}
     if(l.id==='troubleshooting'){
       if(index===model.steps.length-1)notebook.set(model.parameters.command,model.steps[1].fields);
       root.querySelector('[data-incident-evidence]').innerHTML=`<p>${esc(incidentPrompts[scenario])}</p><p>วิเคราะห์แล้ว ${solved.size} / 3 เคส · หลักฐานที่ยังต้องอ่าน: ${esc(incidentRequirements[scenario].filter(c=>!notebook.has(c)).join(', ')||'ครบแล้ว')}</p>`+[...notebook].map(([cmd,rows])=>`<h4>${esc(cmd)}</h4><dl>${rows.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`).join('');
