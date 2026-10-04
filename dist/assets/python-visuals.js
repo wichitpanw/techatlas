@@ -1,0 +1,42 @@
+// One visual specification per lesson; shared by lesson scenes and card previews.
+const entry = (mode, title, explanation) => ({ mode, title, explanation });
+export const pythonVisuals = {
+  'number-conversion': entry('memory', 'ค่าเดียวกัน หลายรูปแบบข้อความ', 'n ยังเป็น int เดิม ส่วน bin/oct/hex คืน str ที่มี prefix ไม่ได้เปลี่ยนค่าของ n'),
+  'for-else': entry('loop', 'ค้นครบ หรือออกด้วย break', 'ย้อน trace ดูว่าบรรทัด break ถูกทำงานหรือไม่ else ของ for ทำงานเมื่อจบโดยไม่มี break'),
+  'function-arguments': entry('stack', 'Argument ผูกกับ Parameter', 'แต่ละ call มี price และ discount ของตนเอง ดูค่าเริ่มต้นและ keyword ใน frame จริง'),
+  'recursion': entry('stack', 'เรียกซ้อน แล้วคืนค่ากลับ', 'แต่ละ frame มี n ของตัวเอง จุดหยุดคืน 0 ก่อนย้อนรวมค่ากลับ ไม่ใช่หลายฟังก์ชันทำงานพร้อมกัน'),
+  'membership': entry('dictionary', 'สมาชิก กับ key ที่ตรวจจริง', 'ดูรายการและ Dictionary จากค่ารันจริง ผล in กับ Dictionary ตรวจ key ไม่ใช่ value'),
+  'identity': entry('references', 'ชื่อหลายชื่อ → ออบเจ็กต์', 'เส้นเชื่อมอิง identity จาก Python จริง ป้าย object เป็นรหัสในรอบนี้ ไม่ใช่ address หน่วยความจำ'),
+  'list-copy': entry('references', 'แยกสำเนาก่อนแก้รายการ', 'เล่นย้อนหลังเพื่อดูว่า draft ชี้ก้อนเดียวกับ original หรือคนละก้อน ก่อนและหลัง append'),
+  'python-start': entry('monitor', 'คำสั่ง → ผลบนหน้าจอ', 'print() แสดงข้อความจากโปรแกรมที่คุณรันจริง'),
+  'indentation': entry('source', 'บล็อกคำสั่งและการเยื้อง', 'ระยะเยื้องบนชั้นโค้ดบอกว่าคำสั่งอยู่ในบล็อกใด ถ้าไวยากรณ์ผิดจะยังไม่มีขั้นตอนรัน'),
+  'print-comments': entry('monitor', 'ข้อความ นิพจน์ และผลลัพธ์', 'เทียบคำสั่งที่กำลังจะทำกับข้อความที่แสดงแล้ว Comment ไม่เป็นขั้นตอนทำงาน'),
+  'data-types': entry('types', 'ชนิดข้อมูลที่ Python ใช้', 'แต่ละช่องระบุชนิดข้อมูล ผลจาก type() อยู่บนจอ ไม่ใช่การแปลงชนิดโดยอัตโนมัติ'),
+  'variables': entry('memory', 'ชื่อที่ผูกกับค่า', 'ดูชื่อ ค่า และชนิดจากสถานะจริง การกำหนดค่าใหม่จะเปลี่ยนสิ่งที่ชื่ออ้างถึง'),
+  'variable-names': entry('source', 'ชื่อในโค้ดกับชื่อที่มีจริง', 'เทียบชื่อในบรรทัดกับชื่อที่สร้างแล้ว ชื่อผิดไวยากรณ์ทำให้เริ่มรันไม่ได้'),
+  'input-conversion': entry('input', 'ข้อความเข้า → แปลงชนิด → ค่า', 'ข้อมูลนำเข้าถูกอ่านทีละบรรทัด ดูชนิด str และ int จากค่าจริง ไม่ใช่จากหน้าตาตัวเลข'),
+  'operators': entry('memory', 'คำนวณก่อนแสดงผล', 'ดูค่า x เปลี่ยนหลัง += และแยกผลการคำนวณออกจากผลเปรียบเทียบ'),
+  'conditions': entry('branch', 'เส้นทางที่โค้ดเลือกจริง', 'บล็อกที่ไม่ถูกเรียกจะไม่ปรากฏในประวัติ เลือกดูทีละขั้นเพื่อเทียบกับคะแนน'),
+  'logic': entry('branch', 'ค่าความจริงของเงื่อนไข', 'ดูตัวแปรและผล True / False จากคำสั่งจริง อย่าสับสน and กับ or'),
+  'loops': entry('loop', 'ย้อนกลับและทำซ้ำ', 'แต่ละช่องเป็นเหตุการณ์จริง ไม่ใช่หนึ่งช่องต่อรอบลูป ดูค่า i และเลขบรรทัดประกอบ'),
+  'loop-control': entry('loop', 'continue และ break เปลี่ยนทาง', 'ดูว่าหลัง continue ข้ามคำสั่งใด และหลัง break ออกจากลูปไปบรรทัดไหน'),
+  'nested-loops': entry('grid', 'ค่าของลูปนอกและลูปใน', 'ดู i กับ j ในสถานะจริงก่อนแต่ละคำสั่ง เมื่อลูปในจบลูปนอกจึงเปลี่ยนค่า'),
+  'strings': entry('sequence', 'ข้อความและตำแหน่ง Index', 'ช่องเรียงตามตัวอักษร Index เริ่มที่ 0 การ slice และ upper() คืนค่าใหม่ ไม่แก้ str เดิม'),
+  'lists': entry('sequence', 'สมาชิก List ก่อนและหลังแก้', 'ชื่อ Index และค่ามาจากรายการจริง ดูผล append() และการแทนค่าทีละขั้น'),
+  'tuples-sets': entry('sets', 'ลำดับ Tuple กับสมาชิก Set', 'Tuple มี Index ส่วน Set ไม่มี Index และไม่รับประกันลำดับที่แสดง'),
+  'collections': entry('dictionary', 'Key เชื่อมกับ Value', 'ป้ายเป็น key จริง ไม่ใช่ Index การใช้ key เดิมเปลี่ยนค่า และ key ใหม่เพิ่มคู่ข้อมูล'),
+  'functions': entry('stack', 'เรียกฟังก์ชัน → ค่าที่ส่งกลับ', 'Call stack แสดงฟังก์ชันที่กำลังทำงาน แยกค่าที่ return ออกจากข้อความที่ print'),
+  'lambda-scope': entry('stack', 'Local กับ Global', 'ดูค่าภายใน frame ปัจจุบันและ Global แยกกัน Lambda จะปรากฏเป็น <lambda>'),
+  'exceptions': entry('exception', 'ข้อผิดพลาดและเส้นทางรับมือ', 'exception event ไม่ได้แปลว่าโปรแกรมล้มเสมอ ดูขั้นต่อไปว่า except รับไว้หรือไม่'),
+  'modules': entry('modules', 'จาก main.py ไปโมดูล', 'ดูชื่อไฟล์และฟังก์ชันที่ทำงานจริง แสดงเฉพาะโค้ดผู้เรียน ไม่ไล่ภายในไลบรารีมาตรฐาน'),
+  'common-errors': entry('exception', 'หยุดตรงไหนและเพราะอะไร', 'อ่านชนิด Error แล้วเทียบกับชื่อที่มีในสถานะก่อนข้อผิดพลาด'),
+  'practice-hello': entry('input', 'ชื่อเข้า → คำทักทายออก', 'จอแสดงผลจากชื่อที่คุณป้อน ไม่ใช่คำตอบตัวอย่างที่เตรียมไว้'),
+  'practice-sum': entry('input', 'สองค่าเข้า → ผลรวม', 'ดู a และ b พร้อมชนิด int แล้วเทียบกับผลบวกที่แสดง'),
+  'practice-grade': entry('branch', 'คะแนนเลือกบล็อกคำสั่ง', 'เปลี่ยนข้อมูลและรันใหม่เพื่อเห็นทางที่ถูกเลือกจริง โดยเฉพาะค่าขอบเขต'),
+  'practice-table': entry('loop', 'ตัวคูณเปลี่ยนทีละรอบ', 'ดูค่า i และบรรทัดผลลัพธ์ที่เพิ่มขึ้น ไม่ต้องเขียน print ซ้ำ 12 ชุด'),
+  'practice-even': entry('stack', 'รับ n และ return bool', 'ดู Argument n ในฟังก์ชันกับค่าคืน True / False ก่อนผู้เรียก print'),
+  'practice-list': entry('sequence', 'สมาชิก จำนวน และผลรวม', 'Index กับสมาชิกอยู่ในช่อง ส่วน len() และ sum() แสดงบนจอผลลัพธ์'),
+};
+export function visualFor(lesson) {
+  return pythonVisuals[lesson.id];
+}

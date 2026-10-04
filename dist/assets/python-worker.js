@@ -1,5 +1,6 @@
 let runtime;
 let runIndex = 0;
+importScripts('./python-tracer.js');
 const normalize = (value) =>
   String(value)
     .replace(/\r\n/g, "\n")
@@ -7,7 +8,8 @@ const normalize = (value) =>
     .map((line) => line.trimEnd())
     .join("\n")
     .trim();
-async function execute(code, inputs, files) {
+async function execute(code, inputs, files, tracing = false) {
+  const trace = [];
   const lines = [],
     prompts = [];
   runtime.setStdout({ batched: (line) => lines.push(line) });
@@ -32,12 +34,25 @@ async function execute(code, inputs, files) {
     moduleValues = runtime.toPy(moduleNames);
     scope.set("_lab_module_names", moduleValues);
     await runtime.runPythonAsync(
-      'import sys\nfor _module in _lab_module_names:\n    sys.modules.pop(_module, None)\nsys.path.insert(0, _lab_folder)\ndef input(prompt=""):\n    _lab_prompts.append(str(prompt))\n    if not _lab_input_values:\n        raise EOFError("ข้อมูลนำเข้าไม่พอ: ใส่หนึ่งบรรทัดต่อ input() ในช่องข้อมูลนำเข้า")\n    return str(_lab_input_values.pop(0))\n',
+      'import sys as _lab_runtime_sys\nfor _lab_module in _lab_module_names:\n    _lab_runtime_sys.modules.pop(_lab_module, None)\n_lab_runtime_sys.path.insert(0, _lab_folder)\ndef input(prompt=""):\n    _lab_prompts.append(str(prompt))\n    if not _lab_input_values:\n        raise EOFError("ข้อมูลนำเข้าไม่พอ: ใส่หนึ่งบรรทัดต่อ input() ในช่องข้อมูลนำเข้า")\n    return str(_lab_input_values.pop(0))\n',
       { globals: scope },
     );
-    await runtime.runPythonAsync(code, { globals: scope });
+    if (tracing) {
+      scope.set('_lab_trace_emit', (json) => trace.push({ ...JSON.parse(json), output: lines.join('\n') }));
+      scope.set('_lab_trace_source', self.PYTHON_TRACE_SETUP);
+    }
+    try {
+      scope.set('_lab_user_source', code);
+      await runtime.runPythonAsync(tracing ? "exec(_lab_trace_source)\ntry:\n    exec(compile(_lab_user_source, 'main.py', 'exec'))\nfinally:\n    _lab_sys.settrace(None)" : "exec(compile(_lab_user_source, 'main.py', 'exec'))", { globals: scope });
+    } catch (error) {
+      error.labTrace = trace;
+      error.labOutput = lines.join('\n');
+      throw error;
+    } finally {
+      if (tracing) await runtime.runPythonAsync('_lab_sys.settrace(None)', { globals: scope });
+    }
     prompts.push(...promptValues.toJs());
-    return { output: lines.join("\n"), prompts };
+    return { output: lines.join("\n"), prompts, trace, traceTruncated: trace.length >= 180 };
   } finally {
     try {
       await runtime.runPythonAsync(
@@ -62,7 +77,7 @@ self.onmessage = async ({ data }) => {
       return;
     }
     if (!runtime) throw new Error("Python ยังไม่พร้อม");
-    const primary = await execute(data.code, data.inputs, data.files);
+    const primary = await execute(data.code, data.inputs, data.files, true);
     const checks = [];
     for (const test of data.tests || []) {
       try {
@@ -88,8 +103,8 @@ self.onmessage = async ({ data }) => {
     self.postMessage({ type: "result", id: data.id, ...primary, checks });
   } catch (error) {
     const raw = String(error);
-    const index = raw.lastIndexOf('  File "<exec>"');
+    const index = raw.lastIndexOf('  File "main.py"');
     const message = index >= 0 ? "Python error:\n" + raw.slice(index) : raw;
-    self.postMessage({ type: "error", id: data.id, message });
+    self.postMessage({ type: "error", id: data.id, message, trace: error.labTrace || [], output: error.labOutput || '', traceTruncated: (error.labTrace || []).length >= 180 });
   }
 };

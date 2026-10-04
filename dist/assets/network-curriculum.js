@@ -45,9 +45,9 @@ export const networkLessons = [
   chapter(
     "internet",
     "จาก Computer สู่โลก Internet",
-    "ไล่ดู IP → DNS → Gateway → ISP → Web Server → คำตอบกลับ",
+    "Computer → Fiber → ISP → Peering/Transit → Social/CDN/Game → คำตอบกลับ",
     "เมื่อคอมพิวเตอร์เชื่อม Wi-Fi หรือ Ethernet ต้องมี IP, subnet mask, Default gateway และ DNS ซึ่งอาจได้จาก DHCP หรือกำหนดเอง จากนั้นค้น IP ของชื่อเว็บไซต์ ส่งข้อมูลไป Gateway แล้วผ่าน Router ของผู้ให้บริการหลายเครื่องก่อนถึง Server ตัวอย่างนี้ใช้ HTTPS บน TCP/443 และ NAT บน Router บ้าน การเปิดเว็บจริงอาจใช้ HTTP/3 บน QUIC/UDP ได้ด้วย Internet คือเครือข่ายหลายเครือข่ายที่เชื่อมกัน ไม่ใช่ Server กลางเครื่องเดียว",
-    "ก่อนเริ่มติดต่อเว็บไซต์ด้วยชื่อ ops.example.test ขั้นตอนใดช่วยหาที่อยู่ IP ของปลายทาง?",
+    "ก่อนเริ่มติดต่อ Social feed ด้วยชื่อ social.example.test ขั้นตอนใดช่วยหาที่อยู่ IP ของปลายทาง?",
     ["ค้นชื่อด้วย DNS", "แปลงชื่อด้วย MAC table", "เขียน Python ก่อนเสมอ"],
     0,
     "DNS ช่วยค้น IP จากชื่อ ส่วน Gateway และ ISP ใช้ส่งข้อมูลไปยัง IP ที่ได้",
@@ -56,7 +56,7 @@ export const networkLessons = [
       scene: "internet",
       tag: "COMPUTER → INTERNET",
       scenario:
-        "Laptop ของคุณใช้ Wi-Fi บ้าน IP 192.168.10.25/24 ต้องเปิด ops.example.test ผ่านผู้ให้บริการอินเทอร์เน็ต",
+        "Computer ใช้ Wi-Fi บ้าน IP 192.168.10.25/24 เลือกเปิด Social feed ดูสื่อจาก CDN หรือส่งตำแหน่งในเกม ผ่านเครือข่ายผู้ให้บริการสมมติ",
     },
   ),
   chapter(
@@ -90,7 +90,7 @@ export const networkLessons = [
     "address",
     "IP และเครือข่ายเดียวกัน",
     "เทียบ IP กับ prefix แล้วเลือกส่งตรงหรือผ่าน Gateway",
-    "IP เป็นที่อยู่ในเครือข่าย IP ส่วน MAC เป็นที่อยู่ของ frame บน link สำหรับ /24 นี้ Client 192.168.10.25 กับ 192.168.10.2 อยู่ subnet เดียวกัน แต่ 10.0.0.10 อยู่คนละ subnet ต้องดูทั้ง IP และ prefix เสมอ",
+    "IP เป็นที่อยู่ในเครือข่าย IP ส่วน MAC เป็นที่อยู่ของ frame บน link สำหรับ /24 นี้ Client 192.168.10.25 กับ 192.168.10.2 อยู่ subnet เดียวกัน แต่ 10.0.0.10 อยู่คนละ subnet ต้องดูทั้ง IP และ prefix เสมอ ช่วง private ตาม RFC 1918 คือ 10.0.0.0/8, 172.16.0.0/12 และ 192.168.0.0/16 ใช้ภายในองค์กรและต้องผ่าน NAT จึงออก Internet ได้ ส่วนคำว่า Class A/B/C เป็นระบบเดิมก่อน CIDR ปัจจุบันดู prefix length เป็นหลัก",
     "เครื่องใดอยู่ subnet เดียวกับ 192.168.10.25/24?",
     ["192.168.10.2", "192.168.11.2", "10.0.0.10"],
     0,
@@ -124,7 +124,7 @@ export const networkLessons = [
     "vlan",
     "VLAN: แยกเครือข่ายบน Switch",
     "ทดลอง Access port, Trunk และการติดต่อข้าม VLAN",
-    "VLAN แยก Layer 2 broadcast domain บนโครงสร้าง Switch เดียวกัน Access port ในแบบจำลองรับอุปกรณ์หนึ่ง VLAN ส่วน Trunk ระหว่าง Switch ส่งหลาย VLAN ด้วย 802.1Q tag สำหรับ VLAN ที่กำหนด (กรณี native VLAN ไม่แสดงใน Lab นี้) พอร์ตต้องอยู่ VLAN ที่ถูกต้องและ trunk ต้องอนุญาต VLAN ที่จะข้าม ต่าง VLAN ติดต่อกันต้องมี L3 routing และ IP/Gateway ที่ถูกต้อง ใน Lab นี้ PC A อยู่ VLAN10 / 192.168.10.10/24 ปลายทาง VLAN10 ใช้ .20 หรือ VLAN20 ใช้ 192.168.20.20/24",
+    "VLAN แยก Layer 2 broadcast domain บนโครงสร้าง Switch เดียวกัน Access port ในแบบจำลองรับอุปกรณ์หนึ่ง VLAN ส่วน Trunk ระหว่าง Switch ส่งหลาย VLAN ด้วย 802.1Q tag สำหรับ VLAN ที่กำหนด (กรณี native VLAN ไม่แสดงใน Lab นี้) พอร์ตต้องอยู่ VLAN ที่ถูกต้องและ trunk ต้องอนุญาต VLAN ที่จะข้าม ต่าง VLAN ติดต่อกันต้องมี L3 routing และ IP/Gateway ที่ถูกต้อง VLAN กับ Subnet ไม่ใช่สิ่งเดียวกัน: VLAN คือ broadcast domain ที่ Layer 2 ส่วน Subnet คือช่วง IP ที่ Layer 3 โดยทั่วไปจับคู่ VLAN หนึ่งกับ Subnet หนึ่งเพื่อให้ routing และนโยบายชัดเจน ใน Lab นี้ PC A อยู่ VLAN10 / 192.168.10.10/24 ปลายทาง VLAN10 ใช้ .20 หรือ VLAN20 ใช้ 192.168.20.20/24",
     "PC A อยู่ VLAN10 และ PC B อยู่ VLAN20 การมี Trunk อย่างเดียวทำให้ติดต่อกันได้หรือไม่?",
     [
       "ได้ เพราะ Trunk รวมทุก VLAN",

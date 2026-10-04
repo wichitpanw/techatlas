@@ -17,14 +17,20 @@ assert.deepEqual(
     "layer2",
     "address",
     "subnet",
+    "dhcp",
     "gateway",
     "arp-icmp",
     "vlan",
     "stp",
     "etherchannel",
-    "vlsm",
   ],
 );
+assert.equal(all.length, 54);
+const orderOf = (id) => all.findIndex((l) => l.id === id);
+assert(orderOf("dhcp") < orderOf("gateway"), "DHCP ก่อน Gateway");
+assert(orderOf("wan") < orderOf("mpls"), "WAN ก่อน MPLS");
+assert(orderOf("network-commands") < orderOf("troubleshooting"));
+assert.equal(all.at(-1).section, "cloud");
 assert.equal(new Set(all.map((l) => l.id)).size, all.length);
 for (const section of orderedSections)
   assert(all.some((l) => l.section === section.id));
@@ -112,6 +118,12 @@ const cases = pythonLessons.flatMap((l) => [
     files: l.fileSolutions || l.files || {},
   })),
 ]);
+for (const l of pythonLessons) {
+  assert(l.task?.goal && l.task.focus && l.task.extension, `Missing mission: ${l.id}`);
+  assert(l.task.actions.length >= 2, `Missing explicit actions: ${l.id}`);
+  assert.deepEqual(l.steps, l.task.actions);
+  assert(l.work.includes('หลังผ่านภารกิจแล้ว'));
+}
 const result = spawnSync(
   "python3",
   [
@@ -121,6 +133,7 @@ import json,sys,io,contextlib,tempfile,pathlib,shutil
 cases=json.load(sys.stdin)
 def norm(s): return '\\n'.join(x.rstrip() for x in s.replace('\\r\\n','\\n').split('\\n')).strip()
 for c in cases:
+    print('Checking '+c['id'],file=sys.stderr,flush=True)
     folder=tempfile.mkdtemp(prefix='techatlas-check-')
     try:
         for name,code in c['files'].items(): pathlib.Path(folder,name).write_text(code)
@@ -139,7 +152,7 @@ print('Python: '+str(len(cases))+' solution and input cases passed')
   ],
   { input: JSON.stringify(cases), encoding: "utf8", timeout: 10000 },
 );
-assert.equal(result.status, 0, result.stderr);
+assert.equal(result.status, 0, String(result.error || '') + '\n' + result.stderr);
 console.log(result.stdout.trim());
 console.log(
   `Network: ${all.length} lessons, all sections and forwarding checks passed`,

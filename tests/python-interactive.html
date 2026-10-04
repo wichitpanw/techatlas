@@ -1,0 +1,69 @@
+<!doctype html><html lang="th"><meta charset="utf-8"><title>Python Interactive verification</title>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+<h1>Python Interactive verification · local only</h1><button id="test">Run all Python checks</button><pre id="report"></pre><div id="scene" style="width:600px;height:300px"></div>
+<script type="module">
+import {pythonLessons} from '../dist/assets/python-curriculum.js';
+import {pythonVisuals} from '../dist/assets/python-visuals.js';
+import {mountScene} from '../dist/assets/python-scene.js';
+import {bindPythonEditor, highlightPythonLine, clearPythonHighlights} from '../dist/assets/python-editor.js';
+const report=document.querySelector('#report');
+const normalize=value=>String(value).trim().split('\n').map(s=>s.trimEnd()).join('\n');
+document.querySelector('#test').onclick=async()=>{
+ document.querySelector('#test').disabled=true;report.textContent='Loading real Pyodide worker…\n';
+ const worker=new Worker('../dist/assets/python-worker.js');
+ const request=data=>new Promise((resolve,reject)=>{const timeout=setTimeout(()=>reject(Error('worker timeout')),60000);worker.onmessage=event=>{clearTimeout(timeout);resolve(event.data);};worker.onerror=event=>{clearTimeout(timeout);reject(Error(event.message));};worker.postMessage(data);});
+ let count=0;
+ try {
+  const ready=await request({type:'init'});if(ready.type!=='ready')throw Error(JSON.stringify(ready));
+  for(const lesson of pythonLessons){
+   if(!pythonVisuals[lesson.id])throw Error('missing visual '+lesson.id);
+   const data=await request({type:'run',id:lesson.id,code:lesson.solution,files:lesson.fileSolutions||lesson.files,inputs:(lesson.inputs||'').split('\n').filter((x,i)=>lesson.inputs||i<0),defaultInputs:(lesson.inputs||'').split('\n'),tests:lesson.tests||[]});
+   if(data.type!=='result'||normalize(data.output)!==normalize(lesson.expected)||!data.trace?.length||data.checks.some(t=>!t.pass))throw Error(lesson.id+' '+JSON.stringify(data));
+   if(['membership','identity','list-copy'].includes(lesson.id)){
+    const initial=await request({type:'run',code:lesson.starter,inputs:[],tests:lesson.tests||[]});
+    if(initial.type==='result'&&normalize(initial.output)===normalize(lesson.expected)&&initial.checks.every(t=>t.pass))throw Error('starter unexpectedly passes '+lesson.id);
+    const values=data.trace.at(-1).variables;
+    if(lesson.id==='identity'){
+     const get=name=>values.find(v=>v.name===name)?.objectId;
+     if(!get('original')||get('original')!==get('alias')||get('original')===get('separate'))throw Error('identity trace incorrect');
+    }
+    if(lesson.id==='list-copy'){
+     const get=(rows,name)=>rows.find(v=>v.name===name)?.objectId;
+     if(get(values,'original')===get(values,'draft'))throw Error('copy identity not separated');
+     const last=initial.trace.at(-1).variables;
+     if(get(last,'original')!==get(last,'draft'))throw Error('starter alias not shared');
+    }
+   }
+   if(data.trace.some(t=>t.variables.some(v=>v.name==='sys')) && !lesson.solution.includes('import sys'))throw Error('runtime names leaked');
+   if(!lesson.task?.goal || lesson.task.actions.length<2)throw Error('mission missing '+lesson.id);
+   const editors=document.createElement('section');
+   const main=document.createElement('textarea');main.id='code';main.className='editor';main.value=lesson.solution;main.style.cssText='height:120px;line-height:24px;padding:22px';editors.append(main);document.body.append(editors);bindPythonEditor(main);
+   for(const [file,value] of Object.entries(lesson.fileSolutions||lesson.files||{})){const editor=document.createElement('textarea');editor.className='editor';editor.dataset.file=file;editor.value=value;editor.style.cssText='line-height:24px;padding:22px';editors.append(editor);bindPythonEditor(editor);}
+   const context={code:lesson.solution,files:lesson.fileSolutions||lesson.files||{}};
+   for(const event of data.trace.filter(event=>event.line>0)){
+    if(!highlightPythonLine(event,context))throw Error('highlight missing '+lesson.id+' '+event.file+':'+event.line);
+    if(document.querySelectorAll('[data-trace-line]').length!==1)throw Error('duplicate highlights');
+   }
+   main.value+='\n# edited';if(highlightPythonLine({file:'main.py',line:1,event:'line'},context))throw Error('stale trace highlighted');
+   clearPythonHighlights();if(document.querySelector('[data-trace-line]'))throw Error('highlight not cleared');editors.remove();
+   const scene=mountScene(document.querySelector('#scene'),{lesson});scene.update(data.output);scene.displayFrame(data.trace.at(-1),{code:lesson.solution,files:lesson.fileSolutions||lesson.files,index:data.trace.length-1,history:data.trace});
+   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));scene.dispose();
+   if(lesson.id==='modules'&&!data.trace.some(t=>t.file==='mymath.py'))throw Error('module not traced');
+   if(lesson.id==='functions'&&!data.trace.some(t=>t.event==='return'&&t.function==='add'&&t.returned==='5'))throw Error('return missing');
+   if(lesson.id==='exceptions'&&!data.trace.some(t=>t.event==='exception'))throw Error('caught exception missing');
+   count++;report.textContent+=lesson.id+' PASS · '+data.trace.length+' actual events\n';
+  }
+  for(const test of [
+   {code:'print("unclosed"',type:'error',events:false},
+   {code:'x=1\nprint(missing)',type:'error',events:true},
+   {code:'x=0\nfor i in range(100):\n    x+=i\nprint(x)',type:'result',events:true,truncated:true},
+   {code:'print("first")\nprint(1/0)',type:'error',events:true,output:'first'},
+   {code:'x=[]\nx.append(x)\nprint("ok")',type:'result',events:true,output:'ok'},
+  ]){
+   const result=await request({type:'run',code:test.code,inputs:[],tests:[]});
+   if(result.type!==test.type||!!result.trace?.length!==test.events||test.truncated&&!result.traceTruncated||test.output&&result.output!==test.output)throw Error(JSON.stringify(result));
+  }
+  report.textContent+='ALL PASS: '+count+' lessons, all additional assessment cases, all 3D renderers, and 5 error/limit cases.';
+ }catch(error){report.textContent+='FAIL: '+error.stack;}finally{worker.terminate();document.querySelector('#test').disabled=false;}
+};
+</script></html>

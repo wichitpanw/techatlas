@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {arrangeNetwork,orderedSections} from '../dist/assets/network-foundations.js';
+import {networkLessons} from '../dist/assets/network-curriculum.js';
+import {canonicalLessonId,mergeLegacyProgress} from '../dist/assets/lesson-aliases.js';
+const lessons=arrangeNetwork(networkLessons),ids=lessons.map(l=>l.id);
+assert.equal(lessons.length,63);assert.equal(ids.filter(id=>id==='internet').length,1);assert(!ids.includes('packet'));
+assert.equal(ids.at(-1),'internet');assert.equal(lessons.at(-1).section,'capstone');assert.equal(orderedSections.at(-1).id,'capstone');
+assert.equal(canonicalLessonId('packet'),'internet');assert.equal(canonicalLessonId('wan'),'wan');
+const legacy={packet:{completedAt:'2026-10-03'},wan:{completedAt:'2026-10-02'}};
+const migrated=mergeLegacyProgress(legacy);assert.deepEqual(migrated.internet,legacy.packet);assert.deepEqual(migrated.wan,legacy.wan);assert(!legacy.internet);
+const modern={...legacy,internet:{completedAt:'2026-10-04'}};assert.equal(mergeLegacyProgress(modern),modern);
+console.log('PASS: one Internet lesson at course end, legacy link alias and progress preservation; no old labs rerun');

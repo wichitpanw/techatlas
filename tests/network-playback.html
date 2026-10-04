@@ -1,0 +1,15 @@
+<!doctype html><html lang="th"><meta charset="utf-8"><title>Network playback audit</title><h1>Actual lesson playback · local only</h1><button id="run">ตรวจครบ 54 บท</button><pre id="report"></pre><iframe id="app" style="width:1050px;height:850px;border:0"></iframe><script type="module">
+import {networkLessons} from '../dist/assets/network-curriculum.js';import {arrangeNetwork} from '../dist/assets/network-foundations.js';
+const frame=document.querySelector('#app'),report=document.querySelector('#report');const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function until(test,ms=15000){const start=Date.now();while(!test()){if(Date.now()-start>ms)throw Error('timeout');await sleep(40);}}
+document.querySelector('#run').onclick=async()=>{document.querySelector('#run').disabled=true;report.textContent='Checking…\n';let passed=0;
+try{for(const l of arrangeNetwork(networkLessons)){
+ frame.src='../dist/#lesson/'+l.id;await until(()=>frame.contentDocument?.querySelector('h1')?.textContent===l.title);const d=frame.contentDocument;
+ await until(()=>d.querySelector('canvas')||d.querySelector('.no-webgl')||['vlsm','ipv6-address'].includes(l.id));
+ const play=d.querySelector('[data-mechanism-action=play], [data-internet=play], [data-osi-action=play]');
+ if(play){const range=d.querySelector('.mechanism-controls input[type=range],.internet-controls input[type=range],#osi-step');if(!range)throw Error('range missing '+l.id);if(Number(range.max)<1)throw Error('no playable steps '+l.id);play.click();await until(()=>Number(range.value)>0,5000);if(play.textContent.includes('หยุด'))play.click();const value=range.value;await sleep(1550);if(range.value!==value)throw Error('pause failed '+l.id);const reset=d.querySelector('[data-mechanism-action=reset],[data-internet=reset],[data-osi-action=reset]');reset?.click();if(reset&&Number(range.value)!==0)throw Error('reset failed '+l.id);}
+ else if(d.querySelector('#send-packet')){const button=d.querySelector('#send-packet');button.click();await until(()=>!button.disabled,15000);if(d.querySelector('#trace')?.textContent.includes('กำลังทดลอง'))throw Error('stuck send '+l.id);}
+ else{const tabs=d.querySelectorAll('button[data-state]');if(tabs.length<2)throw Error('no interactive controls '+l.id);tabs[1].click();if(d.querySelector('#foundation-scene')?.dataset.state!=='1')throw Error('foundation state failed '+l.id);}
+ passed++;report.textContent+=l.id+' PASS\n';
+ }report.textContent+='ALL PASS: '+passed+' actual Network pages; autoplay advances, pauses and resets, send actions finish, foundation controls change state.';}catch(e){report.textContent+='FAIL '+e.stack;}finally{document.querySelector('#run').disabled=false;}};
+</script></html>

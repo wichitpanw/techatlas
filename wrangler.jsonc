@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "techatlas",
+  "compatibility_date": "2026-10-03",
+  "pages_build_output_dir": "./dist",
+  "d1_databases": [
+    {
+      "binding": "VISITS_DB",
+      "database_name": "techatlas-visits",
+      "database_id": "be0fdad7-a8b0-4ebe-a158-bee898ea9d91",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

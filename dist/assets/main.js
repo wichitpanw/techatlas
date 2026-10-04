@@ -7,15 +7,35 @@ import {
   networkLessons as originalNetworkLessons,
   networkControls,
   simulateNetwork,
-} from "./network-curriculum.js?v=2";
+} from "./network-curriculum.js?v=internet-20261004";
 import {
   arrangeNetwork,
   orderedSections as networkSections,
-} from "./network-foundations.js";
-import { conceptSurface, initConcept } from "./network-concepts.js";
+} from "./network-foundations.js?v=internet-placement-20261004";
+import { conceptSurface, initConcept } from "./network-concepts.js?v=completion-20261004";
+import { createPythonInteractive } from './python-interactive.js';
+import { initMechanism } from './network-mechanism.js';
+import {initFeedback} from './feedback.js';
+import {renderUpdates,initUpdateFooter} from './updates.js';
+import {internetSurface,initInternet} from './internet-lab.js';
+import { networkLabSpecs,buildNetworkLab } from './network-lab-models.js';
+import { bindPythonEditor } from './python-editor.js';
+import {programmingLessons as withdrawnProgrammingLessons, programmingSections} from './programming-curriculum.js';
+import {programmingSurface, initProgramming} from './programming-lab.js';
+import {initVisitCounter} from './visit-counter.js';
+import {aiLessons as draftAILessons,aiSections} from './ai-curriculum.js';
+import {aiSurface,initAI} from './ai-lab.js';
+import {networkLearningGuide} from './network-learning-guide.js';
+import {courseIsVisible} from './course-visibility.js';
+import {glossaryEntries,lessonTermsSurface,searchGlossary} from './lesson-terms.js';
+import {canonicalLessonId,mergeLegacyProgress} from './lesson-aliases.js';
+initVisitCounter();
 const networkLessons = arrangeNetwork(originalNetworkLessons);
+// Drafts remain on disk; withdrawing a course must not erase saved learner work.
+const programmingLessons = [];
+const aiLessons = courseIsVisible('ai', location.hostname) ? draftAILessons : [];
 
-const lessons = [...networkLessons, ...pythonLessons];
+const lessons = [...networkLessons, ...pythonLessons, ...programmingLessons, ...aiLessons];
 const main = document.querySelector("main");
 const escapeHTML = (value) =>
   String(value).replace(
@@ -33,6 +53,8 @@ const normalize = (value) =>
     .join("\n")
     .trim();
 const courses = [
+  {id:'ai',name:'AI',description:'หมวดอิสระ · แผนที่ AI → กฎ vs ข้อมูล → Training/Inference → Token · ต้นแบบ 4 บท',sections:aiSections,lessons:aiLessons},
+  {id:'programming',name:'Programming',description:'หมวดอิสระ · เว็บ → HTML → CSS → JavaScript · ชุดแรก 6 บทพร้อมทดลอง ส่วน TypeScript/Node.js จะเพิ่มภายหลัง',sections:programmingSections,lessons:programmingLessons},
   {
     id: "network",
     name: "Network",
@@ -48,7 +70,7 @@ const courses = [
     sections: pythonSections,
     lessons: pythonLessons,
   },
-];
+].filter(course => course.lessons.length);
 let progress = {},
   drafts = {},
   storageAvailable = true;
@@ -56,15 +78,16 @@ try {
   const saved = localStorage.getItem("techatlas-progress-v2");
   if (saved) progress = JSON.parse(saved);
   else {
-    const old = JSON.parse(
+    const old = mergeLegacyProgress(JSON.parse(
       localStorage.getItem("techatlas-progress-v1") || "{}",
-    );
+    ));
     progress = Object.fromEntries(
       networkLessons.filter((l) => old[l.id]).map((l) => [l.id, old[l.id]]),
     );
   }
   if (!progress || Array.isArray(progress) || typeof progress !== "object")
     progress = {};
+  progress=mergeLegacyProgress(progress);
   drafts = JSON.parse(localStorage.getItem("techatlas-drafts-v2") || "{}");
   if (!drafts || Array.isArray(drafts) || typeof drafts !== "object")
     drafts = {};
@@ -121,6 +144,10 @@ async function addScene(el, options = {}) {
     const module = await import(
       options.preview
         ? "./card-scene.js"
+        : options.python
+          ? "./python-scene.js"
+        : options.mechanism
+          ? "./network-mechanism-scene.js"
         : options.foundation
           ? "./foundation-scene.js"
           : options.interactive
@@ -173,15 +200,20 @@ function lazyScenes(root) {
     .forEach((el) => lazyObserver.observe(el));
 }
 function intro(title, description, label = "EXPLORE AT YOUR OWN PACE") {
-  return `<section class="intro"><div><p class="eyebrow">${label}</p><h1>${title}</h1><p>${description}</p></div><span class="number">NETWORK · PYTHON · DEVELOPMENT · AI</span></section>`;
+  return `<section class="intro"><div><p class="eyebrow">${label}</p><h1>${title}</h1><p>${description}</p></div><span class="number">NETWORK · PYTHON · PROGRAMMING · AI</span></section>`;
 }
 function card(l) {
-  return `<a class="card ${progress[l.id] ? "done" : ""}" href="#lesson/${l.id}"><div class="card-visual" data-card-scene="${l.id}"><span class="label">${l.tag}</span><span class="lab-badge">${l.track === "python" ? "LIVE PYTHON" : l.conceptLab && l.section !== "foundation" ? "CONCEPT LAB" : "3D INTERACTIVE"}</span></div><div class="card-body"><h3>${l.title}</h3><p>${l.subtitle}</p><div class="card-meta"><span>${l.time} นาที · ${l.track === "python" ? "เขียนและรันโค้ด" : "ทดลองได้ทันที"}</span><span class="${progress[l.id] ? "complete-badge" : "go"}">${progress[l.id] ? "✓ ผ่านแล้ว" : "เปิดบทเรียน ↗"}</span></div></div></a>`;
+  const mode = networkLabSpecs[l.id]?.mode;
+  if(l.id==='osi-model')return `<a class="card ${progress[l.id]?'done':''}" href="#lesson/${l.id}"><div class="card-visual" data-card-scene="${l.id}"><span class="label">OSI / ENCAPSULATION</span><span class="lab-badge">3D INTERACTIVE</span></div><div class="card-body"><h3>${l.title}</h3><p>ส่งลง 7 → 1 แล้วรับขึ้น 1 → 7 · ดู Header และ Frame เสีย</p><div class="card-meta"><span>${l.time} นาที · ทดลองทีละชั้น</span><span>${progress[l.id]?'✓ ผ่านแล้ว':'เปิดบทเรียน ↗'}</span></div></div></a>`;
+  const badge = l.track === 'ai' ? 'AI VISUAL LAB' : l.track === 'programming' ? 'LIVE WEB LAB' : l.track === 'python' ? 'LIVE PYTHON' : mode === '3d' || !l.conceptLab || l.section === 'foundation' ? '3D INTERACTIVE' : mode === 'tool' ? 'INTERACTIVE SANDBOX' : 'INTERACTIVE SEQUENCE';
+  return `<a class="card ${progress[l.id] ? "done" : ""}" href="#lesson/${l.id}"><div class="card-visual" data-card-scene="${l.id}"><span class="label">${l.tag}</span><span class="lab-badge">${badge}</span></div><div class="card-body"><h3>${l.title}</h3><p>${l.subtitle}</p><div class="card-meta"><span>${l.time} นาที · ${l.track === "python" ? "เขียนและรันโค้ด" : "ทดลองได้ทันที"}</span><span class="${progress[l.id] ? "complete-badge" : "go"}">${progress[l.id] ? "✓ ผ่านแล้ว" : "เปิดบทเรียน ↗"}</span></div></div></a>`;
 }
 function renderExplore() {
   main.className = "";
-  main.innerHTML = `${intro("วันนี้อยาก<strong>สำรวจเรื่องไหน?</strong>", "เลือกเรื่องที่สนใจ เห็นภาพ ทดลอง และค้นหาคำตอบด้วยตัวเอง", "TECHATLAS · LEARN BY EXPLORING")}<section class="subject-grid" aria-label="หมวดการเรียนรู้"><button class="subject-tile network-subject" data-subject="network"><span class="subject-code">01 / NETWORK</span><h2>เครือข่าย</h2><p>อุปกรณ์เชื่อมต่อกันอย่างไร ข้อมูลเดินทางไปไหน</p><span>${networkLessons.length} บท · แบบจำลองและภารกิจ</span></button><button class="subject-tile python-subject" data-subject="python"><span class="subject-code">02 / PYTHON</span><h2>เขียนโปรแกรม Python</h2><p>เริ่มจากศูนย์ เขียนโค้ดและทดลองรันด้วยตัวเอง</p><span>${pythonLessons.length} บท · รันโค้ดในหน้าเรียน</span></button><article class="subject-tile planned-subject"><span class="subject-code">03 / PROGRAMMING</span><h2>พัฒนาเว็บไซต์และบริการ</h2><p>JavaScript · TypeScript · Node.js</p><span>กำลังเตรียมบทเรียน</span></article><article class="subject-tile planned-subject"><span class="subject-code">04 / ARTIFICIAL INTELLIGENCE</span><h2>ปัญญาประดิษฐ์</h2><p>เข้าใจ AI ทดลองใช้งาน และตรวจสอบคำตอบ</p><span>กำลังเตรียมบทเรียน</span></article></section><div class="filterbar" role="group" aria-label="กรองบทเรียน"><button class="filter active" data-filter="all">ภาพรวมทุกหมวด</button><button class="filter" data-filter="network">Network ${networkLessons.length}</button><button class="filter" data-filter="python">Python ${pythonLessons.length}</button><button class="filter" data-filter="completed">ผ่านแล้ว</button><label class="search"><input id="search" type="search" placeholder="ค้นหาหัวข้อ เช่น VLAN, List…" aria-label="ค้นหาบทเรียน"></label></div><div id="catalog"></div>`;
+  main.innerHTML = `${intro("วันนี้อยาก<strong>สำรวจเรื่องไหน?</strong>", "เลือกเรื่องที่สนใจ เห็นภาพ ทดลอง และค้นหาคำตอบด้วยตัวเอง", "TECHATLAS · LEARN BY EXPLORING")}<section class="subject-grid" aria-label="หมวดการเรียนรู้"><button class="subject-tile network-subject" data-subject="network"><span class="subject-code">01 / NETWORK</span><h2>เครือข่าย</h2><p>อุปกรณ์เชื่อมต่อกันอย่างไร ข้อมูลเดินทางไปไหน</p><span>${networkLessons.length} บท · แบบจำลองและภารกิจ</span></button><button class="subject-tile python-subject" data-subject="python"><span class="subject-code">02 / PYTHON</span><h2>เขียนโปรแกรม Python</h2><p>เริ่มจากศูนย์ เขียนโค้ดและทดลองรันด้วยตัวเอง</p><span>${pythonLessons.length} บท · รันโค้ดในหน้าเรียน</span></button><button class="subject-tile programming-subject" data-subject="programming"><span class="subject-code">03 / PROGRAMMING</span><h2>พัฒนาเว็บไซต์และบริการ</h2><p>HTML · CSS · JavaScript — เริ่มได้โดยอิสระ</p><span>${programmingLessons.length} บท · แก้โค้ดและดูหน้าเว็บจริง</span></button><article class="subject-tile planned-subject"><span class="subject-code">04 / ARTIFICIAL INTELLIGENCE</span><h2>ปัญญาประดิษฐ์</h2><p>เข้าใจ AI ทดลองใช้งาน และตรวจสอบคำตอบ</p><span>กำลังเตรียมบทเรียน</span></article></section><div class="filterbar" role="group" aria-label="กรองบทเรียน"><button class="filter active" data-filter="all">ภาพรวมทุกหมวด</button><button class="filter" data-filter="network">Network ${networkLessons.length}</button><button class="filter" data-filter="python">Python ${pythonLessons.length}</button><button class="filter" data-filter="programming">Programming ${programmingLessons.length}</button><button class="filter" data-filter="completed">ผ่านแล้ว</button><label class="search"><input id="search" type="search" placeholder="ค้นหาหัวข้อ เช่น VLAN, List…" aria-label="ค้นหาบทเรียน"></label></div><div id="catalog"></div>`;
   let filter = "all";
+  main.querySelector('.programming-subject').outerHTML = '<article class="subject-tile planned-subject programming-subject"><span class="subject-code">03 / PROGRAMMING</span><h2>พัฒนาเว็บไซต์และบริการ</h2><p>JavaScript · TypeScript · Node.js</p><span>กำลังเตรียมบทเรียน</span></article>';
+  main.querySelector('[data-filter="programming"]')?.remove();
   function draw() {
     const query = document.querySelector("#search").value.trim().toLowerCase();
     const root = document.querySelector("#catalog");
@@ -200,12 +232,12 @@ function renderExplore() {
           const subset = visible.filter((l) => l.track === course.id);
           if (!subset.length) return "";
           if (filter === "all" && !query) {
-            const featuredIds = course.id === "network" ? ["internet", "vlan", "dns"] : ["python-start", "variables", "conditions"];
+            const featuredIds = course.id === 'ai' ? ['ai-map','ai-training','ai-tokens'] : course.id === "network" ? ["internet", "vlan", "dns"] : course.id === "programming" ? ["web-overview", "web-html", "web-javascript"] : ["python-start", "variables", "conditions"];
             const featured = featuredIds.map((id) => subset.find((l) => l.id === id)).filter(Boolean);
             for (const lesson of subset) if (featured.length < 3 && !featured.includes(lesson)) featured.push(lesson);
-            return `<section class="subject-showcase"><div class="section-heading"><span class="section-index">${course.id === "network" ? "NET" : "PY"}</span><h2>${course.name}</h2><span class="desc">${course.id === "network" ? "มองให้เห็นการทำงานของเครือข่าย" : "เรียนพื้นฐานผ่านการเขียนโค้ดจริง"}</span><button class="show-subject" data-subject="${course.id}">ดูทั้งหมด ${subset.length} บท</button></div><div class="cards">${featured.map(card).join("")}</div></section>`;
+            return `<section class="subject-showcase"><div class="section-heading"><span class="section-index">${course.id === 'ai' ? 'AI' : course.id === "network" ? "NET" : course.id === "programming" ? "WEB" : "PY"}</span><h2>${course.name}</h2><span class="desc">${course.id === 'ai' ? 'เห็นภาพและทดลองกลไก AI' : course.id === "network" ? "มองให้เห็นการทำงานของเครือข่าย" : "เรียนพื้นฐานผ่านการเขียนโค้ดจริง"}</span><button class="show-subject" data-subject="${course.id}">ดูทั้งหมด ${subset.length} บท</button></div><div class="cards">${featured.map(card).join("")}</div></section>`;
           }
-          return `<section><div class="section-heading"><span class="section-index">${course.id === "network" ? "NET" : "PY"}</span><h2>${course.name}</h2><span class="desc">${course.description}</span></div>${course.id === "python" ? `<p class="reference-strip">เริ่มจากศูนย์ · เปิดเรียนได้โดยไม่ต้องผ่าน Network</p>` : ""}${course.sections
+          return `<section><div class="section-heading"><span class="section-index">${course.id === 'ai' ? 'AI' : course.id === "network" ? "NET" : course.id === "programming" ? "WEB" : "PY"}</span><h2>${course.name}</h2><span class="desc">${course.description}</span></div>${course.id === "python" ? `<p class="reference-strip">เริ่มจากศูนย์ · เปิดเรียนได้โดยไม่ต้องผ่าน Network</p>` : ""}${course.sections
             .map((section) => {
               const list = subset.filter((l) => l.section === section.id);
               if (!list.length) return "";
@@ -237,13 +269,13 @@ function renderExplore() {
 }
 function renderPath() {
   main.className = "";
-  main.innerHTML = `${intro("เส้นทางภายในแต่ละหมวด", "เลือกเริ่ม Network หรือ Python ได้ทันที แต่ละหมวดมีลำดับการเรียนของตัวเอง", "CHOOSE YOUR SUBJECT")}<div class="course-paths">${courses
+  main.innerHTML = `${intro("เส้นทางภายในแต่ละหมวด", "เลือกเริ่ม Network, Python, Programming หรือ AI ได้ทันที แต่ละหมวดมีลำดับการเรียนของตัวเอง", "CHOOSE YOUR SUBJECT")}<div class="course-paths">${courses
     .map(
       (course) =>
         `<section class="course-path"><h2>${course.name}</h2><p>${course.description}</p>${course.id === "python" ? `<p class="reference-strip">เรียนตามลำดับจากพื้นฐานไปสู่แบบฝึก</p>` : ""}${course.sections
           .map(
             (section, i) =>
-              `<article class="path-item"><span class="path-number">${String(i + 1).padStart(2, "0")}</span><div><h3>${section.title}</h3><div class="path-lessons">${course.lessons
+              `<article class="path-item"><span class="path-number">${section.code || String(i + 1).padStart(2, "0")}</span><div><h3>${section.title}</h3><div class="path-lessons">${course.lessons
                 .filter((l) => l.section === section.id)
                 .map(
                   (l) =>
@@ -255,7 +287,7 @@ function renderPath() {
     )
     .join(
       "",
-    )}</div><div class="future">${["JavaScript", "TypeScript", "Node.js", "AI"].map((name) => `<article class="future-item"><strong>${name}</strong><span>เตรียมเป็นหมวดแยกในระยะถัดไป</span></article>`).join("")}</div>`;
+    )}</div><div class="future">${["JavaScript บทต่อไป", "TypeScript", "Node.js", "AI: Neural Network → Transformer → RAG"].map((name) => `<article class="future-item"><strong>${name}</strong><span>บทต่อยอดในระยะถัดไป</span></article>`).join("")}</div>`;
 }
 function renderProgress() {
   main.className = "";
@@ -272,22 +304,36 @@ function renderPractice() {
     .map(card)
     .join(
       "",
-    )}</div><div class="section-heading"><span class="section-index">NET</span><h2>ทดลองแก้สถานการณ์ Network</h2></div><div class="cards">${networkLessons
+    )}</div><div class="section-heading"><span class="section-index">WEB</span><h2>แบบฝึก Programming</h2></div><div class="cards">${programmingLessons.filter(l=>["web-javascript","js-conditions"].includes(l.id)).map(card).join("")}</div><div class="section-heading"><span class="section-index">NET</span><h2>ทดลองแก้สถานการณ์ Network</h2></div><div class="cards">${networkLessons
     .filter((l) => ["vlan", "gateway", "mpls"].includes(l.id))
     .map(card)
     .join("")}</div>`;
+  const withdrawnHeading = [...main.querySelectorAll('.section-heading')].find(el => el.textContent.includes('แบบฝึก Programming'));
+  withdrawnHeading?.nextElementSibling?.remove();
+  withdrawnHeading?.remove();
   lazyScenes(main);
 }
 function renderCredits() {
   main.className = "";
-  main.innerHTML = `${intro("Credits & Copyright", "ผู้จัดทำและเอกสารอ้างอิงของ TechAtlas", "ABOUT THIS SITE")}<section class="credits-panel"><h2>Warapon Wichitpan</h2><p>ผู้จัดทำเว็บไซต์ TechAtlas</p><p>Contacts: <a href="mailto:wichitpan.w@gmail.com">wichitpan.w@gmail.com</a></p><p>© 2026 Warapon Wichitpan. All rights reserved.</p><hr><h3>เนื้อหา Python</h3><p>อ้างอิง ${pythonReference.title} จำนวน 37 หน้า</p><p>${pythonReference.note}</p><h3>เนื้อหา Network</h3><p>แต่ละบทมีลิงก์เอกสารอ้างอิงจาก RFC, Cisco หรือ MDN ภาพเป็นแบบจำลองเพื่อการสอนที่ย่อรายละเอียดบางขั้นตอน</p></section>`;
+  main.innerHTML = `${intro("Credits & Copyright", "ผู้จัดทำและเอกสารอ้างอิงของ TechAtlas", "ABOUT THIS SITE")}<section class="credits-panel"><h2>Warapon Wichitpan</h2><p>ผู้จัดทำเว็บไซต์ TechAtlas</p><p>Contacts: <a href="mailto:wichitpan.w@gmail.com">wichitpan.w@gmail.com</a></p><p>© 2026 Warapon Wichitpan. All rights reserved.</p><hr><h3>เนื้อหา Python</h3><p>อ้างอิง ${pythonReference.title} จำนวน 37 หน้า</p><p>${pythonReference.note}</p><h3>เนื้อหา Programming</h3><p>บทเริ่มต้น HTML/CSS/JavaScript อ้างอิง MDN แต่ละบทมีลิงก์อ่านเพิ่มเติม ตัวอย่างแก้โค้ดและรันใน Sandbox ส่วน Request/Response เป็นแบบจำลอง</p><h3>เนื้อหา Network</h3><p>แต่ละบทมีลิงก์เอกสารอ้างอิงจาก RFC, Cisco หรือ MDN ภาพเป็นแบบจำลองเพื่อการสอนที่ย่อรายละเอียดบางขั้นตอน</p></section>`;
+  const credits = main.querySelector('.credits-panel');
+  const withdrawn = [...credits.querySelectorAll('h3')].find(el => el.textContent === 'เนื้อหา Programming');
+  withdrawn?.nextElementSibling?.remove();
+  withdrawn?.remove();
+  credits.insertAdjacentHTML('beforeend', '<h3>แนวทางปรับหลักสูตร</h3><p>เทียบหัวข้อกับ <a href="https://www.youtube.com/playlist?list=PLcnJIHtHiTA0jUkISZDrd72cCWIgDMmPb" target="_blank" rel="noopener noreferrer">Networking Fundamentals — IT k Funde</a> และ <a href="https://www.youtube.com/playlist?list=PLsyeobzWxl7poL9JTVyndKe62ieoN-MZ3" target="_blank" rel="noopener noreferrer">Python for Beginners — Telusko</a> โดยสร้างคำอธิบาย โจทย์ และภาพของ TechAtlas ใหม่ และตรวจกลไกกับเอกสารหลัก ไม่ได้นำวิดีโอ ภาพ หรือสคริปต์มาคัดลอก และยังไม่ครอบคลุมทุกหัวข้อใน Playlist</p>');
 }
 function panel(l) {
-  return `<aside class="lesson-panel"><p class="eyebrow">${l.tag}</p><h2>${l.title}</h2><span class="notice">${l.time} นาที · ${l.track === "python" ? "เรียน Python ได้โดยตรง" : "Network"}</span><div class="scenario">${l.scenario}</div><p>${l.explain}</p><ol class="steps">${l.steps.map((s) => `<li>${s}</li>`).join("")}</ol><p><strong>ลองต่อด้วยตัวเอง</strong><br>${l.work}</p><button class="button light small open-terms">เปิดพจนานุกรม</button><p class="sources"><a href="${l.source}" target="_blank" rel="noopener noreferrer">เอกสารอ่านเพิ่มเติม ↗</a></p></aside>`;
+  const termLesson=l.track==='network'&&l.conceptLab&&networkLabSpecs[l.id]?{...l,termMechanisms:(l.states||[]).map((_,index)=>buildNetworkLab(l,index))}:l;
+  l=termLesson;
+  const guide = l.track === 'network' ? networkLearningGuide[l.id] : null;
+  const observe = guide ? `<section class="scenario"><strong>ภารกิจสังเกตกลไก</strong><p>${escapeHTML(guide[0])}</p><strong>สิ่งที่ต้องแยกให้ออก</strong><p>${escapeHTML(guide[1])}</p></section>` : '';
+  return `<aside class="lesson-panel"><p class="eyebrow">${l.tag}</p><h2>${l.title}</h2><span class="notice">${l.time} นาที · ${l.track === "python" ? "เรียน Python ได้โดยตรง" : l.track === "programming" ? "Programming · เริ่มได้โดยอิสระ" : "Network"}</span><div class="scenario">${l.scenario}</div>${observe}<p>${l.track === "programming" ? escapeHTML(l.explain) : l.explain}</p><ol class="steps">${l.steps.map((s) => `<li>${s}</li>`).join("")}</ol><p><strong>ลองต่อด้วยตัวเอง</strong><br>${l.work}</p>${lessonTermsSurface(l)}<button class="button light small open-terms">เปิดพจนานุกรม</button><p class="sources"><a href="${l.source}" target="_blank" rel="noopener noreferrer">เอกสารอ่านเพิ่มเติม ↗</a></p></aside>`;
 }
 function pythonSurface(l) {
   const draft = drafts[l.id] || {};
-  return `<div class="editor-wrap"><div class="editor-bar"><span>${l.files ? "main" : l.id}.py</span><span>LIVE PYTHON</span></div><textarea class="editor" id="code" spellcheck="false" aria-label="โค้ด Python ที่แก้ไขได้">${escapeHTML(typeof draft.code === "string" ? draft.code : l.starter)}</textarea>${Object.entries(
+  const mission = `<section class="python-mission" aria-label="ภารกิจที่ต้องทำ"><p class="eyebrow">ภารกิจที่ต้องทำ</p><h3>${escapeHTML(l.task.goal)}</h3><ol>${l.task.actions.map(action => `<li>${escapeHTML(action)}</li>`).join("")}</ol><p><strong>จุดที่ต้องแก้:</strong> ${escapeHTML(l.task.focus)}</p><p><strong>ข้อมูลตัวอย่าง:</strong> ${l.inputs ? "กรอกตามลำดับ บรรทัดละหนึ่งค่า" : "บทนี้ไม่ต้องใช้ input() ไม่ต้องกรอกข้อมูลนำเข้า"}</p>${l.inputs ? `<pre class="mission-input">${escapeHTML(l.inputs)}</pre>` : ""}<details open><summary>ผลลัพธ์ที่ต้องได้จากข้อมูลตัวอย่าง</summary><pre class="output expected-output">${escapeHTML(l.expected)}</pre></details><p class="notice">${l.tests ? "ผ่านเมื่อผลลัพธ์ถูกต้องครบทุกชุดตรวจ รวมข้อมูลชุดอื่นหรือการเรียกฟังก์ชันเพิ่มเติม" : "ระบบตรวจข้อความผลลัพธ์เทียบกับตัวอย่าง"} · ระบบไม่ได้ตรวจวิธีเขียน ให้ทำตามภารกิจเพื่อฝึกแนวคิดของบทนี้</p></section>`;
+  const actions = `<div class="editor-actions"><button class="button small" id="run-code" disabled>กำลังเตรียม Python…</button><button class="button light small" id="reset-code">เริ่มโค้ดใหม่</button><span id="python-status" aria-live="polite">เตรียมเครื่องรัน</span></div>`;
+  return `<div class="editor-wrap">${mission}<div class="editor-bar"><span>${l.files ? "main" : l.id}.py</span><span>LIVE PYTHON</span></div><textarea class="editor" id="code" spellcheck="false" aria-label="โค้ด Python ที่แก้ไขได้">${escapeHTML(typeof draft.code === "string" ? draft.code : l.starter)}</textarea>${actions}${Object.entries(
     l.files || {},
   )
     .map(
@@ -296,7 +342,7 @@ function pythonSurface(l) {
     )
     .join(
       "",
-    )}<div class="input-panel"><label for="stdin">ข้อมูลนำเข้าสำหรับ input()</label><p>หนึ่งบรรทัดต่อหนึ่ง input() ใส่ข้อมูลไว้ก่อนกดรัน${l.inputs ? " · ตัวอย่างตามโจทย์เตรียมไว้ให้แล้ว" : " · ถ้าโค้ดไม่มี input() ให้เว้นว่างได้"}</p><textarea id="stdin" rows="${l.inputs?.includes("\n") ? 3 : 2}" spellcheck="false" aria-label="ข้อมูลนำเข้า Python">${escapeHTML(typeof draft.inputs === "string" ? draft.inputs : l.inputs || "")}</textarea></div><div class="editor-actions"><button class="button small" id="run-code" disabled>กำลังเตรียม Python…</button><button class="button light small" id="reset-code">เริ่มโค้ดใหม่</button><span id="python-status" aria-live="polite">เตรียมเครื่องรัน</span></div><div id="input-prompts" class="prompt-log"></div><pre class="output" id="output" role="log" aria-live="polite">ผลลัพธ์จะปรากฏที่นี่</pre></div><div class="question-box"><p class="eyebrow">YOUR PRACTICE</p><h3>เป้าหมายของแบบฝึกนี้</h3><p class="notice">ผลลัพธ์เมื่อใช้ข้อมูลตัวอย่างที่ให้ไว้${l.tests ? " · ระบบตรวจข้อมูลชุดอื่นด้วยเพื่อให้โปรแกรมใช้ได้จริง" : ""}</p><pre class="output expected-output">${escapeHTML(l.expected)}</pre><button class="hint" id="hint">ขอคำใบ้</button><button class="hint" id="solution">ดูตัวอย่างเฉลย</button><div class="feedback" id="feedback" aria-live="polite">${progress[l.id] ? "✓ คุณเคยผ่านภารกิจนี้แล้ว ทบทวนได้อีกครั้ง" : ""}</div><div id="checks"></div></div>`;
+    )}<div class="input-panel"><label for="stdin">คำตอบที่โปรแกรมรับด้วย input()</label><p id="stdin-help">เช่น โค้ด <code>name = input("ชื่อ: ")</code> ให้กรอก <code>Warapon</code> ในช่องนี้ ไม่ต้องใส่เครื่องหมายคำพูด<br>หนึ่งบรรทัดต่อหนึ่ง input() ใส่ข้อมูลไว้ก่อนกดรัน${l.inputs ? " · ตัวอย่างตามโจทย์เตรียมไว้ให้แล้ว" : " · ถ้าโค้ดไม่มี input() ให้เว้นว่างได้"}</p><textarea id="stdin" rows="${l.inputs?.includes("\n") ? 3 : 2}" spellcheck="false" aria-label="ข้อมูลนำเข้า Python" aria-describedby="stdin-help">${escapeHTML(typeof draft.inputs === "string" ? draft.inputs : l.inputs || "")}</textarea></div><div id="input-prompts" class="prompt-log"></div></div><div class="question-box"><p class="eyebrow">YOUR PRACTICE</p><h3>ผลตรวจภารกิจและคำใบ้</h3><p class="notice">ผลลัพธ์เมื่อใช้ข้อมูลตัวอย่างที่ให้ไว้${l.tests ? " · ระบบตรวจข้อมูลชุดอื่นด้วยเพื่อให้โปรแกรมใช้ได้จริง" : ""}</p><button class="hint" id="hint">ขอคำใบ้</button><button class="hint" id="solution">ดูตัวอย่างเฉลย</button><div class="feedback" id="feedback" aria-live="polite">${progress[l.id] ? "✓ คุณเคยผ่านภารกิจนี้แล้ว ทบทวนได้อีกครั้ง" : ""}</div><div id="checks"></div></div>`;
 }
 function labReference(l) {
   if (l.id === "gateway")
@@ -323,28 +369,48 @@ function renderLesson(id) {
   if (id === "offline") id = "practice-list";
   const l = lessons.find((l) => l.id === id);
   if (!l) {
-    main.innerHTML = `${intro("ไม่พบบทเรียน", "กลับไปเลือกหัวข้อในคลังบทเรียน")}<a class="button" href="#explore">สำรวจบทเรียน</a>`;
+    const withdrawnTrack = withdrawnProgrammingLessons.some(lesson => lesson.id === id) ? 'Programming' : draftAILessons.some(lesson => lesson.id === id) ? 'AI' : '';
+    main.innerHTML = `${intro(withdrawnTrack ? 'กำลังเตรียมบทเรียน' : "ไม่พบบทเรียน", withdrawnTrack ? `หมวด ${withdrawnTrack} กำลังปรับปรุง งานที่บันทึกไว้ในเครื่องยังไม่ถูกลบ` : "กลับไปเลือกหัวข้อในคลังบทเรียน")}<a class="button" href="#explore">สำรวจบทเรียน</a>`;
     return;
   }
   currentLesson = l;
+  // Lesson-specific reports remain outside the lab's event handlers.
+  if(l.track==='ai'){
+    main.className='lab-page';const index=aiLessons.indexOf(l);
+    main.innerHTML=`<div class="lab-head"><a href="#explore">‹ คลังบทเรียน</a><h1>${escapeHTML(l.title)}</h1><span>AI · ${index+1} / ${aiLessons.length}</span></div><div class="lab-layout"><aside class="lesson-panel"><p class="eyebrow">${l.tag}</p><h2>${escapeHTML(l.title)}</h2><p>${escapeHTML(l.explain)}</p><p><a href="${l.source}" target="_blank" rel="noopener noreferrer">เอกสารอ่านเพิ่มเติม ↗</a></p></aside><section class="workarea">${aiSurface(l)}<div class="lesson-links">${index?`<a href="#lesson/${aiLessons[index-1].id}">‹ บทก่อนหน้า</a>`:''}${index<aiLessons.length-1?`<a href="#lesson/${aiLessons[index+1].id}">บทถัดไป ›</a>`:'<a href="#path">เส้นทางการเรียน ›</a>'}</div></section></div>`;
+    scenes.set(main.querySelector('.workarea'),initAI(l,complete));return;
+  }
   main.className = "lab-page";
   const group = lessons.filter((x) => x.track === l.track),
     idx = group.indexOf(l);
-  main.innerHTML = `<div class="lab-head"><a class="back" href="#explore">‹ คลังบทเรียน</a><h1>${l.title}</h1><span class="lesson-tag">${l.track.toUpperCase()} · ${idx + 1} / ${group.length}</span></div><div class="lab-layout">${panel(l)}<section class="workarea">${l.track === "python" ? pythonSurface(l) : l.conceptLab ? conceptSurface(l) : networkSurface(l)}<div class="lesson-links">${idx > 0 ? `<a href="#lesson/${group[idx - 1].id}">‹ บทก่อนหน้าในหมวด ${l.track}</a>` : ""}${idx < group.length - 1 ? `<a style="margin-left:auto" href="#lesson/${group[idx + 1].id}">บทถัดไปในหมวด ${l.track} ›</a>` : '<a style="margin-left:auto" href="#path">ดูเส้นทางในหมวดนี้ ›</a>'}</div></section></div>`;
+  main.innerHTML = `<div class="lab-head"><a class="back" href="#explore">‹ คลังบทเรียน</a><h1>${l.title}</h1><span class="lesson-tag">${l.track.toUpperCase()} · ${idx + 1} / ${group.length}</span></div><div class="lab-layout">${panel(l)}<section class="workarea">${l.track === "programming" ? programmingSurface(l,drafts[l.id]) : l.track === "python" ? pythonSurface(l) : l.conceptLab ? conceptSurface(l) : networkSurface(l)}<div class="lesson-links">${idx > 0 ? `<a href="#lesson/${group[idx - 1].id}">‹ บทก่อนหน้าในหมวด ${l.track}</a>` : ""}${idx < group.length - 1 ? `<a style="margin-left:auto" href="#lesson/${group[idx + 1].id}">บทถัดไปในหมวด ${l.track} ›</a>` : '<a style="margin-left:auto" href="#path">ดูเส้นทางในหมวดนี้ ›</a>'}</div></section></div>`;
   document.querySelector(".open-terms").addEventListener("click", openGlossary);
-  document.querySelector("#hint").addEventListener("click", () => {
+  const reportButton=document.createElement('button');reportButton.className='button light small';reportButton.dataset.report='lesson';reportButton.textContent='รายงานปัญหา / เสนอแนะบทนี้';document.querySelector('.lesson-panel').append(reportButton);
+  document.querySelector("#hint")?.addEventListener("click", () => {
     const feedback = document.querySelector("#feedback");
     feedback.className = "feedback";
     feedback.textContent = l.hint;
   });
-  if (l.track === "python") initPython(l);
+  if (l.track === "programming") {
+    const lab=initProgramming(l,{complete,saveDraft});
+    scenes.set(document.querySelector('.workarea'),lab);
+  } else if (l.track === "python") initPython(l);
   else if (l.conceptLab) {
-    initConcept(l, () => complete(l.id));
-    if (l.section === "foundation")
+    const conceptController = initConcept(l, () => complete(l.id));
+    if(conceptController)scenes.set(document.querySelector('.workarea'),conceptController);
+    const mechanism = initMechanism(l, addScene);
+    if (mechanism) scenes.set(document.querySelector('.mechanism-lab'), mechanism);
+    if (l.section === "foundation" && l.id !== 'osi-model')
       addScene(document.querySelector("#foundation-scene"), {
         foundation: true,
         variant: l.id,
       });
+  } else if(l.id==='internet'){
+    const navigation=document.querySelector('.lesson-links');
+    document.querySelector('.workarea').innerHTML=internetSurface()+`<div class="question-box"><h3>${escapeHTML(l.question)}</h3><div class="choices">${l.choices.map((text,i)=>`<button class="choice" data-internet-answer="${i}">${escapeHTML(text)}</button>`).join('')}</div><p id="internet-answer" aria-live="polite"></p></div>`;
+    document.querySelector('.workarea').append(navigation);
+    let observed=false;const controller=initInternet(l,addScene,()=>{observed=true;});scenes.set(document.querySelector('.internet-lab'),controller);
+    document.querySelectorAll('[data-internet-answer]').forEach(button=>button.onclick=()=>{const correct=Number(button.dataset.internetAnswer)===l.answer;document.querySelector('#internet-answer').textContent=correct?(observed?'ผ่านแล้ว · ':'ถูกต้อง แต่ยังต้องเดินทุกขั้นจนคำตอบกลับถึง Computer · ')+l.reason:'ลองดูขั้นตอน DNS อีกครั้ง';if(correct&&observed)complete(l.id);});
   } else initNetwork(l);
 }
 
@@ -352,9 +418,13 @@ function inputLines(value) {
   return value === "" ? [] : value.replace(/\r\n/g, "\n").split("\n");
 }
 function initPython(l) {
+  const interactive = createPythonInteractive(l, addScene);
+  scenes.set(document.querySelector('.python-monitor-wrap'), interactive);
+  const showMonitor = (text, kind = 'result') => interactive.update(text, kind);
+  let runContext = {};
   const run = document.querySelector("#run-code"),
     code = document.querySelector("#code"),
-    output = document.querySelector("#output"),
+    output = { textContent: "" },
     status = document.querySelector("#python-status"),
     stdin = document.querySelector("#stdin");
   const readFiles = () =>
@@ -372,13 +442,7 @@ function initPython(l) {
     });
   [code, stdin, ...document.querySelectorAll("[data-file]")].forEach((el) => {
     el.addEventListener("input", save);
-    el.addEventListener("keydown", (event) => {
-      if (event.key === "Tab" && el !== stdin) {
-        event.preventDefault();
-        el.setRangeText("    ", el.selectionStart, el.selectionEnd, "end");
-        el.dispatchEvent(new Event("input"));
-      }
-    });
+    if (el !== stdin) bindPythonEditor(el);
   });
   document.querySelector("#reset-code").addEventListener("click", () => {
     code.value = l.starter;
@@ -388,6 +452,7 @@ function initPython(l) {
       .forEach((el) => (el.value = l.files[el.dataset.file]));
     save();
     output.textContent = "เริ่มโค้ดและข้อมูลตัวอย่างใหม่แล้ว";
+    showMonitor('กดรันโค้ด แล้วดูผลบนจอนี้', 'idle');
     document.querySelector("#checks").innerHTML = "";
   });
   document.querySelector("#solution").addEventListener("click", () => {
@@ -421,6 +486,7 @@ function initPython(l) {
       run.disabled = false;
       run.textContent = "ลองโหลด Python ใหม่";
       status.textContent = "โหลดไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองอีกครั้ง";
+      showMonitor(status.textContent, 'error');
     }, 60000);
     worker.onmessage = ({ data }) => {
       if (currentLesson !== l) return;
@@ -436,9 +502,11 @@ function initPython(l) {
       run.disabled = false;
       run.textContent = "▶ รันโค้ด";
       const feedback = document.querySelector("#feedback");
+      interactive.record(data, runContext);
       if (data.type === "result") {
         output.textContent =
           data.output || "(โปรแกรมทำงานจบโดยไม่มีข้อความจาก print)";
+        showMonitor(output.textContent);
         document.querySelector("#input-prompts").textContent =
           data.prompts.filter(Boolean).length
             ? `ข้อความจาก input(): ${data.prompts.filter(Boolean).join(" · ")}`
@@ -460,6 +528,7 @@ function initPython(l) {
         status.textContent = "รันเสร็จแล้ว";
       } else {
         output.textContent = data.message;
+        showMonitor(data.message, 'error');
         feedback.className = "feedback bad";
         feedback.textContent = data.message.includes("EOFError")
           ? "ข้อมูลนำเข้าไม่พอ เพิ่มหนึ่งบรรทัดต่อ input() แล้วรันใหม่"
@@ -486,6 +555,7 @@ function initPython(l) {
       run.disabled = false;
       run.textContent = "ลองโหลด Python ใหม่";
       status.textContent = "โหลด Python ไม่สำเร็จ";
+      showMonitor(status.textContent, 'error');
     };
   }
   boot();
@@ -500,11 +570,14 @@ function initPython(l) {
     ) {
       output.textContent =
         "ไฟล์โค้ดหนึ่งไฟล์ต้องไม่เกิน 20,000 ตัวอักษรในห้องทดลองนี้";
+      showMonitor(output.textContent, 'error');
       return;
     }
     run.disabled = true;
     run.textContent = "กำลังรัน…";
     status.textContent = "กำลังประมวลผลและตรวจภารกิจ";
+    showMonitor('กำลังรันโค้ด…', 'running');
+    runContext = {code:code.value, inputs:stdin.value, files:readFiles()};
     document.querySelector("#checks").innerHTML = "";
     worker.postMessage({
       type: "run",
@@ -519,6 +592,7 @@ function initPython(l) {
       clearWorker();
       output.textContent =
         "หยุดโปรแกรมหลัง 8 วินาที อาจมีลูปที่ไม่จบ ตรวจเงื่อนไขแล้วลองใหม่";
+      showMonitor(output.textContent, 'error');
       run.disabled = false;
       run.textContent = "ลองโหลด Python ใหม่";
       status.textContent = "หยุดโปรแกรมแล้ว";
@@ -951,9 +1025,59 @@ const terms = [
     "Function รวมคำสั่งที่เรียกซ้ำได้ Module แยกโค้ดเป็นไฟล์แล้ว import มาใช้",
   ],
 ];
+const aiTerms=[['AI','สาขาที่สร้างระบบรับรู้ เรียนรู้ และตัดสินใจ ไม่ใช่ทุกระบบต้องเป็น ML'],['ML / DL','ML เรียนจากข้อมูล ส่วน DL ใช้ Neural Network หลายชั้น'],['NLP / GenAI','NLP เป็นงานภาษา GenAI เป็นงานสร้างเนื้อหา ทั้งสองทับซ้อนกันได้'],['Training / Inference','Training เลือกหรือปรับพารามิเตอร์จากข้อมูล Inference ใช้พารามิเตอร์เดิมคำนวณคำตอบ'],['Feature / Label','Feature เป็นข้อมูลนำเข้า Label เป็นคำตอบกำกับตัวอย่าง'],['Threshold','เส้นแบ่งที่ใช้เลือกกลุ่มผลลัพธ์ ใน Lab ผ่านเมื่อคะแนน ≥ threshold'],['Token / Bigram','Token คือหน่วยข้อความ Bigram ใช้คู่ Token ติดกัน Lab นี้แบ่งด้วยช่องว่างและนับคู่ ไม่ใช่ LLM'],['LLM','โมเดลภาษาขนาดใหญ่ โมเดลจิ๋วในบท Token เป็นสะพานอธิบาย ไม่ใช่ LLM จริง']];
 function openGlossary() {
+  if(currentLesson?.track==='ai'){
+    document.querySelector('#glossary h2').textContent='ศัพท์ AI';
+    document.querySelector('#terms').innerHTML=aiTerms.map(([name,meaning])=>`<div class="term"><strong>${name}</strong><p>${meaning}</p></div>`).join('');
+    document.querySelector('#glossary').showModal();return;
+  }
+  const python = currentLesson?.track === 'python';
+  const programming=currentLesson?.track==='programming';
+  const expanded=glossaryEntries.filter(e=>!currentLesson||e.track===currentLesson.track).map(e=>[e.name,e.meaning]);
+  const selected = programming ? programmingTerms : expanded;
+  document.querySelector('#glossary h2').textContent = programming ? 'ศัพท์ Programming' : python ? 'ศัพท์ Python' : currentLesson?.track === 'network' ? 'ศัพท์ Network' : 'ศัพท์เทคโนโลยี';
+  const termRoot=document.querySelector('#terms');
+  termRoot.innerHTML = `<label>ค้นหาคำศัพท์<input type="search" data-term-search placeholder="เช่น ACK, VLAN, Dictionary"></label><p data-term-count></p><div data-term-list></div>`;
+  const search=termRoot.querySelector('[data-term-search]');
+  const drawTerms=()=>{const filtered=searchGlossary(selected,search.value);termRoot.querySelector('[data-term-count]').textContent=`${filtered.length} คำ`;termRoot.querySelector('[data-term-list]').innerHTML=filtered.length?filtered.map(([name,desc])=>`<div class="term"><strong>${escapeHTML(name)}</strong><p>${escapeHTML(desc)}</p></div>`).join(''):'<p>ไม่พบคำนี้ ลองใช้ชื่อเต็มหรือคำใกล้เคียง</p>';};
+  search.oninput=drawTerms;drawTerms();
   document.querySelector("#glossary").showModal();
 }
+const pythonTerms = [
+  ['Identity / is', 'is ตรวจว่าเป็นออบเจ็กต์เดียวกัน ส่วน == ตรวจค่าเท่ากัน สอง List ที่มีค่าเหมือนกันไม่จำเป็นต้องเป็นก้อนเดียวกัน'],
+  ['Reference / Alias', 'ชื่อที่อ้างถึงข้อมูล เช่น b = a ไม่ได้คัดลอก List เมื่อแก้ผ่าน b ชื่อ a จะเห็นรายการที่เปลี่ยนด้วย'],
+  ['Shallow copy', 'สำเนาระดับตื้น เช่น List.copy() สร้าง List ใหม่ แต่สมาชิกที่เป็นข้อมูลซ้อนยังอาจอ้างถึงก้อนเดิม'],
+  ['Membership / in', 'ตรวจสมาชิกของกลุ่มข้อมูล สำหรับ Dictionary ตรวจ key ถ้าต้องการตรวจ value ให้ใช้ .values()'],
+  ['print()', 'ฟังก์ชันแสดงค่าทางผลลัพธ์ของโปรแกรม ไม่รวมเครื่องหมายคำพูดที่ใช้ครอบข้อความในโค้ด'],
+  ['String / str', 'ข้อมูลข้อความ ครอบด้วยเครื่องหมายคำพูด เช่น "Hello"'],
+  ['Variable', 'ชื่อตัวแปรที่อ้างถึงค่า กำหนดด้วย = เช่น name = "Ada"'],
+  ['int / float / bool / None', 'จำนวนเต็ม จำนวนทศนิยม ค่าจริงหรือเท็จ และค่าที่ใช้แทนการไม่มีค่า'],
+  ['input() / Conversion', 'input() รับข้อมูลเป็นข้อความ ใช้ int() หรือ float() แปลงเมื่อข้อมูลแปลงได้'],
+  ['Indentation', 'การเยื้องบรรทัดเพื่อกำหนดกลุ่มคำสั่ง เช่น ภายใน if หรือ for'],
+  ['if / elif / else', 'เลือกกลุ่มคำสั่งตามเงื่อนไขที่เป็นจริง'],
+  ['for / while / range()', 'ทำคำสั่งซ้ำ โดยวนสมาชิกหรือวนขณะเงื่อนไขเป็นจริง range() สร้างลำดับจำนวนเต็มโดยไม่รวมค่าสิ้นสุด'],
+  ['List / Tuple / Set / Dictionary', 'List เป็นลำดับแก้ไขได้ Tuple เปลี่ยนสมาชิกไม่ได้ Set เก็บค่าไม่ซ้ำ Dictionary จับคู่ key กับ value'],
+  ['Index', 'ตำแหน่งในลำดับ เริ่มที่ 0 ค่าลบอ้างจากท้ายลำดับ'],
+  ['Function / def / return', 'def สร้างฟังก์ชันที่เรียกใช้ได้ return ส่งค่ากลับ ต่างจาก print() ที่แสดงข้อความ'],
+  ['Argument / Parameter', 'Parameter คือชื่อที่ฟังก์ชันประกาศรับ Argument คือค่าที่ส่งตอนเรียก'],
+  ['Module / import', 'โมดูลรวมโค้ดที่นำกลับมาใช้ได้ import ใช้เข้าถึงโมดูล'],
+  ['SyntaxError / Exception', 'SyntaxError คือรูปแบบโค้ดผิด Exception คือข้อผิดพลาดที่อาจเกิดขณะทำงาน ใช้ try / except จัดการได้'],
+  ['Comment', 'ข้อความอธิบายหลัง # ไม่ถูกนำไปทำงานเป็นคำสั่ง'],
+];
+const programmingTerms=[
+ ['Browser / Server','Browser ขอและแสดงหน้าเว็บ Server รับ Request และส่ง Response'],
+ ['HTML / Element','ภาษาระบุโครงสร้างและความหมายของหน้าเว็บ เช่น h1 และรายการ ul/li'],
+ ['CSS / Selector','กฎจัดรูปแบบ Selector เลือก Element ที่จะเปลี่ยน เช่น .task-card เลือก class'],
+ ['Box Model','Content → Padding → Border → Margin; border-box รวม Padding และ Border ใน width แต่ไม่รวม Margin'],
+ ['DOM','โครงสร้าง Element ที่ Browser สร้างจาก HTML JavaScript อ่านและแก้โครงสร้างนี้ได้'],
+ ['Event / Listener','เหตุการณ์ เช่น click กับฟังก์ชันที่ลงทะเบียนให้ทำงานเมื่อเกิดเหตุการณ์'],
+ ['const / let','const ห้ามกำหนดค่าใหม่ให้ชื่อเดิม let ยอมให้กำหนดใหม่ const ไม่ได้ทำให้ Object เปลี่ยนแปลงไม่ได้'],
+ ['typeof / Boolean','typeof บอกชนิด เช่น string, number, boolean ค่าความจริง JavaScript ใช้ true และ false'],
+ ['Console / console.log()','พื้นที่แสดงข้อมูลเพื่อสังเกตและแก้ปัญหา ไม่ได้เปลี่ยนข้อความในหน้าเว็บโดยอัตโนมัติ'],
+ ['if / else if / else','เลือกบล็อกตามเงื่อนไข JavaScript ใช้เครื่องหมายปีกกา { } ครอบบล็อก'],
+ ['Sandbox','พื้นที่ทดลองแยกจากเว็บหลัก ห้องทดลองนี้ไม่อนุญาตให้โค้ดเข้าถึงข้อมูลเว็บหลักหรือโหลดข้อมูลภายนอก'],
+];
 document.querySelector("#terms").innerHTML = terms
   .map(
     ([name, desc]) =>
@@ -969,7 +1093,8 @@ document
 function route() {
   cleanup();
   currentLesson = null;
-  const hash = location.hash.slice(1) || "explore";
+  let hash = location.hash.slice(1) || "explore";
+  if(hash.startsWith('lesson/')){const canonical=canonicalLessonId(hash.slice(7));if(canonical!==hash.slice(7)){hash='lesson/'+canonical;history.replaceState(null,'',location.pathname+location.search+'#'+hash);}}
   document
     .querySelectorAll("nav a")
     .forEach((a) =>
@@ -984,6 +1109,7 @@ function route() {
   else if (hash === "project") renderPractice();
   else if (hash === "progress") renderProgress();
   else if (hash === "credits") renderCredits();
+  else if (hash === "updates") renderUpdates(main);
   else renderExplore();
   document.title = currentLesson
     ? currentLesson.title + " · TechAtlas"
@@ -992,6 +1118,8 @@ function route() {
   badge();
 }
 window.addEventListener("hashchange", route);
+initFeedback();
+initUpdateFooter();
 route();
 if (document.modelContext?.registerTool) {
   const tools = [
@@ -1015,7 +1143,7 @@ if (document.modelContext?.registerTool) {
     {
       name: "open_lesson",
       description:
-        "Open a lesson in Network or Python without marking it complete.",
+        "Open a lesson in Network, Python, Programming or AI without marking it complete.",
       inputSchema: {
         type: "object",
         properties: {

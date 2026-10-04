@@ -1,0 +1,51 @@
+<!doctype html><html lang="th"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Network Interactive verification</title>
+<link rel="stylesheet" href="../dist/assets/style.css">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+<h1>Network Interactive verification · local only</h1><button id="test">Run all Network checks</button><pre id="report"></pre><div class="workarea" id="test-area" style="max-width:750px"></div>
+<script type="module">
+import {networkLessons} from '../dist/assets/network-curriculum.js';
+import {arrangeNetwork} from '../dist/assets/network-foundations.js';
+import {networkLabSpecs,buildNetworkLab} from '../dist/assets/network-lab-models.js';
+import {mechanismSurface,initMechanism} from '../dist/assets/network-mechanism.js';
+import {conceptSurface,initConcept} from '../dist/assets/network-concepts.js';
+import {mountScene} from '../dist/assets/network-mechanism-scene.js';
+import {mountScene as pythonScene} from '../dist/assets/python-scene.js';
+import {pythonLessons} from '../dist/assets/python-curriculum.js';
+const report=document.querySelector('#report'),area=document.querySelector('#test-area');
+const frame=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+document.querySelector('#test').onclick=async()=>{
+ document.querySelector('#test').disabled=true;report.textContent='Checking all Network controllers and 3D renderers…\n';let total=0;
+ try{
+  for(const lesson of arrangeNetwork(networkLessons).filter(l=>networkLabSpecs[l.id])){
+   area.innerHTML=conceptSurface(lesson);initConcept(lesson,()=>{});const scenes=[];
+   const controller=initMechanism(lesson,async(el,opts)=>{const s=mountScene(el,opts);scenes.push(s);return s;});await frame();
+   for(let i=0;i<lesson.states.length;i++){
+    area.dispatchEvent(new CustomEvent('network-scenario',{detail:{index:i}}));await frame();
+    const steps=[...area.querySelectorAll('[data-mechanism-step]')];if(!steps.length)throw Error('no steps '+lesson.id);
+    const model=buildNetworkLab(lesson,i);
+    for(let index=0;index<steps.length;index++){area.querySelector(`[data-mechanism-step="${index}"]`).click();await frame();if(area.querySelector('.mechanism-evidence h3').textContent!==model.steps[index].title)throw Error('wrong step '+lesson.id);if(networkLabSpecs[lesson.id].mode==='3d'&&area.querySelectorAll('.mechanism-flight').length!==model.steps[index].transfers.length)throw Error('missing named transfer '+lesson.id);if(model.steps[index].wire&&!area.querySelector('.wire-inspector'))throw Error('missing wire header '+lesson.id);if(networkLabSpecs[lesson.id].mode==='3d'&&model.steps[index].transfers.length&&!matchMedia('(prefers-reduced-motion: reduce)').matches){const before=scenes[0].snapshot();await new Promise(r=>setTimeout(r,80));const after=scenes[0].snapshot();if(JSON.stringify(before.transfers.map(t=>t.position))===JSON.stringify(after.transfers.map(t=>t.position)))throw Error('marker does not move '+lesson.id+i+index);}}
+    if(area.querySelector('.mechanism-error').textContent)throw Error('model error '+lesson.id);
+    area.querySelector('[data-mechanism-action=reset]').click();
+    const play=area.querySelector('[data-mechanism-action=play]'),range=area.querySelector('.mechanism-controls input[type=range]');
+    if(Number(range.max)<1)throw Error('no playable steps '+lesson.id+i);
+    play.click();await new Promise(r=>setTimeout(r,1500));
+    if(Number(range.value)!==1)throw Error('autoplay did not advance '+lesson.id+i);
+    if(networkLabSpecs[lesson.id].mode==='3d'&&area.querySelector('canvas').dataset.step!=='1')throw Error('scene did not advance '+lesson.id+i);
+    if(play.textContent.includes('หยุด'))play.click();const paused=range.value;await frame();if(range.value!==paused)throw Error('pause failed '+lesson.id+i);
+    area.querySelector('[data-mechanism-action=reset]').click();if(range.value!=='0')throw Error('reset failed '+lesson.id+i);
+    total++;
+   }
+   if(networkLabSpecs[lesson.id].mode==='3d'&&!area.querySelector('canvas'))throw Error('3D missing '+lesson.id);
+   controller.dispose();for(const s of scenes)s.dispose();area.replaceChildren();report.textContent+=lesson.id+' PASS\n';
+  }
+  for(const lesson of pythonLessons){
+   area.innerHTML='<div class="python-monitor" style="height:310px"></div>';const s=pythonScene(area.firstChild,{lesson});
+   s.update('ตัวอย่างผลลัพธ์ที่อ่านได้\nHello, Python!');await frame();
+   if(!area.querySelector('.python-screen-text pre')?.textContent.includes('Hello'))throw Error('crisp output missing');
+   for(const tile of area.querySelectorAll('.python-tile-text'))if(!tile.querySelector('code'))throw Error('crisp tile missing');
+   s.dispose();area.replaceChildren();
+  }
+  report.textContent+='ALL PASS: '+Object.keys(networkLabSpecs).length+' Network controllers, '+total+' scenarios, '+Object.values(networkLabSpecs).filter(s=>s.mode==='3d').length+' 3D renderers with named transfers, and all '+pythonLessons.length+' Python scenes with sharp DOM text.';
+ }catch(e){report.textContent+='FAIL: '+e.stack;}finally{document.querySelector('#test').disabled=false;}
+};
+</script></html>

@@ -1,0 +1,31 @@
+<!doctype html><html lang="th"><meta charset="utf-8"><title>Network new labs verification</title>
+<link rel="stylesheet" href="../dist/assets/style.css">
+<h1>Network new labs · local only</h1><pre id="report"></pre><div class="workarea" id="test-area" style="max-width:750px"></div>
+<script type="module">
+import {networkLessons} from '../dist/assets/network-curriculum.js';
+import {arrangeNetwork} from '../dist/assets/network-foundations.js';
+import {buildNetworkLab} from '../dist/assets/network-lab-models.js';
+import {mechanismSurface,initMechanism} from '../dist/assets/network-mechanism.js';
+const ids=['network-commands','mail','proxy-lb','dmz','pcap','wan','cloud-vpc','cloud-hybrid'],report=document.querySelector('#report'),area=document.querySelector('#test-area');
+const tick=()=>new Promise(r=>setTimeout(r,20));let total=0;
+try{
+ for(const id of ids){
+  const lesson=arrangeNetwork(networkLessons).find(l=>l.id===id);
+  area.innerHTML=mechanismSurface(lesson);const c=initMechanism(lesson,async()=>null);await tick();
+  for(let i=0;i<lesson.states.length;i++){
+   area.dispatchEvent(new CustomEvent('network-scenario',{detail:{index:i}}));await tick();
+   const model=buildNetworkLab(lesson,i),steps=[...area.querySelectorAll('[data-mechanism-step]')];
+   if(steps.length!==model.steps.length)throw Error('step count '+id+i);
+   for(let k=0;k<steps.length;k++){area.querySelector(`[data-mechanism-step="${k}"]`).click();await tick();
+    if(area.querySelector('.mechanism-evidence h3').textContent!==model.steps[k].title)throw Error('wrong step '+id+i+k);
+    const t=area.textContent;for(const [,v] of model.steps[k].fields)if(!t.includes(String(v)))throw Error('field missing '+id+i+k+' '+v);}
+   if(area.querySelector('.mechanism-error').textContent)throw Error('model error '+id);total++;
+  }
+  const form=area.querySelector('form');if(form){const sel=form.querySelector('select');
+   for(const o of [...sel.options]){sel.value=o.value;form.requestSubmit();await tick();if(area.querySelector('.mechanism-error').textContent)throw Error('control '+id+o.value);
+    const m=buildNetworkLab(lesson,0,{[sel.name]:o.value});if(area.querySelector('.mechanism-evidence h3').textContent!==m.steps[0].title)throw Error('control title '+id+o.value);}}
+  c.dispose();area.replaceChildren();report.textContent+=id+' PASS\n';
+ }
+ report.textContent+='ALL PASS: 8 new labs, '+total+' scenarios in real DOM.';
+}catch(e){report.textContent+='FAIL: '+e.stack;}
+</script></html>

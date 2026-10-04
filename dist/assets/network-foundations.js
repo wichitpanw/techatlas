@@ -1,3 +1,6 @@
+import {qualityLessons} from './network-quality.js';
+import {telecomLessons} from './telecom-labs.js';
+import {serviceLessons} from './service-tools.js';
 // Every state is an explicit educational example; no commands touch a real device.
 const state = (label, headline, rows, detail, ok = true) => ({
   label,
@@ -515,17 +518,17 @@ export const foundationLessons = [
     "TCP เปิด connection ด้วย SYN → SYN-ACK → ACK ระบุ endpoints ด้วย IP/port ใช้ sequence และ acknowledgment จัดลำดับ/ส่งซ้ำ UDP ไม่มี TCP handshake Socket คือ endpoint ของการสื่อสาร ไม่ใช่สายหรือพอร์ตของ Switch",
     [
       state(
-        "เริ่ม TCP",
-        "SYN",
+        "Handshake ครบสามขั้น",
+        "SYN → SYN-ACK → ACK",
         [
           ["Client", "192.168.10.25:51514"],
           ["Server", "203.0.113.80:443"],
-          ["State", "SYN-SENT"],
+          ["State", "เริ่ม SYN-SENT → ESTABLISHED"],
         ],
-        "Client ขอเริ่ม connection",
+        "กดเล่นเพื่อดูการขอเชื่อมต่อ คำตอบ Server และ ACK จาก Client",
       ),
       state(
-        "Server ตอบ",
+        "ACK ยังไม่ถึง Server",
         "SYN-ACK",
         [
           ["Direction", "Server → Client"],
@@ -861,14 +864,14 @@ export const foundationLessons = [
         "ACK ยืนยันค่าที่ Client นำไปใช้",
       ),
       state(
-        "Server อยู่ต่าง VLAN ไม่มี Relay",
+        "Server อยู่คนละเครือข่าย ไม่มี Relay",
         "NO OFFER",
         [
-          ["Discover", "Broadcast ภายใน VLAN10"],
-          ["Server", "อยู่ VLAN99"],
+          ["Discover", "Broadcast ภายใน LAN 192.168.10.0/24"],
+          ["Server", "อยู่ LAN 192.168.99.0/24"],
           ["Relay", "ยังไม่กำหนด"],
         ],
-        "Router ไม่ส่ง L2 broadcast ข้าม VLAN ต้องมี relay ในสถานการณ์นี้",
+        "Router ไม่ส่ง broadcast ข้ามเครือข่าย ต้องมี relay ในสถานการณ์นี้",
         false,
       ),
       state(
@@ -936,7 +939,7 @@ export const foundationLessons = [
     "nat-pat",
     "services",
     "NAT / PAT และตารางการแปลง",
-    "NAT เปลี่ยนที่อยู่ตามนโยบาย PAT แยกหลาย flow ผ่าน public IP เดียวด้วย port ตัวอย่างนี้ source NAT ขาออก ต้องมี mapping/state สำหรับขากลับ NAT ไม่ใช่ Firewall และไม่ใช่การเข้ารหัส",
+    "NAT เปลี่ยนที่อยู่ตามนโยบาย ชนิดที่พบบ่อยคือ Static NAT (จับคู่ 1:1 คงที่), Dynamic NAT (เลือกจาก pool) และ PAT/overload (หลาย host ใช้ public IP เดียว) PAT แยกหลาย flow ผ่าน public IP เดียวด้วย port ตัวอย่างนี้ source NAT ขาออก ต้องมี mapping/state สำหรับขากลับ NAT ไม่ใช่ Firewall และไม่ใช่การเข้ารหัส",
     [
       state(
         "Client A เปิด HTTPS",
@@ -1143,7 +1146,7 @@ export const foundationLessons = [
     "aaa-ssh",
     "security",
     "AAA, SSH และการบริหารอย่างปลอดภัย",
-    "Authentication ตรวจว่าเป็นใคร Authorization กำหนดสิทธิ์ Accounting บันทึกกิจกรรม SSH ปกป้อง remote management ต่างจาก Telnet ควรมี management access policy, credentials ที่ปลอดภัย และ backup config แยกจากการ allow traffic ผู้ใช้",
+    "Authentication ตรวจว่าเป็นใคร Authorization กำหนดสิทธิ์ Accounting บันทึกกิจกรรม SSH ปกป้อง remote management ต่างจาก Telnet ที่ส่งข้อมูลรวมถึงรหัสผ่านเป็นข้อความธรรมดา จึงควรใช้ SSH แทน RADIUS เป็นโปรโตคอลที่อุปกรณ์ใช้ถาม AAA server กลางเพื่อทำ Authentication/Authorization/Accounting ได้ โดยไม่เก็บบัญชีไว้ในอุปกรณ์ทุกเครื่อง ควรมี management access policy, credentials ที่ปลอดภัย และ backup config แยกจากการ allow traffic ผู้ใช้",
     [
       state(
         "ผู้ใช้ Viewer เข้า SSH",
@@ -1459,10 +1462,10 @@ export const foundationLessons = [
     "troubleshooting",
     "operations",
     "Troubleshooting: แยกปัญหาทีละชั้น",
-    "เก็บอาการและขอบเขตก่อนเปลี่ยนค่า ตรวจ link, VLAN, IP/prefix, gateway, routes, DNS, ports และ application ใช้หลักฐานหลายอย่าง เปลี่ยนครั้งละเรื่องและบันทึกผล Ping fail ไม่ได้ยืนยัน host down และ trace hop ที่ไม่ตอบไม่ใช่หลักฐานว่าสายนั้นขาด",
+    "เก็บอาการและขอบเขตก่อนเปลี่ยนค่า เลือกวิธีตรวจให้เหมาะ: Bottom-up เริ่มจาก Physical ขึ้นไป, Top-down เริ่มจาก Application ลงมา, Divide and conquer เริ่มชั้นกลาง เช่น ping IP แล้วขยับขึ้นหรือลงตามผล ตรวจ link, VLAN, IP/prefix, gateway, routes, DNS, ports และ application ใช้หลักฐานหลายอย่าง เปลี่ยนครั้งละเรื่องและบันทึกผล Ping fail ไม่ได้ยืนยัน host down และ trace hop ที่ไม่ตอบไม่ใช่หลักฐานว่าสายนั้นขาด",
     [
       state(
-        "Link down",
+        "Incident 1 · เข้าเว็บไม่ได้",
         "START AT PHYSICAL",
         [
           ["Evidence", "NIC link down"],
@@ -1473,7 +1476,7 @@ export const foundationLessons = [
         false,
       ),
       state(
-        "IP ถึง แต่ชื่อค้นไม่พบ",
+        "Incident 2 · เปิดด้วยชื่อไม่ได้",
         "ISOLATE DNS",
         [
           ["IP test", "บริการผ่าน IP ใช้ได้ตาม Lab"],
@@ -1484,7 +1487,7 @@ export const foundationLessons = [
         false,
       ),
       state(
-        "ชื่อค้นได้ แต่ TCP refused",
+        "Incident 3 · ติดต่อบริการไม่ได้",
         "CHECK SERVICE / POLICY",
         [
           ["DNS", "ได้ IP ถูกต้อง"],
@@ -1533,6 +1536,364 @@ export const foundationLessons = [
     "VRF แยกตารางและ routing context",
     "https://www.rfc-editor.org/rfc/rfc4364",
   ),
+  lesson(
+    "network-commands",
+    "operations",
+    "Network Commands: เลือกคำสั่งให้ตรงคำถาม",
+    "แต่ละคำสั่งตอบคำถามคนละข้อ ipconfig / ip addr ดูค่าที่ตั้งไว้ ping ดูว่ามี ICMP Reply หรือไม่ tracert / traceroute ดู hop ที่ตอบ nslookup / dig ถาม DNS arp -a / ip neigh ดูว่ารู้ MAC ของ next hop หรือยัง netstat / ss ดูสถานะ connection ผลของคำสั่งเดียวไม่พอสรุปสาเหตุ ต้องอ่านว่า 'สรุปได้อะไร' และ 'ยังสรุปไม่ได้อะไร' ผลในบทนี้เป็นตัวอย่างจำลอง ไม่ได้รันบนเครื่องจริง ชื่อคำสั่งและรูปแบบผลต่างกันตาม OS",
+    [
+      state(
+        "เครือข่ายปกติ",
+        "ทุกคำสั่งให้ผลตรงกัน",
+        [
+          ["ipconfig", "192.168.10.25/24 · GW 192.168.10.1 · DNS .53"],
+          ["ping 203.0.113.80", "Reply 4/4"],
+          ["nslookup", "ops.example.test → 203.0.113.80"],
+          ["netstat", "ESTABLISHED ไป :443"],
+        ],
+        "ใช้เป็นฐานเปรียบเทียบก่อนดูกรณีมีปัญหา",
+      ),
+      state(
+        "Ping IP ได้ แต่ชื่อค้นไม่พบ",
+        "DNS ใช้ไม่ได้",
+        [
+          ["ping 203.0.113.80", "Reply 4/4"],
+          ["ping ops.example.test", "ไม่พบ host"],
+          ["nslookup", "request timed out"],
+        ],
+        "เส้นทางไป IP ใช้ได้ ปัญหาอยู่ที่การแปลงชื่อ",
+        false,
+      ),
+      state(
+        "Gateway ไม่ตอบ",
+        "ออกนอก LAN ไม่ได้",
+        [
+          ["ping 192.168.10.1", "Reply 0/4"],
+          ["arp", "ไม่มี MAC ของ gateway"],
+          ["nslookup", "ตอบได้ เพราะ DNS อยู่ใน LAN เดียวกัน"],
+        ],
+        "ผลต่างคำสั่งชี้ไปที่ตำแหน่งปัญหาต่างกัน",
+        false,
+      ),
+    ],
+    "ping 203.0.113.80 ได้ Reply แต่ nslookup ล้มเหลวและเปิดเว็บด้วยชื่อไม่ได้ ควรตรวจอะไรก่อน?",
+    ["DNS server ที่เครื่องตั้งไว้", "สาย Ethernet", "Subnet mask ของ Server"],
+    0,
+    "ping IP สำเร็จแปลว่าเส้นทางไป IP ใช้ได้ ปัญหาจึงอยู่ที่การแปลงชื่อ",
+    rfc(792),
+  ),
+  lesson(
+    "mail",
+    "services",
+    "Email: SMTP, MX, IMAP และ POP3",
+    "การส่งอีเมลเริ่มจากแอปผู้ส่งส่งเข้า outgoing server ด้วย SMTP submission (มักใช้ TCP/587 หรือ 465) Server ค้น MX record ของโดเมนผู้รับด้วย DNS แล้วส่ง SMTP ไปยัง MX ที่มี preference ต่ำสุดก่อน หากไม่ตอบจึงลองลำดับถัดไป เมื่อรับเมลแล้วจะเก็บในกล่องจดหมาย ผู้รับอ่านด้วย IMAP (เก็บเมลไว้บน server ซิงก์หลายอุปกรณ์) หรือ POP3 (มักดึงลงเครื่อง ตั้งค่าได้) SMTP ใช้ส่ง ส่วน IMAP/POP3 ใช้อ่าน ไม่ใช่โปรโตคอลเดียวกัน ตัวอย่างใช้โดเมนสำหรับเอกสาร example.org / example.net",
+    [
+      state(
+        "ส่งสำเร็จ แล้วอ่านด้วย IMAP",
+        "SUBMISSION → MX → MAILBOX → IMAP",
+        [
+          ["Submission", "alice@example.org → smtp.example.org :587"],
+          ["MX", "10 mail1.example.net"],
+          ["SMTP ไป MX", "250 Accepted"],
+          ["อ่านเมล", "IMAPS :993"],
+        ],
+        "ส่งกับอ่านเป็นคนละขั้นตอนและคนละโปรโตคอล",
+      ),
+      state(
+        "MX หลักไม่ตอบ ใช้ MX สำรอง",
+        "TRY NEXT PREFERENCE",
+        [
+          ["10 mail1", "connection timeout"],
+          ["20 mail2", "250 Accepted"],
+          ["สถานะ", "เข้าคิวที่ MX สำรองเพื่อส่งต่อ"],
+        ],
+        "preference ต่ำถูกลองก่อน ถ้าไม่ตอบจึงลองลำดับถัดไป",
+      ),
+      state(
+        "โดเมนปลายทางไม่มี MX / A",
+        "DELIVERY FAILED",
+        [
+          ["MX example.invalid", "ไม่มี"],
+          ["A / AAAA", "ไม่มี"],
+          ["ผลต่อผู้ส่ง", "ได้ bounce (DSN)"],
+        ],
+        "ปัญหาอยู่ที่โดเมนปลายทาง ไม่ใช่ Inbox ของผู้รับ",
+        false,
+      ),
+    ],
+    "โดเมนมี MX สองรายการ 10 และ 20 ระบบส่งจะลองรายการใดก่อน?",
+    ["10 เพราะ preference ต่ำกว่า", "20 เพราะค่ามากกว่า", "สุ่มทุกครั้ง"],
+    0,
+    "MX ที่มี preference ต่ำสุดถูกลองก่อน",
+    rfc(5321),
+  ),
+  lesson(
+    "proxy-lb",
+    "services",
+    "Proxy, Reverse Proxy และ Load Balancer",
+    "ทั้งสามเป็นตัวกลางระดับ application แต่ทำหน้าที่ต่างกัน Forward proxy เป็นตัวแทนฝั่ง Client: Client ตั้งค่าให้ส่งคำขอผ่าน proxy และ Server ปลายทางเห็น IP ของ proxy Reverse proxy เป็นตัวแทนฝั่ง Server: Client เห็นเพียงที่อยู่เดียว (VIP) แต่ข้างหลังอาจมีหลายเครื่อง Load balancer กระจายคำขอไปยังกลุ่ม server และใช้ health check ตัดเครื่องที่ไม่พร้อมออกจาก pool Load balancer จำนวนมากทำหน้าที่ reverse proxy ด้วย Proxy ต่างจาก VPN: proxy ส่งต่อเฉพาะ application ที่ตั้งค่าไว้ ส่วน VPN สร้าง tunnel ระดับเครือข่ายตามนโยบาย อัลกอริทึม round robin ในบทนี้เป็นตัวอย่างหนึ่ง ไม่ใช่ทุกผลิตภัณฑ์",
+    [
+      state(
+        "Forward proxy",
+        "CLIENT → PROXY → SERVER",
+        [
+          ["Client เชื่อมต่อ", "proxy 198.51.100.8:3128"],
+          ["นโยบาย", "อนุญาต ops.example.test"],
+          ["Server เห็น source", "198.51.100.8"],
+        ],
+        "Proxy ติดต่อ Server ในนามตัวเอง",
+      ),
+      state(
+        "Load balancer กระจายคำขอ",
+        "VIP → WEB1 / WEB2",
+        [
+          ["Client เห็น", "203.0.113.10:443 เท่านั้น"],
+          ["คำขอที่ 1", "web1 10.0.1.11"],
+          ["คำขอที่ 2", "web2 10.0.1.12"],
+        ],
+        "Client ไม่ต้องรู้ว่ามีกี่เครื่องด้านหลัง",
+      ),
+      state(
+        "web2 ไม่ผ่าน Health check",
+        "REMOVE FROM POOL",
+        [
+          ["web2", "health check fail"],
+          ["Pool", "เหลือ web1"],
+          ["คำขอใหม่", "ไป web1 ทั้งหมด"],
+        ],
+        "ผู้ใช้ไม่ต้องเปลี่ยน VIP เมื่อเครื่องหลังบ้านล้ม",
+        false,
+      ),
+    ],
+    "ผู้ใช้เข้า 203.0.113.10 แล้วระบบส่งไป web1 หรือ web2 ตามภาระงาน ตัวกลางนี้ทำหน้าที่อะไร?",
+    ["Load balancer / Reverse proxy", "Forward proxy ฝั่ง Client", "DHCP relay"],
+    0,
+    "ตัวกลางที่รับแทนกลุ่ม Server และกระจายคำขอคือ Load balancer หรือ Reverse proxy",
+    rfc(9110),
+  ),
+  lesson(
+    "dmz",
+    "security",
+    "Firewall Zone และ DMZ",
+    "Firewall แบ่งเครือข่ายเป็น zone เช่น Outside (Internet), DMZ และ Inside แล้วกำหนดนโยบายระหว่าง zone DMZ เก็บบริการที่ให้คนภายนอกเข้าถึง เช่น เว็บ เพื่อไม่ให้ Internet เข้าถึงเครือข่ายภายในโดยตรง และถ้าเครื่องใน DMZ ถูกยึด การเข้า Inside ยังถูกจำกัดด้วยนโยบาย DMZ ไม่ได้ปลอดภัยเอง ต้องเปิดเฉพาะพอร์ตที่จำเป็นและมีนโยบายระหว่าง zone แบบ least privilege ชื่อ zone และ rule ในตัวอย่างเป็นแบบจำลอง ไม่ใช่คำสั่งของผลิตภัณฑ์ใด",
+    [
+      state(
+        "Internet เข้าเว็บใน DMZ",
+        "OUTSIDE → DMZ : TCP/443 PERMIT",
+        [
+          ["Source", "203.0.113.50 (Outside)"],
+          ["Destination", "172.16.50.10:443 (DMZ)"],
+          ["Decision", "Permit"],
+        ],
+        "เปิดเฉพาะบริการสาธารณะ",
+      ),
+      state(
+        "Internet พยายามเข้า Inside",
+        "OUTSIDE → INSIDE : DENY",
+        [
+          ["Destination", "10.10.10.20 (Inside)"],
+          ["Rule", "ไม่มี permit"],
+          ["Decision", "Deny"],
+        ],
+        "Inside ไม่ถูกเปิดให้ Internet โดยตรง",
+        false,
+      ),
+      state(
+        "เครื่อง DMZ พยายามเข้า Inside",
+        "DMZ → INSIDE : TCP/22 DENY",
+        [
+          ["Source", "172.16.50.10 (DMZ)"],
+          ["Destination", "10.10.10.20:22"],
+          ["Permit เดียว", "TCP/5432 จาก web ไป database"],
+        ],
+        "จำกัดผลกระทบเมื่อเครื่องใน DMZ มีปัญหา",
+        false,
+      ),
+    ],
+    "ข้อใดอธิบายประโยชน์ของ DMZ ได้ถูกต้อง?",
+    ["แยกบริการสาธารณะออกจากเครือข่ายภายในและจำกัดการเข้าถึงด้วยนโยบายระหว่าง zone", "ทำให้เครื่องใน DMZ ปลอดภัยโดยไม่ต้องตั้งนโยบาย", "แทนการเข้ารหัส TLS"],
+    0,
+    "DMZ ลดผลกระทบจากการเปิดบริการสู่ภายนอก แต่ต้องมีนโยบายระหว่าง zone",
+    "https://csrc.nist.gov/pubs/sp/800/41/r1/final",
+  ),
+  lesson(
+    "pcap",
+    "operations",
+    "อ่าน Packet Capture แบบ Wireshark",
+    "Packet capture ช่วยดูสิ่งที่เกิดบน link จริง Wireshark แสดงแต่ละ frame เป็นชั้น Ethernet, IP และ Transport/Application บทนี้ใช้ capture ตัวอย่างที่สร้างขึ้นเพื่อการเรียน ไม่ใช่ไฟล์ pcap จริง จับที่ NIC ของ Client เมื่อเปิด ops.example.test ให้ดูว่า MAC เปลี่ยนตาม link แต่ IP ปลายทางเป็นเครื่องปลายทางจริง TCP flags บอกสถานะ handshake และ TLS ทำให้เนื้อหา HTTP อ่านจาก capture ไม่ได้หากไม่มีกุญแจ การจับ packet ควรทำเฉพาะเครือข่ายที่ได้รับอนุญาต",
+    [
+      state(
+        "เปิดเว็บปกติ",
+        "DNS → TCP handshake → TLS",
+        [
+          ["Frame 1–2", "DNS query / response"],
+          ["Frame 3–5", "SYN · SYN-ACK · ACK"],
+          ["Frame 6", "TLS ClientHello"],
+        ],
+        "อ่านลำดับ frame เพื่อดูว่าเกิดอะไรก่อนหลัง",
+      ),
+      state(
+        "TCP ถูกปฏิเสธ",
+        "SYN → RST",
+        [
+          ["Frame 3", "SYN"],
+          ["Frame 4", "RST, ACK จาก Server"],
+          ["ความหมาย", "ปลายทางตอบปฏิเสธทันที"],
+        ],
+        "RST ต่างจากไม่มีคำตอบ (timeout)",
+        false,
+      ),
+      state(
+        "DNS ไม่ตอบ ต้องถามซ้ำ",
+        "QUERY RETRY",
+        [
+          ["Frame 1–2", "ถามซ้ำไป .53"],
+          ["Frame 3", "ถาม resolver สำรอง .54"],
+          ["Frame 4", "ได้คำตอบ"],
+        ],
+        "การถามซ้ำเห็นได้จากเวลาและปลายทาง",
+        false,
+      ),
+    ],
+    "frame ที่ Client ส่ง SYN ไป 203.0.113.80 มี MAC ปลายทางเป็นของอุปกรณ์ใด?",
+    ["Default gateway", "Server 203.0.113.80 โดยตรง", "DNS server"],
+    0,
+    "ปลายทางต่าง subnet ต้องส่งผ่าน gateway จึงใช้ MAC ของ gateway แต่ IP ปลายทางยังเป็น Server",
+    "https://www.wireshark.org/docs/wsug_html_chunked/",
+  ),
+  lesson(
+    "wan",
+    "provider",
+    "WAN: เชื่อมสองสถานที่ด้วย Link เฉพาะ",
+    "WAN เชื่อมเครือข่ายที่อยู่ไกลกัน มักใช้ลิงก์จากผู้ให้บริการ เช่น leased line, Ethernet WAN หรือ VPN บน Internet ลิงก์แบบ point-to-point ระหว่างสอง Router มักใช้ subnet เล็ก เช่น /30 ซึ่งมี host ใช้ได้ 2 ที่อยู่ แต่ละ site มี LAN ของตัวเอง Router ต้องมี route ไปยัง LAN ฝั่งตรงข้ามทั้งสองทิศทาง IP source/destination ไม่เปลี่ยนระหว่างทาง ส่วน header ของ Layer 2 บนลิงก์ WAN ถูกสร้างใหม่ และ TTL ลดลงหนึ่งต่อ Router ถ้า interface WAN ลง connected route จะหายและ static route ที่ใช้ next hop นั้นใช้ไม่ได้ การออกแบบจึงมักมีลิงก์สำรอง ตัวอย่างใช้ address ภายในที่สมมติ",
+    [
+      state(
+        "Site A → Site B ผ่านลิงก์ /30",
+        "10.1.0.10 → 10.2.0.20",
+        [
+          ["WAN subnet", "172.16.0.0/30"],
+          ["Router A / B", "172.16.0.1 / 172.16.0.2"],
+          ["Route", "10.2.0.0/24 via 172.16.0.2"],
+        ],
+        "สองฝั่งอยู่ subnet เดียวกันและมี route ครบ",
+      ),
+      state(
+        "สองฝั่งอยู่คนละ subnet",
+        "172.16.0.1/30 vs 172.16.0.5/30",
+        [
+          ["Router A", "172.16.0.0/30"],
+          ["Router B", "172.16.0.4/30"],
+          ["Next hop", "ไม่อยู่ใน subnet ของลิงก์"],
+        ],
+        "ลิงก์ขึ้นแต่ใช้เป็น next hop ไม่ได้",
+        false,
+      ),
+      state(
+        "Interface WAN ลง",
+        "ROUTE REMOVED",
+        [
+          ["WAN link", "down"],
+          ["Connected route", "หาย"],
+          ["Static route", "ใช้ไม่ได้"],
+        ],
+        "ไม่มีเส้นทาง packet จึงถูกทิ้ง",
+        false,
+      ),
+    ],
+    "Router A ตั้ง 172.16.0.1/30 และ Router B ตั้ง 172.16.0.5/30 บนลิงก์เดียวกัน ปัญหาคืออะไร?",
+    ["สองฝั่งอยู่คนละ subnet จึงใช้เป็น next hop ของกันไม่ได้", "/30 ใช้กับ WAN ไม่ได้", "ต้องเปลี่ยน MAC address"],
+    0,
+    "172.16.0.1/30 อยู่ในช่วง .0–.3 ส่วน 172.16.0.5/30 อยู่ในช่วง .4–.7",
+    rfc(4632),
+  ),
+  lesson(
+    "cloud-vpc",
+    "cloud",
+    "Cloud VPC: Subnet, Route Table และ Gateway",
+    "Virtual private cloud (VPC) คือเครือข่ายเสมือนที่กำหนดช่วง CIDR เอง แบ่งเป็น subnet และใช้ route table กำหนดว่า traffic ไปทางใด Subnet ที่มี route 0.0.0.0/0 ไป Internet gateway และ instance มี public IP เรียกว่า public subnet ส่วน private subnet ออก Internet ผ่าน NAT gateway ได้แต่ Internet เริ่มเชื่อมต่อเข้ามาโดยตรงไม่ได้ Security group/firewall rule ควบคุมการเข้าออกอีกชั้นหนึ่ง ชื่อบริการต่างกันตาม provider (AWS, Google Cloud, Azure) บทนี้ใช้ศัพท์กลางและเป็นแบบจำลอง",
+    [
+      state(
+        "Public subnet",
+        "0.0.0.0/0 → INTERNET GATEWAY",
+        [
+          ["VM", "10.0.1.10 + public IP"],
+          ["Route", "0.0.0.0/0 → igw"],
+          ["Inbound", "ต้องมี rule อนุญาต :443"],
+        ],
+        "Route และ public IP เปิดทางออก ส่วน rule ควบคุมทางเข้า",
+      ),
+      state(
+        "Private subnet ออกผ่าน NAT",
+        "0.0.0.0/0 → NAT GATEWAY",
+        [
+          ["VM", "10.0.2.10 (ไม่มี public IP)"],
+          ["Route", "0.0.0.0/0 → nat-gw"],
+          ["Inbound จาก Internet", "เริ่มเชื่อมต่อเข้ามาไม่ได้"],
+        ],
+        "ออกได้ แต่ไม่ได้เปิดให้เข้ามาตรง ๆ",
+      ),
+      state(
+        "ไม่มี route ออก",
+        "LOCAL ONLY",
+        [
+          ["Route table", "10.0.0.0/16 → local"],
+          ["Default route", "ไม่มี"],
+          ["ผล", "ออก Internet ไม่ได้"],
+        ],
+        "ตรวจ route table ก่อนสรุปว่า VM มีปัญหา",
+        false,
+      ),
+    ],
+    "VM ใน private subnet ต้องการดาวน์โหลดแพตช์จาก Internet แต่ไม่ต้องการให้ Internet เข้ามาโดยตรง ควรให้ route 0.0.0.0/0 ชี้ไปที่ใด?",
+    ["NAT gateway", "Subnet เดียวกันเท่านั้น", "Load balancer ฝั่ง Client"],
+    0,
+    "NAT gateway ให้ traffic ขาออกจาก private subnet โดยไม่เปิดทางเข้าโดยตรง",
+    "https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html",
+  ),
+  lesson(
+    "cloud-hybrid",
+    "cloud",
+    "Hybrid Cloud และ Hub-and-Spoke",
+    "การเชื่อม on-premises เข้า Cloud ทำได้ด้วย site-to-site VPN บน Internet หรือ dedicated connection จาก provider ทั้งสองแบบต้องวางแผน CIDR ไม่ให้ซ้อนกัน เพราะ Router แยกไม่ได้ว่าปลายทางอยู่ฝั่งไหน และต้องมี route ทั้งสองทิศทาง ในแบบ hub-and-spoke แต่ละ spoke เชื่อมกับ hub ที่เก็บบริการร่วมหรือ firewall แต่หลาย provider ไม่ให้ peering ส่งต่อผ่านตัวกลาง (non-transitive) จึงไม่ได้แปลว่า spoke A คุยกับ spoke B ได้เอง ต้องมี router กลางหรือบริการ transit ตามที่ provider รองรับ ตัวอย่างเป็นแบบจำลองและไม่แสดงราคาหรือคุณสมบัติเฉพาะผลิตภัณฑ์",
+    [
+      state(
+        "On-prem → Cloud ผ่าน VPN",
+        "10.1.0.0/16 ↔ 10.0.0.0/16",
+        [
+          ["Tunnel", "On-prem gateway ↔ Cloud VPN gateway"],
+          ["Route", "ทั้งสองฝั่งชี้ไปอีกฝั่ง"],
+          ["CIDR", "ไม่ซ้อนกัน"],
+        ],
+        "VPN ต้องมี route และ CIDR ที่ไม่ซ้อน",
+      ),
+      state(
+        "CIDR ซ้อนกัน",
+        "10.0.0.0/16 ทั้งสองฝั่ง",
+        [
+          ["On-prem", "10.0.0.0/16"],
+          ["Cloud VPC", "10.0.0.0/16"],
+          ["ปัญหา", "ไม่รู้ว่า 10.0.0.20 อยู่ฝั่งไหน"],
+        ],
+        "ต้องวางแผน CIDR ก่อนเชื่อมต่อ",
+        false,
+      ),
+      state(
+        "Hub-and-spoke",
+        "SPOKE A → HUB → SPOKE B",
+        [
+          ["Spoke A", "10.1.0.0/16"],
+          ["Hub", "10.0.0.0/16 · firewall / shared services"],
+          ["Spoke B", "10.2.0.0/16"],
+        ],
+        "ผ่าน hub เพื่อควบคุมและตรวจ traffic ระหว่าง spoke",
+      ),
+    ],
+    "On-prem และ VPC ใช้ 10.0.0.0/16 เหมือนกัน แล้วเชื่อมกันด้วย VPN จะมีปัญหาอะไร?",
+    ["CIDR ซ้อนกัน route ระบุปลายทางไม่ชัดเจน", "VPN เข้ารหัสไม่ได้", "ต้องเปลี่ยน DNS TTL"],
+    0,
+    "ช่วง IP ที่ซ้อนกันทำให้ Router ตัดสินใจเส้นทางไม่ได้อย่างถูกต้อง",
+    "https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html",
+  ),
 ];
 
 export const orderedSections = [
@@ -1550,11 +1911,18 @@ export const orderedSections = [
   { id: "security", title: "เฟส 1.11 · Security Fundamentals" },
   { id: "wireless", title: "เฟส 1.12 · Wireless" },
   { id: "automation", title: "เฟส 1.13 · Automation & Programmability" },
-  { id: "operations", title: "เฟส 1 · สรุปและฝึก Troubleshooting" },
-  { id: "provider", title: "เฟส 2 · เครือข่ายผู้ให้บริการและ MPLS" },
-];
+  { id: "operations", title: "เฟส 1.14 · สรุปและฝึก Troubleshooting" },
+  { id: "provider", title: "เฟส 2 · เครือข่ายผู้ให้บริการ WAN และ MPLS" },
+  { id: "cloud", title: "เฟส 3 · Cloud Networking" },
+  { id: "capstone", title: "เฟส 4 · บทสรุป: จาก Computer สู่โลก Internet" },
+].map(section=>{
+  const [,phase,unit]=section.title.match(/^เฟส (\d+)(?:\.(\d+))?/);
+  const number=unit?String(unit).padStart(2,'0'):null;
+  return {...section,code:number?`${phase}·${number}`:phase,
+    title:section.title.replace(/^เฟส \d+(?:\.\d+)?/,number?`เฟส ${phase} · ขั้นที่ ${number}`:`เฟส ${phase}`)};
+});
 export function arrangeNetwork(original) {
-  const all = [...original, ...foundationLessons];
+  const all = [...original, ...foundationLessons, ...qualityLessons, ...serviceLessons, ...telecomLessons];
   const devices = all.find((l) => l.id === "devices");
   if (devices.states.length === 4)
     devices.states.push(
@@ -1577,46 +1945,28 @@ export function arrangeNetwork(original) {
       "physical",
       "osi-model",
       "encapsulation",
-      "internet",
     ],
     switching: ["layer2"],
-    ipv4: ["address", "subnet", "gateway"],
+    ipv4: ["address", "subnet", "dhcp", "gateway"],
     "arp-icmp": ["arp-icmp"],
     vlan: ["vlan"],
     "switching-advanced": ["stp", "etherchannel"],
     "subnet-planning": ["vlsm"],
-    transport: ["protocols", "tcp-handshake", "https"],
+    transport: ["protocols", "tcp-handshake", "https", "network-quality", "video-buffer", "qos-queues", "rate-control"],
     ipv6: ["ipv6-address", "slaac"],
     routing: ["layer3", "static-routing", "inter-vlan", "ospf", "hsrp"],
-    services: ["dhcp", "dns", "dns-cache", "nat-pat", "monitoring"],
-    security: ["acl", "port-security", "dhcp-snooping", "aaa-ssh", "vpn"],
+    services: ["dns", "dns-cache", "mail", "nat-pat", "proxy-lb", "monitoring"],
+    security: ["acl", "dmz", "port-security", "dhcp-snooping", "aaa-ssh", "vpn"],
     wireless: ["wireless-radio", "wlc", "wifi-security"],
     automation: ["rest-json", "automation-tools", "sdn"],
-    operations: ["troubleshooting", "packet"],
-    provider: ["mpls", "mpls-vpn"],
+    operations: ["network-commands", "pcap", "troubleshooting"],
+    provider: ["wan", "ftth-access", "subscriber-session", "mpls", "mpls-vpn", "enterprise-path", "bgp-peering", "cgnat-ipv6", "noc-incident"],
+    cloud: ["cloud-vpc", "cloud-hybrid"],
+    capstone: ["internet"],
   };
   return orderedSections.flatMap((s) =>
     order[s.id].map((id) =>
-      id === "packet"
-        ? {
-            ...all.find((l) => l.id === "internet"),
-            id,
-            section: s.id,
-            title: "Computer สู่ Internet: ประกอบความรู้ทั้งหมด",
-            subtitle:
-              "ทบทวน DHCP → ARP → DNS → NAT → Routing → TCP / TLS → HTTPS",
-            question:
-              "DNS ตอบ IP ได้ แต่ไม่มี Gateway หรือ route ไป Server ควรแก้อะไร?",
-            choices: [
-              "เพิ่ม DNS record ซ้ำ",
-              "ตรวจ Gateway และ Route",
-              "เพิ่ม MAC ของ Server ไกลใน Switch",
-            ],
-            answer: 1,
-            reason:
-              "DNS แก้ชื่อ ส่วน Gateway/Route ใช้ส่งไปต่างเครือข่าย ต้องมีทั้งสองส่วน",
-          }
-        : { ...all.find((l) => l.id === id), section: s.id },
+      ({ ...(id==='troubleshooting'?foundationLessons.find(l=>l.id===id):all.find((l) => l.id === id)), section: s.id }),
     ),
   );
 }

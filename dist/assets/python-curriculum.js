@@ -1,7 +1,9 @@
+import { pythonTasks } from './python-tasks.js';
+
 export const pythonReference = {
   title: "เขียนโปรแกรมภาษา Python สำหรับผู้เริ่มต้น.pdf",
   pages: 37,
-  note: "จัดลำดับและออกแบบแบบฝึกจากเอกสารที่เจ้าของเว็บไซต์ให้ไว้ เอกสารต้นฉบับระบุอ้างอิง KongRuksiam Tutorial",
+  note: "บทพื้นฐานใช้เอกสารที่เจ้าของเว็บไซต์ให้ไว้ประกอบการจัดลำดับ เอกสารต้นฉบับระบุอ้างอิง KongRuksiam Tutorial ส่วนบทต่อยอดเรื่องสมาชิก identity และ copy เขียนคำอธิบาย ตัวอย่าง และภารกิจใหม่ โดยตรวจแนวคิดกับ Python Documentation ไม่ใช้ภาพต้นฉบับ",
 };
 
 export const pythonSections = [
@@ -12,6 +14,7 @@ export const pythonSections = [
   { id: "exceptions", title: "จัดการข้อผิดพลาด", pages: "31, 34" },
   { id: "modules", title: "โมดูลและการ import", pages: "32–33" },
   { id: "practice", title: "แบบฝึกหัดท้ายบท 6 ข้อ", pages: "35–36" },
+  { id: "next", title: "ต่อยอด: สมาชิก ค่า และการอ้างถึงข้อมูล" },
 ];
 
 const lesson = (
@@ -49,9 +52,13 @@ const lesson = (
   work: "ลองเปลี่ยนค่าตัวแปรแล้วสังเกตว่าผลลัพธ์เปลี่ยนอย่างไร",
   source: "https://docs.python.org/3/tutorial/",
   ...extra,
+  task: pythonTasks[id],
+  steps: pythonTasks[id].actions,
+  work: 'หลังผ่านภารกิจแล้ว: ' + pythonTasks[id].extension + ' (ผลอาจต่างจากตัวอย่างและไม่ผ่านโจทย์เดิม)',
 });
 
 export const pythonLessons = [
+  // Original exercises addressing gaps found in the supplied playlist inventory.
   lesson(
     "python-start",
     "basics",
@@ -535,4 +542,56 @@ export const pythonLessons = [
     "3\n15",
     { hint: "เพิ่ม print(len(nums)) และ print(sum(nums))" },
   ),
+  lesson('membership', 'next', '', 'มีข้อมูลนี้อยู่หรือไม่: in และ not in',
+    'ตรวจสมาชิกใน List และตรวจชื่อ key ใน Dictionary',
+    'in ตรวจว่ามีสมาชิกอยู่ในกลุ่มหรือไม่ ส่วน not in ตรวจว่าไม่มี สำหรับ Dictionary การใช้ in ตรวจ key ไม่ใช่ value เช่น "title" in book ตรวจชื่อช่องข้อมูล ไม่ได้ค้นข้อความในค่าของช่องนั้น',
+    'items = ["สมุด", "ปากกา"]\nbook = {"title": "Python", "pages": 120}\n# แสดงว่ามีสมุด ไม่มีไม้บรรทัด มี key title และมี key Python หรือไม่\n',
+    'items = ["สมุด", "ปากกา"]\nbook = {"title": "Python", "pages": 120}\nprint("สมุด" in items)\nprint("ไม้บรรทัด" not in items)\nprint("title" in book)\nprint("Python" in book)',
+    'True\nTrue\nTrue\nFalse', {hint:'ใช้ in กับสมาชิกหรือ key และใช้ not in สำหรับสิ่งที่ไม่มี', tests:[{name:'ตรวจข้อมูลตั้งต้นไม่ได้ถูกเปลี่ยน', append:'assert items == ["สมุด", "ปากกา"]\nassert book == {"title": "Python", "pages": 120}', expected:'True\nTrue\nTrue\nFalse'}]}),
+  lesson('identity', 'next', '', 'ค่าเท่ากัน กับออบเจ็กต์เดียวกัน',
+    'เปรียบเทียบ == กับ is โดยใช้ List ไม่ใช้เลขที่อาจมี caching',
+    '== ตรวจค่าที่เท่ากัน ส่วน is ตรวจว่าเป็นออบเจ็กต์เดียวกัน การกำหนด alias = original ไม่สร้าง List ใหม่ แต่สร้างอีกชื่อที่อ้างถึง List เดิม ส่วนรายการอีกชุดที่มีสมาชิกเหมือนกันอาจมีค่าเท่ากันแต่ไม่ใช่ออบเจ็กต์เดียวกัน เส้นเชื่อมในภาพมาจาก identity ของ Python จริง รหัส object เป็นป้ายสำหรับอธิบายในแต่ละการรัน ไม่ใช่ address หน่วยความจำ',
+    'original = ["สมุด", "ปากกา"]\nalias = original\nseparate = ["สมุด", "ปากกา"]\n# แสดง original == separate, original is separate และ original is alias คนละบรรทัด\n',
+    'original = ["สมุด", "ปากกา"]\nalias = original\nseparate = ["สมุด", "ปากกา"]\nprint(original == separate)\nprint(original is separate)\nprint(original is alias)',
+    'True\nFalse\nTrue', {hint:'ใช้ == ถามเรื่องค่า ใช้ is ถามว่าอ้างถึงสิ่งเดียวกันหรือไม่', tests:[{name:'ตรวจ alias และรายการแยกจริง', append:'assert original is alias\nassert original is not separate\nassert original == separate\nalias.append("แฟ้ม")\nassert "แฟ้ม" in original\nassert "แฟ้ม" not in separate', expected:'True\nFalse\nTrue'}]}),
+  lesson('list-copy', 'next', '', 'คัดลอก List โดยไม่แก้ต้นฉบับ',
+    'สร้างรายการร่างเพื่อเพิ่มของ โดยรายการต้นฉบับต้องไม่เปลี่ยน',
+    'draft = original ทำให้สองชื่ออ้างถึง List เดียวกัน การ append ผ่านชื่อหนึ่งจึงเปลี่ยนรายการที่ทั้งสองชื่อเห็น ใช้ original.copy() เพื่อสร้าง List ใหม่ที่เริ่มด้วยสมาชิกเหมือนกัน นี่คือ shallow copy: หากสมาชิกเป็น List ซ้อน สมาชิกนั้นยังอาจใช้ร่วมกันได้ ไม่ใช่สำเนาทุกระดับ',
+    'original = ["สมุด", "ปากกา"]\ndraft = original\nprint(original == draft, original is draft)\ndraft.append("ยางลบ")\nprint(original)\nprint(draft)',
+    'original = ["สมุด", "ปากกา"]\ndraft = original.copy()\nprint(original == draft, original is draft)\ndraft.append("ยางลบ")\nprint(original)\nprint(draft)',
+    "True False\n['สมุด', 'ปากกา']\n['สมุด', 'ปากกา', 'ยางลบ']", {
+      hint:'แก้เฉพาะ draft = original ให้สร้างสำเนา List ด้วย .copy()',
+      tests:[{name:'ตรวจต้นฉบับและรายการร่างจริง', append:'assert original == ["สมุด", "ปากกา"]\nassert draft == ["สมุด", "ปากกา", "ยางลบ"]\nassert original is not draft\ndraft.append("แฟ้ม")\nassert "แฟ้ม" not in original', expected:"True False\n['สมุด', 'ปากกา']\n['สมุด', 'ปากกา', 'ยางลบ']"}],
+    }),
 ];
+pythonLessons.push(
+  lesson('number-conversion', 'basics', '', 'เลขฐานใน Python: ค่าเดิม รูปแบบใหม่', 'แสดงค่า 26 ในหลายฐาน แล้วอ่านฐานสองกลับเป็น int',
+    'เลขฐานเป็นวิธีเขียนค่า ไม่ใช่ชนิดข้อมูลใหม่ bin(), oct(), hex() รับจำนวนเต็มแล้วคืนข้อความพร้อม prefix 0b, 0o, 0x ส่วน int("11010", 2) อ่านข้อความตามฐานที่ระบุและคืน int ห้ามใช้ eval() อ่านข้อความจากผู้ใช้',
+    'n = 26\n# แสดงสามฐาน แล้วแปลง "11010" กลับเป็นจำนวนเต็ม\n',
+    'n = 26\nprint(bin(n))\nprint(oct(n))\nprint(hex(n))\nprint(int("11010", 2))', '0b11010\n0o32\n0x1a\n26',
+    {source:'https://docs.python.org/3/library/functions.html#bin', tests:[{name:'n ยังเป็นจำนวนเต็มเดิม',append:'assert n == 26 and isinstance(n, int)',expected:'0b11010\n0o32\n0x1a\n26'}]}),
+  lesson('for-else', 'control', '', 'for … else: ค้นจนจบโดยไม่มี break', 'แยกกรณีเจอสินค้าออกจากค้นครบแล้วไม่เจอ',
+    'else ของ for ทำงานเมื่อวนครบโดยไม่มี break ไม่ได้ทำงานเพราะ if เป็น False ครั้งใดครั้งหนึ่ง เมื่อเจอสินค้าให้ break ทันทีเพื่อไม่แสดงไม่พบซ้ำ return หรือ exception ที่ออกจากลูปก็ข้าม else ได้เช่นกัน',
+    'items = ["น้ำ", "ชา", "นม"]\ntarget = "ชา"\nfor item in items:\n    pass\n# เติม else ของ for\n',
+    'items = ["น้ำ", "ชา", "นม"]\ntarget = "ชา"\nfor item in items:\n    if item == target:\n        print("พบ:", item)\n        break\nelse:\n    print("ไม่พบ")', 'พบ: ชา', {source:'https://docs.python.org/3/tutorial/controlflow.html#else-clauses-on-loops'}),
+  lesson('function-arguments', 'functions', '', 'Argument, Parameter และค่าเริ่มต้น', 'รับราคาและส่วนลดผ่านฟังก์ชันเดียว',
+    'Parameter คือชื่อที่ประกาศใน def ส่วน Argument คือค่าที่ส่งตอนเรียก discount=0 เป็นค่าเริ่มต้นเมื่อผู้เรียกไม่ได้ส่งค่า การเรียกแบบ keyword ระบุชื่อพารามิเตอร์ได้ return ส่งค่ากลับ ไม่ได้พิมพ์เอง หลีกเลี่ยงใช้ List ที่แก้ได้เป็นค่าเริ่มต้น เพราะจะใช้ก้อนเดิมร่วมกันระหว่าง call',
+    'def net_price(price, discount):\n    return price\n\nprint(net_price(120))\nprint(net_price(120, discount=20))',
+    'def net_price(price, discount=0):\n    return price - discount\n\nprint(net_price(120))\nprint(net_price(120, discount=20))', '120\n100',
+    {tests:[{name:'ค่าอื่นและค่าเริ่มต้น',append:'assert net_price(200) == 200\nassert net_price(discount=30, price=200) == 170',expected:'120\n100'}]}),
+  lesson('recursion', 'functions', '', 'Recursion: จุดหยุดและ Call Stack', 'รวม 1 ถึง 4 โดยลดปัญหาลงทีละหนึ่ง',
+    'Recursion คือฟังก์ชันเรียกตัวเอง total(4) รอค่า total(3) ไปจนถึง total(0) ที่คืน 0 จากนั้นแต่ละ frame คืนผลรวมให้ผู้เรียก ต้องมี base case และเข้าใกล้มันทุกครั้ง ตัวอย่างรองรับจำนวนเต็มไม่ติดลบ ไม่เหมาะกับ n ใหญ่มากเพราะ Python จำกัดความลึก ไม่ใช่การประมวลผลขนาน',
+    'def total(n):\n    # เติมจุดหยุด และกรณีเรียกตัวเอง\n    return 0\n\nprint(total(4))',
+    'def total(n):\n    if n <= 0:\n        return 0\n    return n + total(n - 1)\n\nprint(total(4))', '10',
+    {tests:[{name:'จุดหยุดและค่าอื่น',append:'assert total(0) == 0\nassert total(3) == 6',expected:'10'}]})
+);
+// Preserve IDs/drafts while placing prerequisites before their applications.
+const placeAfter = (id, anchor) => {
+  const index = pythonLessons.findIndex(l => l.id === id);
+  const [item] = pythonLessons.splice(index, 1);
+  pythonLessons.splice(pythonLessons.findIndex(l => l.id === anchor) + 1, 0, item);
+};
+placeAfter('number-conversion', 'operators');
+placeAfter('for-else', 'loop-control');
+placeAfter('function-arguments', 'functions');
+placeAfter('recursion', 'lambda-scope');

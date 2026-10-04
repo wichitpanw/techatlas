@@ -1,0 +1,32 @@
+<!doctype html><html lang="th"><meta charset="utf-8"><title>Programming checks · local only</title><h1>Programming checks</h1><button id="test">Run Programming checks</button><pre id="report"></pre><div id="frames"></div>
+<script type="module">
+import {programmingLessons} from '../dist/assets/programming-curriculum.js';
+import {sandboxDocument} from '../dist/assets/programming-sandbox.js';
+import {programmingSurface,initProgramming} from '../dist/assets/programming-lab.js';
+const report=document.querySelector('#report');
+const check=(value,message)=>{if(!value)throw Error(message);};
+const run=(mode,code,score=75)=>new Promise((resolve,reject)=>{
+ const frame=document.createElement('iframe'),token=crypto.randomUUID();frame.sandbox='allow-scripts';frame.srcdoc=sandboxDocument({mode,code,score,token});document.querySelector('#frames').append(frame);
+ const timeout=setTimeout(()=>{window.removeEventListener('message',listen);frame.remove();reject(Error('timeout '+mode));},5000);
+ const listen=event=>{if(event.source!==frame.contentWindow||event.data?.token!==token)return;clearTimeout(timeout);window.removeEventListener('message',listen);frame.remove();resolve(event.data);};window.addEventListener('message',listen);
+});
+document.querySelector('#test').onclick=async()=>{
+ report.textContent='Testing…\n';try{
+  check(programmingLessons.length===6,'expected six lessons');
+  for(const l of programmingLessons){check(l.goal&&l.steps.length>=3&&l.explain&&l.expected,'missing content '+l.id);if(l.mode==='journey')continue;
+   const starter=await run(l.mode,l.starter);check(!starter.checks.every(x=>x.pass)||starter.waiting,'starter must not pass '+l.id);
+   const result=await run(l.mode,l.solution);check(!result.error,'solution error '+l.id+' '+result.error);check(l.mode==='dom'?result.waiting:result.checks.length&&result.checks.every(x=>x.pass),'solution failed '+l.id);report.textContent+=l.id+' PASS\n';
+  }
+  const syntax=await run('variables','const x = ;');check(syntax.error?.includes('SyntaxError'),'syntax error');
+  const runtime=await run('variables','console.log(missing);');check(runtime.error?.includes('ReferenceError'),'reference error');
+  const timeout=await run('variables','while(true){}');check(timeout.error?.includes('2 วินาที'),'worker timeout');
+  const storage=await run('variables','localStorage.getItem("techatlas-progress-v2");');check(storage.error,'host storage isolated');
+  const parentAccess=await run('dom','parent.document.body.textContent="oops";');check(parentAccess.error,'parent DOM isolated');
+  const frameStorage=await run('dom','localStorage.getItem("techatlas-progress-v2");');check(frameStorage.error,'frame storage isolated');
+  const injection=await run('html','<h1>งานของฉัน</h1><script>parent.document.body.innerHTML="oops"<\/script>');check(!injection.error&&document.querySelector('#test'),'host DOM retained');
+  const host=document.createElement('div');host.innerHTML=programmingSurface(programmingLessons[0]);document.body.append(host);let completed=0;const controller=initProgramming(programmingLessons[0],{complete:()=>completed++,saveDraft:()=>{}});
+  host.querySelector('[data-web-answer="2"]').click();check(completed===0,'journey prematurely passed');host.querySelector('#program-path').value='/missing';host.querySelector('#program-open').click();check(host.querySelector('#journey-result').textContent.includes('404'),'404 state');host.querySelector('#program-path').value='/tasks';host.querySelector('#program-open').click();for(let i=0;i<4;i++)host.querySelector('#program-next').click();host.querySelector('[data-web-answer="0"]').click();check(completed===0,'wrong answer passed');host.querySelector('[data-web-answer="2"]').click();check(completed===1,'journey pass');controller.dispose();host.remove();
+  report.textContent+='ALL PASS: six lessons, starter/solution checks, alternate scores, syntax/runtime errors, worker timeout, isolation, journey success/404/assessment. DOM click tested separately on actual lesson.\n';
+ }catch(error){report.textContent+='FAIL '+error.stack;}
+};
+</script></html>

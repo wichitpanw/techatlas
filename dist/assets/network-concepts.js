@@ -1,3 +1,10 @@
+import { mechanismSurface } from './network-mechanism.js';
+import {qualitySurface,initQuality} from './network-quality.js';
+import {telecomLessons} from './telecom-labs.js';
+import {serviceLessons,serviceSurface,initService} from './service-tools.js';
+import {repairSurface,initRepair} from './repair-lab.js';
+import {osiSurface,initOSI} from './osi-lab.js';
+import {networkLabSpecs} from './network-lab-models.js';
 const esc = (s) =>
   String(s).replace(
     /[&<>"']/g,
@@ -77,16 +84,24 @@ export function conceptPreview(l) {
   return `<strong class="preview-state-title">${esc(s.headline)}</strong>${illustration || `<div class="preview-fields">${s.rows.map(([name, value]) => `<div><span>${esc(name)}</span><strong>${esc(value)}</strong></div>`).join("")}</div>`}`;
 }
 export function conceptSurface(l) {
+  if(serviceLessons.some(s=>s.id===l.id))return serviceSurface(l);
+  if(l.id==='noc-incident')return repairSurface();
+  if(['network-quality','qos-queues'].includes(l.id))return qualitySurface(l);
+  if(l.id==='osi-model')return osiSurface();
   const stage =
     l.section === "foundation"
       ? `<div class="network-view foundation-stage" id="foundation-scene" data-state="0" data-value="192"><div class="foundation-status" aria-live="polite"><strong>${esc(l.title)}</strong><span>ลากหมุน · เลื่อนซูม · กดป้ายเพื่อสำรวจ</span></div><div class="foundation-tools"><button class="button light small" data-reset-3d>รีเซ็ตมุมมอง</button>${l.id === "physical" ? '<label>ชนิดสาย<select id="cable-type"><option value="utp">UTP · สัญญาณไฟฟ้า</option><option value="fiber">Fiber · สัญญาณแสง</option></select></label>' : ""}<span>3D INTERACTIVE · แบบจำลองเพื่อการเรียนรู้</span></div></div>`
       : "";
   return (
-    stage +
+    stage + mechanismSurface(l) + (l.id==='troubleshooting'?repairSurface():'') +
     `<section class="concept-workbench"><p class="eyebrow">${l.id === "number-systems" ? "BIT LAB" : "OBSERVE · CHANGE · EXPLAIN"}</p><h2>${esc(l.title)}</h2><p>ตัวอย่างจำลองสำหรับบทนี้ ไม่เชื่อมต่อหรือแก้ไขอุปกรณ์จริง</p>${l.id === "number-systems" ? '<div class="bit-lab"><label>Decimal (0–255)<input id="decimal" type="number" min="0" max="255" value="192"></label><div class="bit-buttons" id="bit-buttons"></div><div class="bit-values" id="bit-values" aria-live="polite"></div></div>' : ""}<div class="scenario-tabs" role="group" aria-label="เลือกสถานการณ์">${l.states.map((s, i) => `<button class="scenario-tab" data-state="${i}">${esc(s.label)}</button>`).join("")}</div><div id="concept-result" aria-live="polite"><p>เลือกสถานการณ์ด้านบนเพื่อเริ่มทดลอง</p></div><button class="button light small" id="next-state">ดูสถานการณ์ถัดไป</button></section><div class="question-box"><p class="eyebrow">YOUR MISSION</p><h3>${esc(l.question)}</h3><div class="choices">${l.choices.map((s, i) => `<button class="choice" data-answer="${i}">${esc(s)}</button>`).join("")}</div><button class="hint" id="hint">ขอคำใบ้</button><div class="feedback" id="feedback" aria-live="polite"></div></div>`
   );
 }
 export function initConcept(l, onComplete) {
+  if(serviceLessons.some(s=>s.id===l.id))return initService(l,onComplete);
+  if(l.id==='noc-incident')return initRepair(l,onComplete);
+  if(['network-quality','qos-queues'].includes(l.id))return initQuality(l,onComplete);
+  if(l.id==='osi-model')return initOSI(onComplete);
   let visited = new Set(),
     index = -1;
   const draw = (i) => {
@@ -94,6 +109,7 @@ export function initConcept(l, onComplete) {
     visited.add(i);
     const s = l.states[i],
       root = document.querySelector("#concept-result");
+    root.closest('.workarea').dispatchEvent(new CustomEvent('network-scenario', {detail:{index:i}}));
     const stage = document.querySelector("#foundation-scene");
     if (stage) {
       stage.dataset.state = i;
@@ -103,7 +119,7 @@ export function initConcept(l, onComplete) {
       );
     }
     root.className = "concept-result" + (s.ok ? "" : " problem");
-    root.innerHTML = `<p class="state-count">สถานการณ์ ${i + 1} / ${l.states.length}</p><h3>${esc(s.headline)}</h3>${diagram(l, i)}<div class="mechanism-fields">${s.rows.map(([name, value]) => `<div class="mechanism-field"><span>${esc(name)}</span><strong>${esc(value)}</strong></div>`).join("")}</div><p class="state-explanation">${esc(s.detail)}</p>`;
+    root.innerHTML = l.id==='troubleshooting'?`<p>Incident ${i+1} / ${l.states.length} · เก็บหลักฐานในห้องทดลองด้านบนก่อนเลือกแนวทางตรวจต่อ</p>`:`<p class="state-count">สถานการณ์ ${i + 1} / ${l.states.length}${l.section !== 'foundation' ? ' · ข้อมูลอ้างอิงตั้งต้น (ผลค่าที่ปรับใน Sandbox ดูด้านบน)' : ''}</p><h3>${esc(s.headline)}</h3>${networkLabSpecs[l.id] ? '' : diagram(l, i)}<div class="mechanism-fields">${s.rows.map(([name, value]) => `<div class="mechanism-field"><span>${esc(name)}</span><strong>${esc(value)}</strong></div>`).join("")}</div><p class="state-explanation">${esc(s.detail)}</p>`;
     document.querySelectorAll("button[data-state]").forEach((b) => {
       b.classList.toggle("active", Number(b.dataset.state) === i);
       b.setAttribute("aria-pressed", String(Number(b.dataset.state) === i));
@@ -163,6 +179,11 @@ export function initConcept(l, onComplete) {
   document.querySelectorAll("[data-answer]").forEach((b) =>
     b.addEventListener("click", () => {
       const f = document.querySelector("#feedback");
+      if(l.id==='troubleshooting'&&document.querySelector('.workarea')?.dataset.repairReady!=='true'){f.className='feedback bad';f.textContent='ทำภารกิจแก้แล้วทดสอบซ้ำทั้งสามเคสก่อนตอบ';return;}
+      if(telecomLessons.some(t=>t.id===l.id)&&document.querySelector('.mechanism-lab')?.dataset.providerReady!=='true'){f.className='feedback bad';f.textContent='เล่นอย่างน้อยสองสถานการณ์จนถึงขั้นสุดท้ายก่อนตอบ';return;}
+      if(l.id==='troubleshooting'&&document.querySelector('.mechanism-lab')?.dataset.incidentReady!=='true'){
+        f.className='feedback bad';f.textContent='เก็บหลักฐานและเลือกแนวทางตรวจต่อให้ถูกทั้งสาม Incident ก่อนตอบท้ายบท';return;
+      }
       if (visited.size < 2) {
         f.className = "feedback bad";
         f.textContent = "ลองเปรียบเทียบอย่างน้อย 2 สถานการณ์ก่อนตอบ";
@@ -174,5 +195,6 @@ export function initConcept(l, onComplete) {
       if (pass) onComplete();
     }),
   );
-  if (l.section === "foundation") draw(0);
+  draw(0);
+  if(l.id==='troubleshooting')return initRepair(l,onComplete);
 }
