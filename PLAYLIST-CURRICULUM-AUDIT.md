@@ -1,5 +1,7 @@
 # Playlist curriculum audit — 2026-10-03
 
+สถานะปัจจุบัน 2026-10-04: Production Network 63 / Python 35 (2026.10.04.3); Local Python 48 เพิ่ม 13 บทใน python-next.js ตามลำดับพื้นฐาน → iterable/function → OOP → files/data/sorting ยังไม่ Deploy ชุดนี้ ข้อความจำนวนบท/ผลตรวจ/ยังไม่ Deploy ด้านล่างเป็นประวัติรอบ audit วันที่ 3 ตุลาคม ดู context.md เป็นหลัก
+
 ## ขอบเขตที่สำรวจจริง
 
 ตรวจรายการชื่อวิดีโอใน YouTube playlist และเทียบ source หลักสูตรในเครื่อง ไม่ได้ดู/ถอดเสียงทุกวิดีโอ จึงไม่อ้างว่าอ่านเนื้อหาทั้งชุดแล้ว

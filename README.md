@@ -4,23 +4,23 @@
 
 ## สถานะปัจจุบัน — 2026-10-04
 
-- Production: https://techatlas-aoh.pages.dev — Deployment ล่าสุด https://3ef782a7.techatlas-aoh.pages.dev — เวอร์ชัน 2026.10.04.2 รวม 64 Network / 35 Python, Provider, Video buffer, Shaping/Policing, repair/retest/NOC timeline และพจนานุกรม 256 คำ เผยแพร่แล้ว อ่าน context.md สำหรับขอบเขต/ผลตรวจ และ CLOUDFLARE-FREEPLAN.md สำหรับความเสี่ยงโควตา
-- Network 54 บท: 52 บทมี 3D; VLSM และ IPv6 addressing คงเครื่องมือ 2D เพราะเหมาะกับการคำนวณ/เปรียบเทียบ
-- เพิ่ม shared 3D 24 บท รวม shared renderer 35 บท และ renderer เดิม/เฉพาะบท 17 บท
-- เลขชุดเดียวทั้ง Explore/Path: เฟส 0 → เฟส 1 ขั้น 01–14 → เฟส 2 WAN/MPLS → เฟส 3 Cloud
+- Production: https://techatlas-aoh.pages.dev — https://609c43c4.techatlas-aoh.pages.dev — เวอร์ชัน 2026.10.04.4 รวม Network 63 / Python 48 / พจนานุกรม 285 รายการ
+- รุ่นนี้เพิ่ม Python 13 บทต่อยอด พร้อมศัพท์และปรับตัวนับ ใช้ migration 0002 แล้ว; อ่าน context.md สำหรับสถานะจริงและ PROJECT-HISTORY.md สำหรับประวัติ
+- Network 61 บทมี 3D; VLSM/IPv6 addressing ใช้เครื่องมือ 2D ตามข้อยกเว้น
+- Explore/Path ใช้ลำดับเดียว: เฟส 0 → เฟส 1 ขั้น 01–14 → เฟส 2 WAN/Provider/MPLS → เฟส 3 Cloud → เฟส 4 Internet บทสรุปเดียว
 - OSI มี 3D และคำอธิบายครบ 7 ชั้น ซ่อน Stack 2D ที่ซ้ำเมื่อ 3D พร้อม เก็บ Header inspector และ fallback
 - Python 35 บท รันจริงด้วย Pyodide มีภารกิจชัดเจน Editor รองรับ Tab/Shift+Tab และไฮไลต์บรรทัดตาม trace จริง
 - Programming/AI คงการ์ด 03/04 “กำลังเตรียมบทเรียน” ไม่เปิด route หรือรวมไฟล์เนื้อหาใน release; เก็บ draft ในเครื่อง
-- ผลตรวจรอบเผยแพร่: Network 37 controllers / 103 scenarios / 35 shared 3D และ Python 35 scenes ผ่าน ตรวจภาพบางหน้าบน desktop/mobile ไม่ใช่ทุกมุมทุกอุปกรณ์
-- ตรวจเว็บจริง OSI canvas/ซ่อน Stack ซ้ำ สี่การ์ดหมวดวิชา และตัวนับเข้าชม; SHA-256 ของ network-lab-models.js ตรงกับ release
+- หลักฐานรอบเก่า: Network 37 controllers / 103 scenarios / 35 shared 3D และ Python 35 scenes ผ่าน ตรวจภาพบางหน้าบน desktop/mobile ไม่ใช่ทุกมุมทุกอุปกรณ์ ดู PROJECT-HISTORY.md ไม่ถือว่าเป็นผลตรวจใหม่
+- รอบใหม่ตรวจเฉพาะ Python 13 บทและตัวนับ; รายละเอียดอยู่ context.md ไม่ตรวจ Network เดิมซ้ำ
 
 รายละเอียดล่าสุด: `context.md` และ `NETWORK-SPATIAL-AUDIT.md` กฎหลัก: `AGENTS.md`
 
-ตรวจเพิ่มเติมด้วย `node tests/network-spatial-audit.mjs`, `node tests/osi-lab.mjs` และ `node tests/course-visibility.mjs` ควบคู่ชุดตรวจเดิม
+ตรวจรอบนี้เฉพาะ `node tests/python-next.mjs`, `tests/python-next.html`, `node tests/visit-counter.mjs`, `node tests/visit-client.mjs` ไม่รัน Lab เก่าซ้ำโดยไม่มีคำสั่ง ชุดตรวจรวมบางไฟล์เป็น snapshot รุ่นเก่าที่ hardcode จำนวนบท จึงต้องทบทวนก่อนใช้รับรอง release
 
 ต้องได้รับอนุมัติก่อน Deploy ทุกครั้ง ขณะพัก Programming/AI **ห้าม deploy dist ต้นฉบับ** ใช้ `node scripts/prepare-release.mjs` ตรวจ artifact/preview แล้ว deploy path ที่ script คืนจากโฟลเดอร์ project เพื่อคง Functions/D1 config ไม่ upload repository/docs/credentials
 
-## งานเผยแพร่ — 2026-10-04
+## ประวัติงานเผยแพร่ช่วงต้น — 2026-10-04
 
 เผยแพร่ตามการอนุมัติผู้ใช้ผ่าน clean release ที่ไม่รวมเนื้อหา Programming/AI ตรวจเว็บจริงพบหน้ารายการอัปเดต ตัวนับเข้าชม และ TCP autoplay จบที่ ACK/ESTABLISHED; Internet มีฉาก 3D และตัวเลือกบริการ/เส้นทาง/ปัญหา
 
@@ -38,7 +38,7 @@
 
 - Network 46 บท: เฟส 0, Switching, IPv4/VLSM/ARP/ICMP, Transport, IPv6, Routing/OSPF/HSRP, Services, Security, Wireless, Automation และ MPLS
 - 3D มี floating IP, topology แยกสำหรับ DNS/VLAN/L2/L3/MPLS และข้อมูลแต่ละ hop; Concept labs เปรียบเทียบสถานการณ์ มีเครื่องมือบิต, OSI stack, Encapsulation, STP, OSPF, VLSM และ DHCP
-- Local เฟส 0 มี 3D ครบ 6 บท: ส่วนประกอบเครื่อง, บิต 8 ตัว, อุปกรณ์, สาย/สถานะ Link, OSI/TCP-IP และการห่อ Header; Computer → Internet ย้ายไปเป็นบทสรุปเฟส 4 ใช้ฉากใหม่เพียงบทเดียว (ยังไม่ Deploy)
+- เฟส 0 มี 3D ครบ 6 บท: ส่วนประกอบเครื่อง, บิต 8 ตัว, อุปกรณ์, สาย/สถานะ Link, OSI/TCP-IP และการห่อ Header; Internet ย้ายไปเฟส 4 แล้วใน release 2026.10.04.3
 - การ์ด Explore ใช้ renderer และผังเดียวกับบท 3D จริง ไม่วาด topology แยก; Concept lab ใช้แผนภาพ/ข้อมูลสถานการณ์แรกชุดเดียวกับเนื้อหา และ Python ใช้โค้ดเริ่มต้นของบทนั้น
 - Gateway lab เปรียบเทียบ Ping ใน LAN กับต่าง subnet มี Gateway ผิด/ถูก/ไม่มี/อยู่นอก LAN พร้อมหลักฐาน ARP, ผลคำสั่งจำลอง และภารกิจเปรียบเทียบก่อน–หลัง
 - Python 28 บท อิงเอกสารใน docs รันจริงด้วย Pyodide มี input(), editable modules, แบบฝึกท้ายบท 6 ข้อ และตรวจหลายชุดข้อมูล

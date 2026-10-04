@@ -13,6 +13,15 @@ def _lab_value(value):
     else:
         text = '<' + kind + '>'
     result = {'type': kind, 'value': text}
+    # New OOP exercises use these plain classes with ordinary instance dicts.
+    # Read only stored attributes; do not call methods/repr/property getters.
+    if kind in ('Book', 'Cart', 'Person', 'Student', 'Robot') and not isinstance(value, type):
+        descriptor = type(value).__dict__.get('__dict__')
+        if type(descriptor).__name__ == 'getset_descriptor':
+            attributes = descriptor.__get__(value, type(value))
+            if type(attributes) is dict:
+                result['length'] = len(attributes)
+                result['items'] = [{'key': str(key)[:40], 'value': _lab_short(item)} for key, item in list(attributes.items())[:8]]
     if type(value) in (list, tuple, set, dict):
         identity = _lab_builtins.id(value)
         if identity not in _lab_objects:
@@ -61,7 +70,11 @@ def _lab_trace(frame, event, arg):
         if _lab_user_frame(parent):
             stack.append({'name': parent.f_code.co_name, 'file': parent.f_code.co_filename.rsplit('/', 1)[-1]})
         parent = parent.f_back
-    record = {'event': event, 'line': frame.f_lineno, 'file': frame.f_code.co_filename.rsplit('/', 1)[-1], 'function': frame.f_code.co_name, 'variables': _lab_vars(frame.f_locals), 'globals': _lab_vars(frame.f_globals), 'stack': list(reversed(stack))}
+    # Module locals are the global namespace. Reading f_locals during CPython
+    # 3.12's inlined comprehension can synchronize temporary fast locals back
+    # and emit an unbound-local warning. Do not inspect those temporary slots.
+    values = frame.f_globals if frame.f_code.co_name == '<module>' else frame.f_locals
+    record = {'event': event, 'line': frame.f_lineno, 'file': frame.f_code.co_filename.rsplit('/', 1)[-1], 'function': frame.f_code.co_name, 'variables': _lab_vars(values), 'globals': _lab_vars(frame.f_globals), 'stack': list(reversed(stack))}
     if event == 'return':
         record['returned'] = _lab_short(arg)
     if event == 'exception':

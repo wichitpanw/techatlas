@@ -1,6 +1,6 @@
 let runtime;
 let runIndex = 0;
-importScripts('./python-tracer.js');
+importScripts('./python-tracer.js?v=python-next-20261004');
 const normalize = (value) =>
   String(value)
     .replace(/\r\n/g, "\n")

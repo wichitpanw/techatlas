@@ -54,7 +54,7 @@
 7–9. Enterprise / BGP / CGNAT-IPv6: เพิ่ม 3D scenarios ในเส้นทาง Provider หลัง prerequisite เดิม; policy/withdraw/VRF/inbound มีขอบเขตสมมติชัดเจน
 10. NOC: ผู้เรียนเก็บหลักฐานและลงมือเปลี่ยน/ทดสอบ/rollback ใน Sandbox มี timeline การกระทำและ impact A/B ไม่ใช่ข้อสอบศัพท์อย่างเดียว
 
-Local 64 Network บท; Production ยัง 56 บท ชุดนี้ไม่ Deploy อัตโนมัติ ฟีเจอร์ใหม่ผ่าน model และ browser tests เฉพาะส่วนที่เพิ่ม/แก้ ตามหลักฐานใน context.md ไม่อ้างว่าได้ตรวจ Labs เก่าซ้ำทั้งหมด แผนนี้เสร็จในระดับบทเรียนแบบจำลอง ไม่ใช่การสร้าง ISP/vendor emulator ครบทุก Protocol; advanced QoS remark, adaptive video, full BGP best-path และ configuration อุปกรณ์จริงอยู่นอกขอบเขต
+ปัจจุบัน Production/Local Network 63 บทใน release 2026.10.04.3 ชุด Telecom เผยแพร่แล้ว และ Internet รวมเป็นบทสรุปเดียวเฟส 4 ผลตรวจเฉพาะส่วนที่เพิ่ม/แก้อยู่ PROJECT-HISTORY.md ไม่อ้างว่าตรวจ Labs เก่าซ้ำทั้งหมด แผนเสร็จระดับบทเรียนแบบจำลอง ไม่ใช่ ISP/vendor emulator; advanced QoS remark, adaptive video, full BGP best-path และ config อุปกรณ์จริงอยู่นอกขอบเขต
 
 ### ประวัติก่อนส่งมอบชุด Local ล่าสุด
 

@@ -4,7 +4,7 @@ import { box, material } from './scene.js';
 import { visualFor } from './python-visuals.js';
 
 export function mountScene(el, { preview = false, lesson } = {}) {
-  const spec = lesson ? visualFor(lesson) : { mode: 'monitor', title: 'Python' };
+  const spec = lesson ? (lesson.visualSpec || visualFor(lesson)) : { mode: 'monitor', title: 'Python' };
   // Source code already has an editor and a step-by-step panel outside the scene.
   // Give these lessons one large output screen instead of a second code board.
   const outputOnly = ['monitor', 'source', 'branch', 'exception'].includes(spec.mode);
@@ -35,6 +35,7 @@ export function mountScene(el, { preview = false, lesson } = {}) {
   light.position.set(2, 5, 4); scene.add(light, new THREE.AmbientLight(0x91bdd5, 1.5));
   const computer = new THREE.Group(); scene.add(computer);
   if (!outputOnly) { computer.scale.setScalar(.75); computer.position.x = 2.4; }
+  if(lesson?.section==='extensions'&&!outputOnly)computer.scale.setScalar(1.15);
   if (spec.mode === 'references') { computer.scale.setScalar(1); computer.position.x = 2.6; }
   const shell = material(0x273c4a);
   box(computer, 0, 1.65, 0, 3.5, 2.15, .18, shell);
@@ -95,15 +96,16 @@ export function mountScene(el, { preview = false, lesson } = {}) {
         concepts.add(new THREE.Line(geometry, new THREE.LineBasicMaterial({color:0x82e9d1})));
       });
     } else if (['sequence', 'sets', 'dictionary'].includes(spec.mode)) {
-      const collections = variables.filter(v => v.items).slice(0, 3);
+      const collections = variables.filter(v => v.items && (lesson?.section!=='extensions'||v.type!=='str')).slice(0, 3);
       if (!collections.length) row(spec.title, 'รอข้อมูลจากการรัน', 0);
       collections.forEach((v, r) => {
         const items = v.items.length ? v.items.slice(0, 4) : [{ key: '', value: '(ว่าง)' }];
         items.forEach((item, i) => {
           const set = v.type === 'set';
-          const x = spec.mode === 'sets' && set ? -1.9 + Math.cos(i * Math.PI / 2) * .95 : -3.3 + i * 1.05;
+          const compactDictionary=lesson?.section==='extensions'&&spec.mode==='dictionary';
+          const x = compactDictionary?-2.7+i*1.8:spec.mode === 'sets' && set ? -1.9 + Math.cos(i * Math.PI / 2) * .95 : -3.3 + i * 1.05;
           const y = 3 - r * 1.25 + (spec.mode === 'sets' && set ? Math.sin(i * Math.PI / 2) * .25 : 0);
-          tile(v.name + (set ? ' · set' : ' [' + item.key + ']'), item.value, x, y, 0, true, 1);
+          tile(compactDictionary?item.key+' · '+v.name:v.name + (set ? ' · set' : ' [' + item.key + ']'), item.value, x, y, 0, true, compactDictionary?1.6:1);
         });
       });
     } else if (['loop', 'grid'].includes(spec.mode)) {

@@ -1,5 +1,5 @@
 import { highlightPythonLine, clearPythonHighlights } from './python-editor.js';
-import { visualFor } from './python-visuals.js';
+import { visualFor } from './python-visuals.js?v=python-next-20261004';
 const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 export function createPythonInteractive(lesson, addScene) {
@@ -19,7 +19,7 @@ export function createPythonInteractive(lesson, addScene) {
     if (!events.length) return;
     const event = events[index]; slider.value = index;
 
-    const words = {line:'กำลังจะทำบรรทัดนี้', call:'เข้าสู่ฟังก์ชัน', return:'ออกจากฟังก์ชันหรือไฟล์', exception:'เกิดข้อผิดพลาด · อาจมี except รับไว้'};
+    const words = {line:'กำลังจะทำบรรทัดนี้', call:'เข้าสู่ฟังก์ชันหรือทำต่อ', return:lesson.id==='generator'?'คืนค่าหรือพักที่ yield':'ออกจากฟังก์ชันหรือไฟล์', exception:'เกิดข้อผิดพลาด · อาจมี except รับไว้'};
     position.textContent = `${index + 1}/${events.length} · ${event.file} · L${event.line} · ${words[event.event] || event.event}${event.function === '<module>' ? '' : ' · ' + event.function}`;
     if(!highlightPythonLine(event,context)) position.textContent += ' · โค้ดถูกแก้แล้ว รันใหม่เพื่อให้ไฮไลต์ตรงกับโค้ด';
 

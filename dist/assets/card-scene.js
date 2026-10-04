@@ -1,7 +1,7 @@
 import { mountScene as networkScene } from "./lab-scene.js";
 import { mountScene as foundationScene } from "./foundation-scene.js";
 import { conceptPreview } from "./network-concepts.js";
-import { mountScene as pythonScene } from './python-scene.js';
+import { mountScene as pythonScene } from './python-scene.js?v=python-next-20261004';
 import { mountScene as mechanismScene } from './network-mechanism-scene.js';
 import { networkLabSpecs, buildNetworkLab } from './network-lab-models.js';
 import {programmingPreview} from './programming-lab.js';
@@ -33,6 +33,10 @@ export function mountScene(container, { lesson } = {}) {
   if (lesson.track === 'python') {
     const scene = pythonScene(container, { preview: true, lesson });
     scene.update('รันโค้ดเพื่อดูผลของคุณ', 'idle');
+    if(lesson.previewFrame){
+      scene.displayFrame(lesson.previewFrame,{code:lesson.starter});
+      scene.update('ภาพตัวอย่างแนวคิด · ไม่ใช่ผลการรันของคุณ','example');
+    }
     if (['identity', 'list-copy'].includes(lesson.id)) {
       // Illustration of the supplied starter, not a claimed runtime trace.
       const sample = {type:'list', value:"['สมุด', 'ปากกา']", objectId:'object 1'};

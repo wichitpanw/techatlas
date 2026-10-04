@@ -189,6 +189,35 @@ Uplink|Link จากจุด Access ขึ้นไปยังส่วนเ
 Downlink|Link ลงไปฝั่งปลายทาง/Access ตามบริบท Topology
 `;
 const pythonData=`
+Class|แบบกำหนดข้อมูลและพฤติกรรมสำหรับสร้าง instance เช่น class Book
+Object|ออบเจ็กต์ที่มีชนิดและ identity เช่น List หรือ instance ที่สร้างจาก Class
+Method|ฟังก์ชันที่เรียกผ่าน class หรือ instance ตามรูปแบบที่กำหนด
+Override|กำหนด method ใน subclass เพื่อแทนพฤติกรรมชื่อเดียวกันของ class แม่
+super|เข้าถึง method ตามลำดับการสืบทอดจาก class ปัจจุบัน ไม่ใช่การคัดลอก object
+vars|คืน Dictionary ของ attributes ที่เก็บใน __dict__ ถ้าออบเจ็กต์รองรับ
+StringIO|สตรีมข้อความในหน่วยความจำ ใช้อ่าน/เขียนคล้ายไฟล์ ไม่ใช่ไฟล์บนดิสก์
+TemporaryDirectory|สร้างโฟลเดอร์ชั่วคราวและลบเมื่อออกจาก context manager
+Comprehension|สร้างกลุ่มข้อมูลจากการวนสมาชิกและนิพจน์ อาจกรองด้วย if เช่น List comprehension
+Bitwise|การคำนวณทีละบิตของจำนวนเต็ม ไม่ใช่ and/or ที่ตัดสินค่าความจริง
+zip|จับคู่สมาชิก iterable ตามตำแหน่ง โดยปกติหยุดที่ชุดสั้นที่สุด
+*args|รวบรวม positional arguments ที่เหลือเป็น Tuple
+**kwargs|รวบรวม keyword arguments ที่เหลือเป็น Dictionary
+Iterator|ออบเจ็กต์ที่อ่านสมาชิกถัดไปด้วย next() และจำตำแหน่งการอ่าน
+Generator|Iterator ที่สร้างจากฟังก์ชัน yield หรือ generator expression ทำงานเมื่อขอสมาชิก
+yield|ส่งค่าออกจาก Generator แล้วพักสถานะเพื่อทำต่อในครั้งถัดไป
+StopIteration|สัญญาณว่า Iterator ไม่มีสมาชิกถัดไปแล้ว
+Instance|ออบเจ็กต์ที่สร้างจาก Class มีข้อมูลของตนเองตามการออกแบบ
+self|ชื่อพารามิเตอร์ตามธรรมเนียมที่รับ instance ใน method
+__init__|method เตรียมข้อมูล instance หลังสร้างออบเจ็กต์ ไม่ใช่ return object
+Inheritance|การสืบทอดพฤติกรรมจาก class แม่และเพิ่มหรือ override ใน class ลูก
+Composition|การประกอบออบเจ็กต์หนึ่งไว้เป็นส่วนหนึ่งของอีกออบเจ็กต์
+Duck Typing|ใช้พฤติกรรมที่ต้องการ เช่น method ที่เรียกได้ แทนการบังคับ class เดียวกัน
+classmethod|method ที่รับ class ผ่าน cls แทน instance ผ่าน self
+Context Manager|จัดการการเข้าและออกจากบล็อก with เช่น ปิดไฟล์แม้เกิด exception
+CSV|Comma-Separated Values · รูปแบบตารางข้อความ ค่าที่อ่านยังต้องแปลงชนิดตามงาน
+JSON|JavaScript Object Notation · รูปแบบแลกเปลี่ยนข้อมูล ไม่ใช่โค้ดสำหรับ eval
+sorted|คืน List ใหม่ที่เรียงตาม key โดยไม่แก้ iterable ต้นฉบับ
+Stable Sort|การเรียงที่รักษาลำดับเดิมของสมาชิกที่มี key เท่ากัน
 Python|ภาษาโปรแกรมที่ใช้การย่อหน้าเป็นส่วนหนึ่งของโครงสร้างคำสั่ง
 print|ฟังก์ชันแสดงข้อมูลไปยัง Output
 input|ฟังก์ชันอ่านข้อมูลเข้าเป็น str; ต้องแปลงเองหากต้องการตัวเลข

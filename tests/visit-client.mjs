@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+const code=readFileSync(new URL('../dist/assets/visit-counter.js',import.meta.url),'utf8').replace('export async function','async function');
+const saved=new Map(),calls=[];let status=200;
+const count={textContent:''},context={document:{querySelector:()=>count},location:{hostname:'techatlas-aoh.pages.dev'},sessionStorage:{getItem:k=>saved.get(k),setItem:(k,v)=>saved.set(k,v)},crypto:{randomUUID:()=> '11111111-1111-4111-8111-111111111111'},AbortSignal:{timeout:()=>undefined},fetch:async(_,options={})=>{calls.push(options.method||'GET');const responseStatus=options.method==='POST'?status:200;return {ok:responseStatus===200,status:responseStatus,json:async()=>({total:42})}},Date,JSON,Number};
+vm.createContext(context);vm.runInContext(code,context);
+await vm.runInContext('initVisitCounter()',context);assert.deepEqual(calls,['POST']);
+calls.length=0;await vm.runInContext('initVisitCounter()',context);assert.deepEqual(calls,['GET']);
+saved.delete('techatlas-visit-accepted');calls.length=0;status=429;
+await vm.runInContext('initVisitCounter()',context);assert.deepEqual(calls,['POST','GET']);assert(!saved.has('techatlas-visit-accepted'));assert.equal(count.textContent,(42).toLocaleString('th-TH'));
+calls.length=0;status=200;context.location.hostname='127.0.0.1';
+await vm.runInContext('initVisitCounter()',context);assert.deepEqual(calls,['GET']);
+assert.equal(count.textContent,(42).toLocaleString('th-TH'));
+console.log('PASS counter client: register once, reload GET, admission fallback, preview read-only');

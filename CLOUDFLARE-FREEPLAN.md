@@ -34,6 +34,8 @@
 
 ## ข้อเสนอ (ยังไม่ได้แก้/Deploy)
 
+อัปเดต Local 2026-10-04: ทำ read cache 30s, reload GET, token เดิม zero-write, cleanup รายวัน, จำกัด body แบบ stream และ admission 60 ใหม่/นาที / 2,000 ใหม่/วัน UTC แล้ว ผ่าน SQLite/client tests แต่ยังไม่ deploy ต้องใช้ migration 0002 ก่อนเผยแพร่ รักษายอดเดิม cap ไม่ป้องกัน HTTP flood/Functions/read quota และไม่ใช่การรับประกันไม่ชน quota ร่วมบัญชี ข้อมูล snapshot/ความเสี่ยงโค้ดเดิมด้านบนเป็นผลจาก release 2026.10.04.2
+
 - คง Free plan ตอนนี้ ไม่จำเป็นต้องอัปเกรดจาก snapshot นี้เพียงอย่างเดียว
 - ดู Workers/Pages requests, CPU errors และ D1 Row Metrics เป็นครั้งคราว โดยเฉพาะหลังประชาสัมพันธ์
 - หาก traffic เพิ่ม: ลด POST ตอน reload token เดิม, cache ยอดอ่านแบบมีอายุ, ทำ cleanup เป็นช่วง/จำกัด batch และพิจารณา anti-abuse ที่เหมาะกับ Pages domain ก่อนเพิ่มการพึ่ง API

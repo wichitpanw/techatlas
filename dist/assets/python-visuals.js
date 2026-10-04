@@ -38,5 +38,5 @@ export const pythonVisuals = {
   'practice-list': entry('sequence', 'สมาชิก จำนวน และผลรวม', 'Index กับสมาชิกอยู่ในช่อง ส่วน len() และ sum() แสดงบนจอผลลัพธ์'),
 };
 export function visualFor(lesson) {
-  return pythonVisuals[lesson.id];
+  return lesson.visualSpec || pythonVisuals[lesson.id];
 }

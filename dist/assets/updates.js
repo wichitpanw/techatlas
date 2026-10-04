@@ -1,5 +1,11 @@
 // Version date describes this content edition, not a generated page-view date.
 export const updates=[
+  {date:'2026-10-04',version:'2026.10.04.4',title:'Python ต่อจากพื้นฐาน และปรับตัวนับเข้าชม',items:[
+    {lesson:'comprehension',name:'Python ต่อยอด 13 บท',detail:'เพิ่ม Bitwise, Comprehension, zip/Search, Arguments/Scope, Iterator/Generator, OOP, Files, CSV/JSON และ Sorting พร้อมภารกิจและภาพจากการรันจริง'},
+    {lesson:'class-object',name:'OOP และข้อมูลของ Object',detail:'ทดลอง self/__init__, ข้อมูลแยกแต่ละ instance, classmethod และ inheritance ดูค่าที่อ่านจริงและ call stack'},
+    {lesson:'files-context',name:'ไฟล์ในห้องทดลอง',detail:'ใช้โฟลเดอร์ชั่วคราวใน browser runtime พร้อม with เปิด–ปิดไฟล์ ไม่แตะไฟล์เครื่องผู้เรียน'},
+    {name:'ตัวนับครั้งเข้าชม',detail:'ลดการเขียนซ้ำ ใช้ cache สำหรับอ่านยอด และจำกัดการสร้างเซสชันใหม่ ไม่เพิ่มข้อมูลระบุตัวผู้เรียน'},
+  ]},
   {date:'2026-10-04',version:'2026.10.04.3',title:'จัดบทสรุป Internet และแก้บทซ้ำ',items:[
     {lesson:'internet',name:'จาก Computer สู่โลก Internet',detail:'รวมเหลือบทเดียว ใช้ฉาก 13 จุด และย้ายเป็นบทสุดท้ายเฟส 4 หลังเรียนพื้นฐานและระบบผู้ให้บริการ ลิงก์เก่าและความคืบหน้ายังใช้ได้'},
     {name:'เส้นทางการเรียน',detail:'ตรวจ ID ชื่อ คำอธิบายและโค้ดตั้งต้นซ้ำทุกหมวด พร้อมเพิ่มชุดตรวจป้องกันบทซ้ำ'},

@@ -1,0 +1,86 @@
+// Original exercises; real Python runtime and shared trace-driven 3D.
+const make=(id,title,explain,goal,starter,solution,expected,append,mode='memory')=>({
+ id,track:'python',section:'extensions',tag:'PYTHON / NEXT',title,subtitle:goal,scenario:goal,explain,
+ starter,solution,expected,time:20,visual:'python',visualSpec:{mode,title,explanation:'ภาพอ่านค่าจาก trace ของโค้ดที่รันจริง เลื่อนขั้นเพื่อดูค่าก่อนและหลังคำสั่ง ไม่ใช่ภาพหน่วยความจำจริง'},
+ task:{goal,actions:['อ่านโค้ดตั้งต้นและคงข้อมูลตัวอย่างไว้',goal,'กดรัน ตรวจผลและชุดทดสอบ แล้วเลื่อนขั้นดูค่าที่เปลี่ยน'],focus:'เติมการคำนวณตามโจทย์ ไม่พิมพ์คำตอบคงที่แทนโค้ด',extension:'เปลี่ยนข้อมูลตัวอย่างแล้วรันใหม่เพื่อเปรียบเทียบ'},
+ steps:['อ่านสถานการณ์และโจทย์','เติมโค้ดตามภารกิจแล้วรัน','ย้อน trace เปรียบเทียบค่า'],work:'หลังผ่านโจทย์ ลองเปลี่ยนข้อมูลและรันใหม่ ผลอาจไม่ตรงโจทย์เดิม',hint:'ดูชื่อฟังก์ชันและข้อมูลในโค้ดตั้งต้น ใช้ตัวอย่างเฉลยเมื่อจำเป็น',
+ source:'https://docs.python.org/3/tutorial/',tests:[{name:'ตัวอย่างและค่าที่เปลี่ยน',append,expected}],
+});
+export const pythonNextLessons=[
+ make('bitwise-swap','Bitwise และการสลับค่า','Bitwise ทำงานกับบิตของ int: & คือ AND, | คือ OR, ^ คือ XOR และ << เลื่อนบิตไปซ้าย ตัวอย่างใช้จำนวนเต็มไม่ติดลบ ต่างจาก and/or ที่ตัดสินค่าความจริง การสลับ a, b = b, a ประเมินด้านขวาก่อน ไม่ต้องใช้ XOR trick',
+ 'เพิ่มการแสดง a & b, a | b, a ^ b, a << 1 บรรทัดเดียว แล้วสลับ a กับ b และแสดงอีกบรรทัด',
+ 'a = 6\nb = 3\n# แสดงผล bitwise แล้วสลับค่า\n',
+ 'a = 6\nb = 3\nprint(a & b, a | b, a ^ b, a << 1)\na, b = b, a\nprint(a, b)', '2 7 5 12\n3 6','assert (a,b) == (3,6)'),
+ make('comprehension','List Comprehension: กรองแล้วแปลง','Comprehension สร้าง List ใหม่จาก iterable โดยใช้ expression และเงื่อนไข if ไม่ได้แก้ List ต้นฉบับ อ่านเป็น “สำหรับแต่ละค่า ถ้าผ่านเงื่อนไข ให้เก็บผลนิพจน์” เทียบกับ for/append ที่เรียนมา',
+ 'เขียน even_squares(nums) ให้คืน List ของกำลังสองเฉพาะเลขคู่ แล้วแสดงผลจาก nums',
+ 'nums = [1, 2, 3, 4]\ndef even_squares(nums):\n    return []\nprint(even_squares(nums))',
+ 'nums = [1, 2, 3, 4]\ndef even_squares(nums):\n    result = [n * n for n in nums if n % 2 == 0]\n    return result\nprint(even_squares(nums))','[4, 16]','assert even_squares([0, -2, 5]) == [0, 4]\nassert nums == [1,2,3,4]','sequence'),
+ make('zip-search','zip และค้นข้อมูลเป็นคู่','zip จับคู่สมาชิกจาก iterable ตามตำแหน่ง โดยปกติหยุดเมื่อชุดที่สั้นที่สุดหมด จึงอาจละข้อมูลท้ายชุดยาว ไม่ใช่จับคู่ด้วยชื่อ key การค้นในบทนี้คืนคะแนนของชื่อแรกที่ตรง ถ้าไม่พบคืน None',
+ 'เติม score_of(name) ให้ค้น names คู่กับ scores ด้วย zip คืนคะแนนที่พบ หรือ None เมื่อไม่พบ',
+ 'names = ["Mali", "Dao", "Ton"]\nscores = [80, 95, 70]\ndef score_of(name):\n    return None\nprint(score_of("Dao"))\nprint(score_of("Nok"))',
+ 'names = ["Mali", "Dao", "Ton"]\nscores = [80, 95, 70]\ndef score_of(name):\n    pairs = list(zip(names, scores))\n    for person, score in pairs:\n        if person == name:\n            return score\n    return None\nprint(score_of("Dao"))\nprint(score_of("Nok"))','95\nNone','assert score_of("Mali") == 80\nassert score_of("Ton") == 70','sequence'),
+ make('args-kwargs','*args และ **kwargs: รับหลายค่า','*args รวบรวม positional arguments เป็น Tuple ส่วน **kwargs รวบรวม keyword arguments เป็น Dictionary ชื่อ args/kwargs เป็นธรรมเนียม ไม่ใช่คำสงวน ค่าที่ส่งยังต้องเหมาะกับการคำนวณ',
+ 'เติม receipt(*prices, **options) ให้รวมราคาและลบ options["discount"] ถ้าไม่มี discount ให้ใช้ 0',
+ 'def receipt(*prices, **options):\n    return 0\nprint(receipt(30, 50, discount=10))\nprint(receipt(25))',
+ 'def receipt(*prices, **options):\n    total = sum(prices)\n    discount = options.get("discount", 0)\n    return total - discount\nprint(receipt(30, 50, discount=10))\nprint(receipt(25))','70\n25','assert receipt() == 0\nassert receipt(10,20,30,discount=5) == 55','stack'),
+ make('scope-local','Scope: ตัวแปรในและนอกฟังก์ชัน','Local คือชื่อภายใน call ของฟังก์ชัน Global คือชื่อในโมดูล การกำหนดชื่อในฟังก์ชันโดยไม่ใช้ global สร้าง local ไม่ได้เปลี่ยน global ที่ชื่อเหมือนกัน ภารกิจให้คืนค่าแทนการแก้ global เพื่ออ่านผลกระทบง่าย',
+ 'เติม add_one(count) ให้สร้างค่า local เพิ่มหนึ่งแล้ว return คง count นอกฟังก์ชันเป็น 10',
+ 'count = 10\ndef add_one(count):\n    return count\nprint(add_one(count))\nprint(count)',
+ 'count = 10\ndef add_one(count):\n    count = count + 1\n    return count\nprint(add_one(count))\nprint(count)','11\n10','assert add_one(0) == 1\nassert count == 10','stack'),
+ make('iterator','Iterator: อ่านทีละสมาชิก','Iterable ส่งให้ iter() เพื่อสร้าง Iterator ได้ next() ขอสมาชิกถัดไป เมื่อหมดจะเกิด StopIteration หรือคืน default ถ้าระบุ next(iterator, default) Iterator เดิมไม่เริ่มใหม่เอง',
+ 'สร้าง cursor = iter(items) แล้วแสดง next สามครั้ง ครั้งสุดท้ายใช้ค่าเริ่มต้น "หมดแล้ว"',
+ 'items = ["ชา", "นม"]\n# สร้าง cursor แล้วอ่านสามครั้ง\n',
+ 'items = ["ชา", "นม"]\ncursor = iter(items)\nprint(next(cursor))\nprint(next(cursor))\nprint(next(cursor, "หมดแล้ว"))','ชา\nนม\nหมดแล้ว','assert next(cursor, None) is None','sequence'),
+ make('generator','Generator: yield แล้วพักไว้','ฟังก์ชันที่มี yield คืน Generator เมื่อเรียก ยังไม่ทำ body จนถูกขอสมาชิก next() ทำงานถึง yield แล้วพักค่าท้องถิ่นไว้ ครั้งต่อไปทำต่อจากจุดนั้น ไม่ใช่ return แล้วเริ่มใหม่ ระบุใน trace ว่า return event ที่ yield อาจเป็นการพัก ไม่ใช่จบฟังก์ชัน',
+ 'เติม countdown(n) ให้ yield n แล้วลด n จนเหลือ 0 แสดง next หนึ่งครั้ง แล้วแสดงสมาชิกที่เหลือด้วย list',
+ 'def countdown(n):\n    yield 0\nsteps = countdown(3)\nprint(next(steps))\nprint(list(steps))',
+ 'def countdown(n):\n    while n > 0:\n        yield n\n        n -= 1\nsteps = countdown(3)\nprint(next(steps))\nprint(list(steps))','3\n[2, 1]','assert list(countdown(0)) == []\nassert list(countdown(2)) == [2,1]','stack'),
+ make('class-object','Class, Object, self และ __init__','Class กำหนดพฤติกรรมและข้อมูลของ object แต่ละ instance มีข้อมูลของตัวเอง self รับ instance ที่เรียก method __init__ เตรียมข้อมูลหลังสร้าง instance ไม่ใช่คำสั่งคืน object ภาพแสดง Dictionary จาก vars() ของ instance จริง ไม่ใช่ layout ของหน่วยความจำ',
+ 'เติม Book.__init__ ให้เก็บ title และ pages ที่ self สร้างหนังสือสองเล่ม แล้วแสดงข้อมูล a และจำนวนหน้า b',
+ 'class Book:\n    def __init__(self, title, pages):\n        pass\na = Book("Python", 120)\nb = Book("Story", 80)\nstate = vars(a)\nprint(state)\nprint(b.pages)',
+ 'class Book:\n    def __init__(self, title, pages):\n        self.title = title\n        self.pages = pages\na = Book("Python", 120)\nb = Book("Story", 80)\nstate = vars(a)\nprint(state)\nprint(b.pages)',"{'title': 'Python', 'pages': 120}\n80",'assert a is not b\nassert Book("New",7).pages == 7','dictionary'),
+ make('class-methods','Instance และ Class attributes','Instance attribute เช่น self.items แยกตาม object ส่วน class attribute เช่น shop ใช้ lookup จาก class หาก instance ไม่มีชื่อเดียวกัน อย่าเก็บ mutable List ที่ทุก instance ต้องแยกไว้เป็น class attribute @classmethod รับ cls และใช้ข้อมูลของ class',
+ 'ย้าย items ไปสร้าง List ใหม่ใน __init__ เติม add เพื่อ append และชื่อร้านผ่าน classmethod ให้รถเข็น b ยังว่าง',
+ 'class Cart:\n    shop = "Atlas"\n    items = []\n    def __init__(self):\n        pass\n    def add(self, item):\n        self.items.append(item)\n    @classmethod\n    def shop_name(cls):\n        return cls.shop\na = Cart()\nb = Cart()\na.add("Tea")\nstate = vars(a)\nprint(a.items)\nprint(b.items)\nprint(Cart.shop_name())',
+ 'class Cart:\n    shop = "Atlas"\n    def __init__(self):\n        self.items = []\n    def add(self, item):\n        self.items.append(item)\n    @classmethod\n    def shop_name(cls):\n        return cls.shop\na = Cart()\nb = Cart()\na.add("Tea")\nstate = vars(a)\nprint(a.items)\nprint(b.items)\nprint(Cart.shop_name())',"['Tea']\n[]\nAtlas",'assert a.items is not b.items\nassert Cart().items == []','dictionary'),
+ make('inheritance','Inheritance และ Duck Typing','Subclass สืบทอด method และ override ได้ super() เรียกการทำงานตามลำดับ method resolution ไม่ใช่ copy object Duck typing ใช้พฤติกรรมที่ต้องการ เช่น speak() โดยไม่บังคับว่าทุก object ต้องสืบทอด class เดียวกัน Composition คือถือ object อื่นเป็นส่วนประกอบ เหมาะเมื่อเป็นความสัมพันธ์ “มี” ไม่ใช่ “เป็น”',
+ 'เติม Student.speak ให้ต่อผล super().speak() ด้วย " learner" แล้วเรียก speak ของ Student และ Robot',
+ 'class Person:\n    def speak(self):\n        return "Hello"\nclass Student(Person):\n    def speak(self):\n        return "Hello"\nclass Robot:\n    def speak(self):\n        return "Beep"\nfor speaker in [Student(), Robot()]:\n    print(speaker.speak())',
+ 'class Person:\n    def speak(self):\n        return "Hello"\nclass Student(Person):\n    def speak(self):\n        return super().speak() + " learner"\nclass Robot:\n    def speak(self):\n        return "Beep"\nfor speaker in [Student(), Robot()]:\n    print(speaker.speak())','Hello learner\nBeep','assert Person().speak() == "Hello"\nassert Student().speak() == "Hello learner"','stack'),
+ make('files-context','ไฟล์และ with: เปิด ใช้ แล้วปิด','with ใช้ context manager เพื่อปิดไฟล์เมื่อออกจากบล็อก รวมกรณีเกิด exception w เขียนใหม่และทับไฟล์เดิม r อ่าน ภารกิจใช้ TemporaryDirectory ใน filesystem ของ Pyodide ไม่แตะไฟล์เครื่องคุณและลบเมื่อจบบล็อก รีโหลดไม่รักษาไฟล์แบบถาวร',
+ 'เติมบล็อกเปิด path ด้วย w เขียน "ชา\\nนม" แล้วเปิด r อ่านกลับใน text ก่อนแสดง text และสถานะ closed',
+ 'import tempfile\nfrom pathlib import Path\nwith tempfile.TemporaryDirectory() as folder:\n    path = Path(folder) / "notes.txt"\n    # ใช้ with เขียนและอ่าน text\n    text = ""\n    print(text)\n    print(path.exists())',
+ 'import tempfile\nfrom pathlib import Path\nwith tempfile.TemporaryDirectory() as folder:\n    path = Path(folder) / "notes.txt"\n    with open(path, "w", encoding="utf-8") as handle:\n        handle.write("ชา\\nนม")\n    with open(path, "r", encoding="utf-8") as handle:\n        text = handle.read()\n    print(text)\n    print(handle.closed)','ชา\nนม\nTrue','assert text == "ชา\\nนม"\nassert not path.exists()','memory'),
+ make('csv-json','CSV และ JSON: ข้อความเป็นข้อมูล','csv.DictReader อ่านแต่ละแถวเป็น Dictionary แต่ค่า CSV ยังเป็น str ต้องแปลงคะแนนก่อนคำนวณ JSON ใช้ loads อ่านข้อความเป็นข้อมูล และ dumps เขียนกลับ ไม่ใช้ eval บทนี้อ่านไฟล์ข้อความจำลองผ่าน StringIO ไม่มีการอัปโหลดข้อมูลจริง',
+ 'อ่าน CSV ด้วย DictReader สร้าง records ที่ score เป็น int ใช้ json.dumps/loads สร้าง restored แล้วแสดงชื่อแรกและผลรวมคะแนน',
+ 'import csv, json, io\nsource = "name,score\\nMali,80\\nDao,95\\n"\nrecords = []\n# อ่านและแปลงข้อมูล\nprint(records)',
+ 'import csv, json, io\nsource = "name,score\\nMali,80\\nDao,95\\n"\nrecords = [{"name": row["name"], "score": int(row["score"])} for row in csv.DictReader(io.StringIO(source))]\nencoded = json.dumps(records)\nrestored = json.loads(encoded)\nprint(restored[0]["name"])\nprint(sum(row["score"] for row in restored))','Mali\n175','assert restored == records\nassert isinstance(restored[0]["score"], int)','sequence'),
+ make('sorting','Sorting: เรียงข้อมูลโดยไม่แก้ต้นฉบับ','sorted() คืน List ใหม่ ส่วน list.sort() แก้ List เดิมและคืน None key กำหนดค่าที่ใช้เปรียบเทียบ reverse=True เรียงมากไปน้อย การเรียงของ Python เป็น stable เมื่อ key เท่ากันจะรักษาลำดับเดิม',
+ 'เติม rank(rows) ให้ sorted ตามคะแนนมากไปน้อยโดยไม่แก้ rows แล้วแสดงชื่อเรียงใหม่และชื่อแรกเดิม',
+ 'rows = [("Mali",80), ("Dao",95), ("Ton",80)]\ndef rank(rows):\n    return rows\nranked = rank(rows)\nprint([name for name, score in ranked])\nprint(rows[0][0])',
+ 'rows = [("Mali",80), ("Dao",95), ("Ton",80)]\ndef rank(rows):\n    return sorted(rows, key=lambda row: row[1], reverse=True)\nranked = rank(rows)\nprint([name for name, score in ranked])\nprint(rows[0][0])',"['Dao', 'Mali', 'Ton']\nMali",'assert ranked is not rows\nassert rank([("A",1),("B",2)]) == [("B",2),("A",1)]','sequence'),
+];
+const item=(name,type,value,items)=>({name,type,value,items:items?.map((value,i)=>({key:String(i),value:String(value)}))});
+const examples={
+ 'bitwise-swap':[item('a','int','6'),item('b','int','3')],
+ 'comprehension':[item('nums','list','[1, 2, 3, 4]',[1,2,3,4])],
+ 'zip-search':[item('names','list','names',["'Mali'","'Dao'","'Ton'"]),item('scores','list','scores',[80,95,70])],
+ 'args-kwargs':[item('prices','tuple','(30, 50)'),item('options','dict',"{'discount': 10}")],
+ 'scope-local':[item('count','int','10')],
+ 'iterator':[item('items','list','items',["'ชา'","'นม'"])],
+ 'generator':[item('n','int','3')],
+ 'class-object':[{name:'Book attributes',type:'dict',value:'title/pages',items:[{key:'title',value:"'Python'"},{key:'pages',value:'120'}]}],
+ 'class-methods':[{name:'Cart attributes',type:'dict',value:'items/shop',items:[{key:'items',value:'[]'},{key:'shop (class)',value:"'Atlas'"}]}],
+ 'inheritance':[item('method','str','Student.speak → super().speak')],
+ 'files-context':[item('path','str','notes.txt'),item('mode','str','w → r')],
+ 'csv-json':[item('CSV rows','list','rows',["Mali,80","Dao,95"])],
+ 'sorting':[item('rows','list','rows',["('Mali',80)","('Dao',95)","('Ton',80)"])],
+};
+for(const lesson of pythonNextLessons){
+ lesson.steps=lesson.task.actions;
+ lesson.work='หลังผ่านภารกิจแล้ว: '+lesson.task.extension+' (ผลอาจต่างจากตัวอย่างและไม่ผ่านโจทย์เดิม)';
+ lesson.previewFrame={variables:examples[lesson.id],stack:[{name:'main.py · ตัวอย่าง',file:'main.py'}],event:'line'};
+ const section=['class-object','class-methods','inheritance','iterator','generator'].includes(lesson.id)?'classes':lesson.id==='files-context'||lesson.id==='csv-json'?'inputoutput':lesson.id==='args-kwargs'||lesson.id==='scope-local'?'controlflow':'datastructures';
+ lesson.source='https://docs.python.org/3/tutorial/'+section+'.html';
+ if(lesson.id==='bitwise-swap')lesson.source='https://docs.python.org/3/library/stdtypes.html#bitwise-operations-on-integer-types';
+}

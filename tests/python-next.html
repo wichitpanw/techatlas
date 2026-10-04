@@ -1,0 +1,32 @@
+<!doctype html><html lang="th"><meta charset="utf-8"><title>Python new lessons QA</title>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+<link rel="stylesheet" href="../dist/assets/style.css">
+<h1>ตรวจเฉพาะ Python 13 บทใหม่</h1><button id="run">ตรวจบทใหม่</button><pre id="report"></pre><div id="scene" style="position:relative;width:800px;height:400px"></div>
+<script type="module">
+import {pythonNextLessons} from '../dist/assets/python-next.js';
+import {mountScene} from '../dist/assets/python-scene.js?v=python-next-20261004';
+const report=document.querySelector('#report'),worker=new Worker('../dist/assets/python-worker.js?v=python-next-20261004');
+const request=data=>new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('timeout')),60000);worker.onmessage=e=>{clearTimeout(timer);resolve(e.data)};worker.onerror=e=>{clearTimeout(timer);reject(Error(e.message))};worker.postMessage(data)});
+document.querySelector('#run').onclick=async()=>{
+ document.querySelector('#run').disabled=true;report.textContent='กำลังโหลด Pyodide…\n';
+ try{
+  const ready=await request({type:'init'});if(ready.type!=='ready')throw Error(JSON.stringify(ready));
+  for(const lesson of pythonNextLessons){
+   const result=await request({type:'run',code:lesson.solution,inputs:[],tests:lesson.tests});
+   if(result.type!=='result'||result.output.trim()!==lesson.expected.trim()||!result.trace.length||result.checks.some(t=>!t.pass))throw Error(lesson.id+' '+result.output+' '+result.message);
+   if(lesson.id==='class-object'){
+    const selfStates=result.trace.filter(e=>e.function==='__init__').flatMap(e=>e.variables.filter(v=>v.name==='self'));
+    if(!selfStates.some(v=>v.items?.length===1)||!selfStates.some(v=>v.items?.length===2))throw Error('instance attributes not traced');
+   }
+   const initial=await request({type:'run',code:lesson.starter,inputs:[],tests:lesson.tests});
+   if(initial.type==='result'&&initial.output.trim()===lesson.expected.trim()&&initial.checks.every(t=>t.pass))throw Error('starter passes '+lesson.id);
+   const scene=mountScene(document.querySelector('#scene'),{lesson});scene.update(result.output);
+   for(let index=0;index<result.trace.length;index++)scene.displayFrame(result.trace[index],{code:lesson.solution,history:result.trace.slice(0,index+1),index});
+   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+   if(!document.querySelector('#scene canvas'))throw Error('canvas missing');
+   report.textContent+=lesson.id+' PASS · '+result.trace.length+' trace events\n';scene.dispose();
+  }
+  report.textContent+='PASS 13 NEW LESSONS · runtime, starter failure, checks, trace-driven 3D frames';
+ }catch(error){report.textContent+='FAIL '+error.message}finally{worker.terminate()}
+};
+</script></html>

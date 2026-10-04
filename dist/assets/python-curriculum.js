@@ -1,4 +1,5 @@
 import { pythonTasks } from './python-tasks.js';
+import { pythonNextLessons } from './python-next.js';
 
 export const pythonReference = {
   title: "เขียนโปรแกรมภาษา Python สำหรับผู้เริ่มต้น.pdf",
@@ -15,6 +16,7 @@ export const pythonSections = [
   { id: "modules", title: "โมดูลและการ import", pages: "32–33" },
   { id: "practice", title: "แบบฝึกหัดท้ายบท 6 ข้อ", pages: "35–36" },
   { id: "next", title: "ต่อยอด: สมาชิก ค่า และการอ้างถึงข้อมูล" },
+  { id: "extensions", title: "ต่อยอด: ข้อมูล ฟังก์ชัน OOP และไฟล์" },
 ];
 
 const lesson = (
@@ -595,3 +597,4 @@ placeAfter('number-conversion', 'operators');
 placeAfter('for-else', 'loop-control');
 placeAfter('function-arguments', 'functions');
 placeAfter('recursion', 'lambda-scope');
+pythonLessons.push(...pythonNextLessons);
