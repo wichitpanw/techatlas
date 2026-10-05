@@ -1,0 +1,5 @@
+function finite(a){if(!Array.isArray(a)||a.some(v=>!Number.isFinite(v)))throw Error('ต้องใช้รายการตัวเลขที่มีค่าจำกัด');}
+export function normalize(pixels){finite(pixels);if(pixels.length!==9||pixels.some(v=>v<0||v>255))throw Error('ภาพตัวอย่างต้องมี 9 ค่า ระหว่าง 0–255');return pixels.map(v=>v/255);}
+export function dot(x,w){finite(x);finite(w);if(!x.length||x.length!==w.length)throw Error('เวกเตอร์ต้องมีจำนวนสมาชิกเท่ากันและไม่ว่าง');const products=x.map((v,i)=>v*w[i]);return {products,sum:products.reduce((s,v)=>s+v,0)};}
+export function activate(z,kind){if(!Number.isFinite(z))throw Error('z ต้องเป็นตัวเลข');switch(kind){case 'relu':return Math.max(0,z);case 'sigmoid':return z>=0?1/(1+Math.exp(-z)):Math.exp(z)/(1+Math.exp(z));case 'tanh':return Math.tanh(z);case 'linear':return z;default:throw Error('ไม่รู้จัก Activation');}}
+export function mse(pred,target){finite(pred);finite(target);if(!pred.length||pred.length!==target.length)throw Error('Prediction และ Target ต้องมีขนาดเท่ากัน');const errors=pred.map((v,i)=>v-target[i]),squares=errors.map(v=>v*v);return {errors,squares,loss:squares.reduce((s,v)=>s+v,0)/pred.length};}

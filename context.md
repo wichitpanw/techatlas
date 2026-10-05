@@ -146,11 +146,34 @@
 
 ## Planned
 
+## Local prototype · AI Neural Lab · 2026-10-05
+
+- รอบ “ทำเลย” เพิ่ม09Batch/Epochและ10Validation/Overfitting ใน `prototypes/ai-training.html` รวมต้นแบบใหม่10บท มีลิงก์ต่อจากFoundations; ยังไม่เปิดAIproduction/commit/push/deploy
+- Batchlinear2parameters/8ตัวอย่างคำนวณจริง; size2/4/8, Learning rate.1คงที่, Playย้อนtraceไม่ฝึกเพิ่ม; FitพหุนามQRdegree1/3/7 Train8/Validation9/Test11แยกxไม่ซ้ำ ไม่ใช่NeuralNetworktraining Testล็อกโมเดลหลังเปิด
+- `tests/ai-training.mjs`ผ่านcoverage/gradient/counts/split/QR/overfit/determinism; Browser2บทใหม่ tasks/train/Testlockผ่าน Batchclock/Pause866.6msไม่เพิ่มUpdates และFitnaturalendผ่าน ไม่ตรวจ8บทเดิมซ้ำ ตรวจเฉพาะลิงก์ที่เพิ่ม รายละเอียด `AI-TRAINING-PROTOTYPE.md`; ยังไม่ครบมือถือ/ทุกมุม/fallback
+
+- รอบ “ดำเนินการต่อ” เพิ่ม4บทปูพื้นใน `prototypes/ai-foundations.html`: ข้อมูล Pixel/normalize → Vector/Dot/Matrix × Vector → Activation → MSE Loss รวมต้นแบบใหม่8บท เชื่อมลำดับกับ4บทเดิมด้วยลิงก์ hash ไม่เปิด route production
+- Rendererใหม่ Activation speed2เล่นจนจบ3/3หยุดเอง และspeed.5Pauseค้าง208.3ms; ลิงก์05เปิดForwardจริงและกลับปูพื้นได้ ภาพ `/tmp/techatlas-ai-foundations.jpg`; clean release `/tmp/techatlas-release-c0bPnK/dist` ตัดAIทั้งหมด ไม่deploy
+- แต่ละบทคำนวณ JavaScript จริง ภาพ3Dกลไกเฉพาะ ไม่ใช้ Network renderer; มีศัพท์/ภารกิจ/speed.5–2/input errors แยก Learning rate กับ speed ตามเดิม สูตร Dot/ReLU/MSE ตรวจเอกสารหลัก NumPy/PyTorch อ่านบทอ้างอิงเดิมตามหลักฐานรอบก่อน ไม่อ้างดูวิดีโอเพิ่ม
+- `tests/ai-foundations.mjs` ผ่าน normalization order/bounds, dot dimensions, activations/stability และ MSE cancellation/zero/errors; Browser4บทใหม่ Input/ภารกิจผ่าน รวม Activation ต้องดูสองกรณีและLossเปลี่ยน1→0 ไม่ตรวจ4บทเดิมซ้ำ ยกเว้นลิงก์เข้าForwardที่แก้ ยังไม่ครบมือถือ/ทุกมุม/fallback
+
+- ผู้ใช้ “เริ่มงานได้” อนุมัติพัฒนา ไม่ใช่ commit/push/deploy สร้าง vertical slice 4 บท Neuron / Forward / Gradient Descent / Backprop ตามแผนใหม่ เปิด `http://127.0.0.1:4174/prototypes/ai-neural.html` แยกจาก dist และเว็บจริง ยังไม่เปิด AI ใน Explore
+- โมเดล regression 2→3→2 คำนวณ JavaScript จริง Hidden tanh/linear outputs/MSE, analytic gradients 17 parameters และ finite difference; Gradient surface ใช้ linear regression6จุด ไม่ใช่ผิวLossของ17parameters ไม่มี model API/LLM/video ที่ผลิตแล้ว
+- 3D custom Neural renderer ไม่ใช่อุปกรณ์ Network: labels Input/z/h/output/gradient, Orbit, continuous flow, pause/step/reset/speed.5–2; พจนานุกรมเฉพาะบทในต้นแบบ ยังไม่แก้ glossary production
+- `tests/ai-neural.mjs` ผ่าน17gradients×4inputs/immutability/determinism/overshoot; Browserต้นแบบ4บท input/tasks/train ผ่าน Forward clock/pause ผ่าน ตรวจเฉพาะงานใหม่ไม่ตรวจบทเดิมซ้ำ ยังไม่ครบmobile/fallback/allrates รายละเอียด `AI-NEURAL-PROTOTYPE.md` ภาพ `/tmp/techatlas-ai-neural.jpg`
+- prepare-release ยังคงตัด ai-neural-*.js และไม่รวม prototypes; production .4 และจำนวนบทเดิมไม่เปลี่ยน ยังไม่ commit/push/deploy
+
+## Planned (ต่อ)
+
+รายการ AI ด้านล่างเป็นบันทึก ณ รอบวางแผนก่อนเริ่มสร้าง; สถานะต้นแบบที่เกิดขึ้นแล้วให้ยึดหัวข้อ Local prototype · AI Neural Lab ด้านบน หลักสูตรที่เหลือและวิดีโอยังคง Planned
+
+- AI แผนใหม่ 2026-10-05 ตามคำขอผู้ใช้ ใช้ `AI-PLAN-3B1B.md` แทน AI-PLAN.md เดิม: 20 บท ข้อมูล/เวกเตอร์→Neuron/Forward→Loss/Gradient/Backprop/Training/ตรวจโมเดล→Token/Embedding/Softmax→Attention/Multi-head/MLP/Transformer→LLM/ข้อจำกัด/โปรเจกต์ มีแผนคลิปภาษาไทยจาก Lab 4 ชิ้นแรก ไม่รวม RAG/Tool/API ในชุดนี้ อ่าน reference 3Blue1Brown และดูคลิปย่อยหนึ่งตัวอย่าง ไม่อ้างว่าชมทุกวิดีโอครบ ยังไม่สร้างบท/เปิด AI หรือ commit/push/deploy ในรอบวางแผนนี้ ต้นแบบ AI เก่า 4 บทคง draft
+
 - Network expert audit baseline .4: 63 หน้า / 146 curriculum states / 121 mechanism scenario builds รายละเอียด `NETWORK-EXPERT-AUDIT-2026-10-04.md`; A1–A7 และกลุ่ม DHCP/TCP/DNS/MTU เผยแพร่ใน .5 แล้ว รอบ Monitoring/FTTH/Wireless และ Provider advanced ยังไม่ทำ
 - Diagnostic ใหม่ `tests/network-review-20261004.html`: rendering/controls ของ 63 หน้า ตรวจ iframe 1150px; เครื่องมือรอบแรกมี pause false-positive เมื่อจบอัตโนมัติ แก้ diagnostic และตรวจเฉพาะ 14 หน้าเดิมผ่าน ไม่อ้างว่าทุกมุมกล้อง/มือถือผ่าน ชุด network-quality มี order assertion เก่าที่ต้องปรับตาม curriculum ก่อนใช้เป็น gate
 
 - Python Decorators/abstract classes/NumPy และ runtime server/socket/database ยังไม่ทำ
-- Programming JavaScript → TypeScript → Node.js; AI Neural Network → NLP/LLM/RAG/Tool calling ยังพัก
+- Programming JavaScript → TypeScript → Node.js ยังพัก; AI รุ่นใหม่ใช้แผน 3Blue1Brown ด้านบน ส่วน RAG/Tool calling เป็นต่อยอดนอกชุดหลัก ไม่ใช่งานในรอบนี้
 - Network Identity/SSO และ capture drill อยู่แผน Playlist ไม่อ้างว่าอ่านทุกวิดีโอ
 - มือถือ/keyboard/reduced-motion/WebGL failure ยังไม่ครบ ต้องขอขอบเขตก่อนตรวจบทเดิมซ้ำ
 - WAF/Turnstile/monitoring ยังไม่ตั้งภายนอกหรือเปลี่ยนแพ็กเกจ
