@@ -6,7 +6,7 @@
 
 ## Production
 
-- https://techatlas-aoh.pages.dev · release 2026.10.05.1 · immutable https://b498c03b.techatlas-aoh.pages.dev
+- https://techatlas-aoh.pages.dev · release 2026.10.05.2 · immutable https://72caf60c.techatlas-aoh.pages.dev
 - Network **64** / Python **48** / Programming API **9** บท / พจนานุกรม **372** รายการ
 - Internet เหลือบทเดียว ฉากใหม่ 13 จุด เป็นบทสุดท้ายเฟส 4 หลัง Cloud; #lesson/packet ส่งต่อ #lesson/internet และรักษาความคืบหน้า
 - ลำดับร่วม Explore/Path/ก่อน–ถัดไป: เฟส 0 → เฟส 1 ขั้น 01–14 → เฟส 2 WAN/Provider/MPLS → เฟส 3 Cloud → เฟส 4 Internet
@@ -17,7 +17,7 @@
 - Feedback เตรียม mailto/คัดลอก ไม่มี backend ticket หรืออัปโหลดรูป
 - ตัวนับเซสชัน Pages Functions + D1 ไม่เก็บ IP ในโค้ดแอป ไม่มีบัญชีผู้เรียน
 
-## Local · Flow 3D 2026.10.05.2 (ยังไม่เผยแพร่)
+## Flow 3D 2026.10.05.2 · เผยแพร่แล้ว
 
 - คำขอผู้ใช้: ให้ Network ที่กระโดดภาพและ Programming API ไหลต่อเนื่องเหมือนบท `address`; คง renderer เดิมของ address ไม่เปลี่ยนเนื้อหา/โมเดลโปรโตคอลหรือเพิ่มหัวข้อ API
 - ปรับ shared mechanism renderer ให้ข้อมูลเดินทางตามเส้นพร้อมป้ายและรอยทาง เรืองแสง; ส่งต่อ hop ที่มี dependency ตามลำดับ ส่วน fan-out อยู่พร้อมกัน ไม่วาด route ที่โมเดลไม่ได้ระบุ
@@ -27,7 +27,10 @@
 - ตรวจวันที่ 2026-10-05: `tests/flow-model.mjs` ผ่าน dependency/parallel/model immutability/final dwell/pause/hidden-tab; `tests/flow-browser.html` ผ่าน 57 shared scenes (43 Network mechanisms + 9 API + 2 quality + 2 service + Internet) และ OSI ตรวจ moving/pause/redraw/resume/reset ด้วยข้อมูลตั้งต้น ไม่ใช่ทุก input combination
 - API Browser ผ่าน 9 บท × 3 scenarios: controls/evidence/quiz gate/reset; หน้า Network จริงตรวจเฉพาะกลไกที่แก้ 6 หน้า OSI/MTU/Internet/quality/video/rate ผ่าน canvas/play/pause/reset ไม่มี horizontal overflow ที่ iframe1150px ไม่อ้างว่าทุกจอ/ทุกมุมผ่าน
 - แก้ versioned imports ของ entry/scene/player/updates เพื่อไม่ให้ preview ใช้ไฟล์เก่าจาก cache; ตรวจ OSI บนหน้า actual ว่ามี motion toggle และ footer รุ่น .2 แล้ว ภาพหลักฐาน `/tmp/techatlas-smooth-flow.jpg`
-- `node scripts/prepare-release.mjs` สร้าง clean release `/tmp/techatlas-release-Z7ou5Y/dist`; syntax และ git diff --check ผ่าน ไม่มี deploy/commit/push รอบนี้ Production ยังคง .1 ต้องขออนุมัติใหม่
+- ก่อนเผยแพร่สร้าง clean release `/tmp/techatlas-release-Z7ou5Y/dist`; syntax และ git diff --check ผ่าน ผลตรวจข้างต้นเป็นหลักฐานก่อน deploy ไม่รันบทเดิมซ้ำในรอบเผยแพร่
+- ผู้ใช้อนุมัติ “commit / push / deploy เลย” วันที่ 2026-10-05; commit `53a34ce` (`Smooth network and API flow animations`) push origin/main สำเร็จ สร้าง release ใหม่ `/tmp/techatlas-release-IEJoUe/dist` แล้ว deploy Cloudflare Pages สำเร็จ immutable `72caf60c` ไม่ทำ D1 migration หรือเปลี่ยน config; draft AI/Programming อื่นยังไม่รวม
+- หลัง deploy เว็บหลัก index/main/updates/flow-playback/network-mechanism-scene/osi-scene/api-lab/network-concepts/card-scene HTTP200 และ byte-for-byte ตรง clean release; GET /api/visits HTTP200 มี total ตัวเลข ไม่สร้าง token ทดสอบผ่าน request ตรวจ หน้า Updates ใน Browser จริงแสดง 5 ตุลาคม 2026 รุ่น .2 พร้อมรายการ Flow; การเปิดหน้าเว็บปกติยังใช้ตัวนับตามเดิม
+- การอนุมัตินี้ใช้เฉพาะรอบ Flow .2 และเอกสารสถานะการเผยแพร่ รอบแก้ไขถัดไปต้องขออนุมัติใหม่
 
 ## รายละเอียดรุ่น 2026.10.04.4 (ประวัติ)
 
