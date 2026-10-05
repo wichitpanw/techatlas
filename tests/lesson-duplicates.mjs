@@ -3,10 +3,9 @@ import {networkLessons} from '../dist/assets/network-curriculum.js';
 import {arrangeNetwork} from '../dist/assets/network-foundations.js';
 import {pythonLessons} from '../dist/assets/python-curriculum.js';
 import {programmingLessons} from '../dist/assets/programming-curriculum.js';
-import {aiLessons} from '../dist/assets/ai-curriculum.js';
 
 // Structural duplicate audit only; does not replay previously verified labs.
-const groups={network:arrangeNetwork(networkLessons),python:pythonLessons,programming:programmingLessons,ai:aiLessons};
+const groups={network:arrangeNetwork(networkLessons),python:pythonLessons,programming:programmingLessons};
 const normalize=value=>String(value||'').replace(/\s+/g,' ').trim();
 for(const [track,lessons] of Object.entries(groups)){
   for(const field of ['id','title','explain','starter']){

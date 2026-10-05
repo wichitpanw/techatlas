@@ -95,4 +95,4 @@
 - คำสั่งหลังได้รับอนุมัติ: `npx --yes wrangler@4.147.0 pages deploy <absolute-release-dist-path> --project-name techatlas --branch main` ใช้ path ที่ script คืน และรันจากโฟลเดอร์ project เพื่อคง Functions/D1 config
 - ตรวจเว็บหลักหลัง Deploy แล้วจึงอัปเดตสถานะใน `context.md`
 
-**สถานะขณะสร้างกฎนี้:** ผู้ใช้ขอให้ยังไม่ Deploy AI ต้นแบบ AI ต้องอยู่ในเครื่องจนกว่าจะได้รับอนุมัติใหม่
+**สถานะ 2026-10-05:** ผู้ใช้อนุมัติเผยแพร่ AI ใหม่ 10 บทแล้ว ใช้ `prepare-release.mjs --publish-ai` สำหรับชุดนี้ AI เก่าเลิกใช้และลบแล้ว; Programming ที่พักไว้ยังไม่เผยแพร่ ทุกการ Deploy ครั้งต่อไปยังต้องขออนุมัติใหม่

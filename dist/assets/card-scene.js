@@ -5,7 +5,6 @@ import { mountScene as pythonScene } from './python-scene.js?v=python-next-20261
 import { mountScene as mechanismScene } from './network-mechanism-scene.js?v=speed-20261005';
 import { networkLabSpecs, buildNetworkLab } from './network-lab-models.js?v=speed-20261005';
 import {programmingPreview} from './programming-lab.js';
-import {aiPreview} from './ai-lab.js';
 import {osiPreview} from './osi-lab.js?v=speed-20261005';
 import {mountOSI} from './osi-scene.js?v=speed-20261005';
 import {buildOSI} from './osi-lab.js?v=speed-20261005';
@@ -27,7 +26,6 @@ export function mountScene(container, { lesson } = {}) {
     try{const scene=mountOSI(container,{preview:true});scene.showStep(buildOSI()[5]);return scene;}
     catch{const preview=document.createElement('div');preview.innerHTML=osiPreview();container.append(preview);return {dispose(){preview.remove();}};}
   }
-  if(lesson.track==='ai'){const preview=document.createElement('div');preview.innerHTML=aiPreview(lesson);container.append(preview);return {dispose(){preview.remove();}};}
   if(lesson.track==='programming'){
     const preview=document.createElement('div');preview.innerHTML=programmingPreview(lesson);container.append(preview);
     return {dispose(){preview.remove();}};

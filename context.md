@@ -6,6 +6,15 @@
 
 ## Production
 
+## Cleanup ในเครื่อง · 2026-10-05
+
+- ตามคำขอผู้ใช้ลบ AI เก่า 4 บท: curriculum/lab/models, แบบทดสอบเฉพาะชุดเก่า, styles และ AI-PLAN.md เดิม ถอด imports/renderer เก่าและปรับ release builder; AI ใหม่ 10 บทและข้อมูลความคืบหน้าของผู้เรียนไม่ถูกลบ ไฟล์เก่ากู้คืนได้จาก Git ก่อนหน้า บันทึก Local prototype ด้านล่างเป็นประวัติ ไม่ใช่สถานะปัจจุบัน
+- การ cleanup รอบนี้ยังไม่ commit/push/deploy; production ล่าสุดยังเป็น 58664a97 ที่เผยแพร่ AI ใหม่แล้ว
+
+## Production ล่าสุด
+
+- 2026-10-05: ผู้ใช้อนุมัติ “deploy เลย” เผยแพร่ AI รุ่นทดลอง 10 บทผ่านการ์ด 04 ใน Explore ไป immutable https://58664a97.techatlas-aoh.pages.dev ชุด `/tmp/techatlas-release-0HRDU2/dist` ใช้ `prepare-release.mjs --publish-ai`; ไม่รวม AI เก่า/Programming ที่พักไว้ ไม่เปลี่ยน D1/config โมเดลผ่านชุดทดสอบรอบก่อน ตรวจ main และหน้า Foundations บนเว็บหลักตรงไฟล์ release (หน้า HTML ตาม redirect) และ training scene HTTP200 ยังไม่ตรวจทุกบทซ้ำ/มือถือ; ไม่มี progress หรือวิดีโอสำหรับ AI รุ่นนี้
+
 - https://techatlas-aoh.pages.dev · release 2026.10.05.4 · immutable https://7e79e19d.techatlas-aoh.pages.dev
 - Network **64** / Python **48** / Programming API **9** บท / พจนานุกรม **372** รายการ
 - Internet เหลือบทเดียว ฉากใหม่ 13 จุด เป็นบทสุดท้ายเฟส 4 หลัง Cloud; #lesson/packet ส่งต่อ #lesson/internet และรักษาความคืบหน้า

@@ -26,17 +26,14 @@ import {apiLessons,apiSections} from './api-curriculum.js';
 import {apiSurface,initAPI} from './api-lab.js?v=speed-20261005';
 import {buildAPI} from './api-model.js';
 import {initVisitCounter} from './visit-counter.js?v=counter-20261004';
-import {aiLessons as draftAILessons,aiSections} from './ai-curriculum.js';
-import {aiSurface,initAI} from './ai-lab.js';
 import {networkLearningGuide} from './network-learning-guide.js';
-import {courseIsVisible} from './course-visibility.js';
 import {glossaryEntries,lessonTermsSurface,searchGlossary} from './lesson-terms.js?v=python-next-20261004';
 import {canonicalLessonId,mergeLegacyProgress} from './lesson-aliases.js';
 initVisitCounter();
 const networkLessons = arrangeNetwork(originalNetworkLessons);
 // Drafts remain on disk; withdrawing a course must not erase saved learner work.
 const programmingLessons = apiLessons;
-const aiLessons = courseIsVisible('ai', location.hostname) ? draftAILessons : [];
+const aiLessons = []; // New AI labs have their own standalone entry point.
 
 const lessons = [...networkLessons, ...pythonLessons, ...programmingLessons, ...aiLessons];
 const main = document.querySelector("main");
@@ -56,7 +53,6 @@ const normalize = (value) =>
     .join("\n")
     .trim();
 const courses = [
-  {id:'ai',name:'AI',description:'หมวดอิสระ · แผนที่ AI → กฎ vs ข้อมูล → Training/Inference → Token · ต้นแบบ 4 บท',sections:aiSections,lessons:aiLessons},
   {id:'programming',name:'Programming',description:'API เท่านั้น · คำขอ/คำตอบ → REST/GraphQL/gRPC/SOAP → ช่องข้อความและ Events',sections:apiSections,lessons:programmingLessons},
   {
     id: "network",
@@ -234,7 +230,7 @@ function renderExplore() {
           const subset = visible.filter((l) => l.track === course.id);
           if (!subset.length) return "";
           if (filter === "all" && !query) {
-            const featuredIds = course.id === 'ai' ? ['ai-map','ai-training','ai-tokens'] : course.id === "network" ? ["internet", "vlan", "dns"] : course.id === "programming" ? ["api-basics", "api-rest", "api-websocket"] : ["python-start", "variables", "conditions"];
+            const featuredIds = course.id === "network" ? ["internet", "vlan", "dns"] : course.id === "programming" ? ["api-basics", "api-rest", "api-websocket"] : ["python-start", "variables", "conditions"];
             const featured = featuredIds.map((id) => subset.find((l) => l.id === id)).filter(Boolean);
             for (const lesson of subset) if (featured.length < 3 && !featured.includes(lesson)) featured.push(lesson);
             return `<section class="subject-showcase"><div class="section-heading"><span class="section-index">${course.id === 'ai' ? 'AI' : course.id === "network" ? "NET" : course.id === "programming" ? "WEB" : "PY"}</span><h2>${course.name}</h2><span class="desc">${course.id === 'ai' ? 'เห็นภาพและทดลองกลไก AI' : course.id === "network" ? "มองให้เห็นการทำงานของเครือข่าย" : course.id === "programming" ? "เห็นคำขอ ข้อตกลง และช่องทางส่งข้อมูล" : "เรียนพื้นฐานผ่านการเขียนโค้ดจริง"}</span><button class="show-subject" data-subject="${course.id}">ดูทั้งหมด ${subset.length} บท</button></div><div class="cards">${featured.map(card).join("")}</div></section>`;
@@ -368,17 +364,12 @@ function renderLesson(id) {
   if (id === "offline") id = "practice-list";
   const l = lessons.find((l) => l.id === id);
   if (!l) {
-    const withdrawnTrack = withdrawnProgrammingLessons.some(lesson => lesson.id === id) ? 'Programming' : draftAILessons.some(lesson => lesson.id === id) ? 'AI' : '';
+    const withdrawnTrack = withdrawnProgrammingLessons.some(lesson => lesson.id === id) ? 'Programming' : '';
     main.innerHTML = `${intro(withdrawnTrack ? 'กำลังเตรียมบทเรียน' : "ไม่พบบทเรียน", withdrawnTrack ? `หมวด ${withdrawnTrack} กำลังปรับปรุง งานที่บันทึกไว้ในเครื่องยังไม่ถูกลบ` : "กลับไปเลือกหัวข้อในคลังบทเรียน")}<a class="button" href="#explore">สำรวจบทเรียน</a>`;
     return;
   }
   currentLesson = l;
   // Lesson-specific reports remain outside the lab's event handlers.
-  if(l.track==='ai'){
-    main.className='lab-page';const index=aiLessons.indexOf(l);
-    main.innerHTML=`<div class="lab-head"><a href="#explore">‹ คลังบทเรียน</a><h1>${escapeHTML(l.title)}</h1><span>AI · ${index+1} / ${aiLessons.length}</span></div><div class="lab-layout"><aside class="lesson-panel"><p class="eyebrow">${l.tag}</p><h2>${escapeHTML(l.title)}</h2><p>${escapeHTML(l.explain)}</p><p><a href="${l.source}" target="_blank" rel="noopener noreferrer">เอกสารอ่านเพิ่มเติม ↗</a></p></aside><section class="workarea">${aiSurface(l)}<div class="lesson-links">${index?`<a href="#lesson/${aiLessons[index-1].id}">‹ บทก่อนหน้า</a>`:''}${index<aiLessons.length-1?`<a href="#lesson/${aiLessons[index+1].id}">บทถัดไป ›</a>`:'<a href="#path">เส้นทางการเรียน ›</a>'}</div></section></div>`;
-    scenes.set(main.querySelector('.workarea'),initAI(l,complete));return;
-  }
   main.className = "lab-page";
   const group = lessons.filter((x) => x.track === l.track),
     idx = group.indexOf(l);
@@ -1024,13 +1015,7 @@ const terms = [
     "Function รวมคำสั่งที่เรียกซ้ำได้ Module แยกโค้ดเป็นไฟล์แล้ว import มาใช้",
   ],
 ];
-const aiTerms=[['AI','สาขาที่สร้างระบบรับรู้ เรียนรู้ และตัดสินใจ ไม่ใช่ทุกระบบต้องเป็น ML'],['ML / DL','ML เรียนจากข้อมูล ส่วน DL ใช้ Neural Network หลายชั้น'],['NLP / GenAI','NLP เป็นงานภาษา GenAI เป็นงานสร้างเนื้อหา ทั้งสองทับซ้อนกันได้'],['Training / Inference','Training เลือกหรือปรับพารามิเตอร์จากข้อมูล Inference ใช้พารามิเตอร์เดิมคำนวณคำตอบ'],['Feature / Label','Feature เป็นข้อมูลนำเข้า Label เป็นคำตอบกำกับตัวอย่าง'],['Threshold','เส้นแบ่งที่ใช้เลือกกลุ่มผลลัพธ์ ใน Lab ผ่านเมื่อคะแนน ≥ threshold'],['Token / Bigram','Token คือหน่วยข้อความ Bigram ใช้คู่ Token ติดกัน Lab นี้แบ่งด้วยช่องว่างและนับคู่ ไม่ใช่ LLM'],['LLM','โมเดลภาษาขนาดใหญ่ โมเดลจิ๋วในบท Token เป็นสะพานอธิบาย ไม่ใช่ LLM จริง']];
 function openGlossary() {
-  if(currentLesson?.track==='ai'){
-    document.querySelector('#glossary h2').textContent='ศัพท์ AI';
-    document.querySelector('#terms').innerHTML=aiTerms.map(([name,meaning])=>`<div class="term"><strong>${name}</strong><p>${meaning}</p></div>`).join('');
-    document.querySelector('#glossary').showModal();return;
-  }
   const python = currentLesson?.track === 'python';
   const programming=currentLesson?.track==='programming';
   const expanded=glossaryEntries.filter(e=>!currentLesson||e.track===currentLesson.track).map(e=>[e.name,e.meaning]);
