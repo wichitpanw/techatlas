@@ -6,7 +6,7 @@
 
 ## Production
 
-- https://techatlas-aoh.pages.dev · release 2026.10.05.3 · immutable https://78146776.techatlas-aoh.pages.dev
+- https://techatlas-aoh.pages.dev · release 2026.10.05.4 · immutable https://7e79e19d.techatlas-aoh.pages.dev
 - Network **64** / Python **48** / Programming API **9** บท / พจนานุกรม **372** รายการ
 - Internet เหลือบทเดียว ฉากใหม่ 13 จุด เป็นบทสุดท้ายเฟส 4 หลัง Cloud; #lesson/packet ส่งต่อ #lesson/internet และรักษาความคืบหน้า
 - ลำดับร่วม Explore/Path/ก่อน–ถัดไป: เฟส 0 → เฟส 1 ขั้น 01–14 → เฟส 2 WAN/Provider/MPLS → เฟส 3 Cloud → เฟส 4 Internet
@@ -17,7 +17,7 @@
 - Feedback เตรียม mailto/คัดลอก ไม่มี backend ticket หรืออัปโหลดรูป
 - ตัวนับเซสชัน Pages Functions + D1 ไม่เก็บ IP ในโค้ดแอป ไม่มีบัญชีผู้เรียน
 
-## Local · 2026.10.05.4 · ยังไม่อนุมัติ commit/push/deploy
+## 2026.10.05.4 · เผยแพร่แล้ว
 
 - เพิ่มตัวเลือกความเร็ว 0.5×–2× ใน renderer ที่มี animation ตามเวลา: Network รุ่นเดิม/early labs, shared Network/API/Internet/quality/service mechanisms, OSI, Physical signal และ Python trace replay ใช้นาฬิกาที่ปรับร่วมกับตัวเล่นขั้นตอน ไม่แก้ค่าคำนวณ/latency/ความเร็ว Python runtime
 - ภาพ preview การ์ดคงนิ่ง ฉาก foundation แบบคลิกดูโครงสร้าง (Computer/OS, เลขฐาน, devices, encapsulation) ระบุภาพนิ่งและปิด speed control เพราะไม่มี timeline ให้เร่ง ไม่สร้างการไหลที่โมเดลไม่ได้ระบุ เครื่องมือ 2D เดิมยังไม่ใช่ animation 3D
@@ -25,7 +25,9 @@
 - `tests/speed-model.mjs` ผ่าน rate boundaries, scheduler 0.5/1/2 และเปลี่ยนความเร็วระหว่างเล่น; `tests/speed-browser.html` ผ่าน shared Network/API clock/pause, OSI progress, early/original Network flight duration, Physical control และ static exceptions, Python synthetic trace replay/pause ไม่รัน Python curriculum ทั้งหมดซ้ำ
 - ตรวจหน้า MTU จริงเลือก 0.5× ได้และป้ายไม่บังฉากที่มุมตั้งต้น ภาพ `/tmp/techatlas-speed-public.jpg`; ไม่อ้างว่าทุกบท/ทุกมุม/ทุกอุปกรณ์ผ่าน ตรวจเฉพาะกลไกควบคุมที่แก้
 - อัปเดต AGENTS และ CLOUDFLARE-FREEPLAN.md: static requests ไม่จำกัด แต่ตัวนับมี shared Functions quota100,000/day และ admission60/min/2,000/day ไม่ใช่เพดานผู้เรียน ยังไม่ load test หรืออ่าน usage ล่าสุดรวมบัญชี
-- clean release `/tmp/techatlas-release-tIiVWR/dist` ตัด draft AI/Programming อื่นตามเดิม syntax/diff ตรวจแยกก่อนส่งงาน Production ยังคง .3 ต้องขออนุมัติใหม่
+- clean release ก่อนอนุมัติ `/tmp/techatlas-release-tIiVWR/dist` ตัด draft AI/Programming อื่นตามเดิม syntax/diff ผ่าน ใช้ผลตรวจกลไกรอบก่อน ไม่ตรวจหลักสูตรเดิมซ้ำในรอบเผยแพร่
+- ผู้ใช้อนุมัติด้วย “อนุมัติ” หลังสรุป commit/push/deploy รุ่น .4 วันที่ 2026-10-05; commit `ec1d1b9` (`Add playback speed controls and neutral public examples`) push origin/main สำเร็จ สร้าง clean release ใหม่ `/tmp/techatlas-release-FJCasW/dist` แล้ว deploy Pages techatlas สำเร็จ immutable `7e79e19d` ไม่เปลี่ยน config/D1/แพ็กเกจ และไม่รวม draft AI/Programming อื่น
+- หลังเผยแพร่เว็บหลัก index/main/updates/animation-speed/flow-playback/network-mechanism-scene/osi-scene/python-interactive/style HTTP200 และ byte-for-byte ตรง release; GET /api/visits HTTP200 มี total ตัวเลข ไม่สร้าง token ทดสอบผ่าน request ตรวจ หน้า Updates Browser จริงแสดงรุ่น .4 และรายการใหม่ ภาพ `/tmp/techatlas-speed-release.jpg`; การเปิดเว็บปกติใช้ตัวนับตามเดิม การอนุมัติรอบนี้ไม่ครอบคลุมการแก้รอบถัดไป
 
 ## 2026.10.05.3 · Flow ต่อเนื่องเสมอ · เผยแพร่แล้ว
 
