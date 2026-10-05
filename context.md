@@ -6,7 +6,7 @@
 
 ## Production
 
-- https://techatlas-aoh.pages.dev · release 2026.10.05.2 · immutable https://72caf60c.techatlas-aoh.pages.dev
+- https://techatlas-aoh.pages.dev · release 2026.10.05.3 · immutable https://78146776.techatlas-aoh.pages.dev
 - Network **64** / Python **48** / Programming API **9** บท / พจนานุกรม **372** รายการ
 - Internet เหลือบทเดียว ฉากใหม่ 13 จุด เป็นบทสุดท้ายเฟส 4 หลัง Cloud; #lesson/packet ส่งต่อ #lesson/internet และรักษาความคืบหน้า
 - ลำดับร่วม Explore/Path/ก่อน–ถัดไป: เฟส 0 → เฟส 1 ขั้น 01–14 → เฟส 2 WAN/Provider/MPLS → เฟส 3 Cloud → เฟส 4 Internet
@@ -17,12 +17,14 @@
 - Feedback เตรียม mailto/คัดลอก ไม่มี backend ticket หรืออัปโหลดรูป
 - ตัวนับเซสชัน Pages Functions + D1 ไม่เก็บ IP ในโค้ดแอป ไม่มีบัญชีผู้เรียน
 
-## Local · 2026.10.05.3 · Flow ต่อเนื่องเสมอ (ยังไม่เผยแพร่)
+## 2026.10.05.3 · Flow ต่อเนื่องเสมอ · เผยแพร่แล้ว
 
 - ตามคำขอผู้ใช้ 2026-10-05 นำปุ่มลดการเคลื่อนไหว/เปิดการไหลต่อเนื่องออกจาก shared Network/API renderer และ OSI ให้ flow ต่อเนื่องเสมอ ไม่ขึ้นกับ prefers-reduced-motion; คงเล่น/หยุด/เดินทีละขั้น ภาพ preview การ์ดยังคงนิ่ง ไม่เปลี่ยน OS preference หรือ Python bounce
-- อัปเดต AGENTS.md เป็นข้อยกเว้นเฉพาะฉากสื่อกลไกที่ผู้ใช้ขอ และ versioned imports เพื่อไม่ใช้ renderer รุ่นเก่าจาก cache จำนวนบทและโปรโตคอลไม่เปลี่ยน Production ยังคง .2
+- อัปเดต AGENTS.md เป็นข้อยกเว้นเฉพาะฉากสื่อกลไกที่ผู้ใช้ขอ และ versioned imports เพื่อไม่ใช้ renderer รุ่นเก่าจาก cache จำนวนบทและโปรโตคอลไม่เปลี่ยน
 - ตรวจเฉพาะพฤติกรรมที่แก้ผ่าน `tests/flow-browser.html?only=mtu-pmtud,tcp-handshake,api-rest`: 3 shared scenes + OSI ไหลทันทีโดยไม่คลิก opt-in ไม่มี toggle และ moving/pause/redraw/resume/reset ผ่าน; ไม่ตรวจหลักสูตรทั้งชุดซ้ำ ผลรอบ 57 ฉากเป็นหลักฐานรุ่น .2 ไม่ใช่การตรวจใหม่
-- ตรวจ MTU หน้า actual ไม่มีปุ่มสลับโหมด และแสดง footer รุ่น .3; ภาพ `/tmp/techatlas-always-flow.jpg` syntax renderer และ git diff --check ผ่าน ยังไม่มี commit/push/deploy รอบนี้
+- ก่อนเผยแพร่ตรวจ MTU หน้า actual ไม่มีปุ่มสลับโหมด และแสดง footer รุ่น .3; ภาพ `/tmp/techatlas-always-flow.jpg` syntax renderer และ git diff --check ผ่าน
+- ผู้ใช้อนุมัติรอบนี้ด้วย “อนุมัติ” หลังคำถาม commit/push/deploy รุ่น .3 วันที่ 2026-10-05; commit `d53c9b8` (`Make interactive flow continuous by default`) push origin/main แล้ว deploy clean release `/tmp/techatlas-release-mRmy0U/dist` ไป Pages techatlas สำเร็จ immutable `78146776` ไม่เปลี่ยน config/D1 และไม่รวม draft AI/Programming อื่น
+- หลังเผยแพร่ตรวจเว็บหลัก index/main/updates/network-mechanism-scene/osi-scene/api-lab/network-concepts/style HTTP200 และ byte-for-byte ตรง release; GET /api/visits HTTP200 total ตัวเลข ไม่สร้าง token ทดสอบผ่าน request ตรวจ หน้า Updates Browser จริงแสดงรุ่น .3 และรายการเอาปุ่มออก ใช้ผล QA รอบก่อน ไม่รันบทเดิมซ้ำในรอบ deploy; รอบถัดไปต้องขออนุมัติใหม่
 
 ## Flow 3D 2026.10.05.2 · เผยแพร่แล้ว
 
