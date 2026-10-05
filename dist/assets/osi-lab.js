@@ -1,3 +1,4 @@
+import {startFlowPlayback} from './flow-playback.js?v=flow-20261005';
 export const osiLayers = ['Physical','Data Link','Network','Transport','Session','Presentation','Application'];
 export const osiDefinitions = [
   'ส่งบิตเป็นสัญญาณผ่านสาย ใยแก้ว หรือคลื่นวิทยุ',
@@ -68,8 +69,8 @@ export function initOSI(onComplete) {
   stage.before(visualNote);
   const guide=document.createElement('section');guide.className='osi-layer-guide';guide.innerHTML='<h3>แต่ละ Layer ทำหน้าที่อะไร?</h3>'+[...osiLayers].reverse().map((name,i)=>`<article><strong>L${7-i} · ${name}</strong><p>${osiDefinitions[6-i]}</p></article>`).join('');
   q('.question-box').before(guide);
-  import('./osi-scene.js').then(({mountOSI})=>{if(disposed)return;try{scene=mountOSI(stage);scene.showStep(model[index]);stage.classList.add('ready');}catch{stage.querySelector('.osi-stage-help').textContent='เปิด 3D ไม่ได้: ใช้ Stack และขั้นตอนด้านล่างได้เหมือนเดิม';}}).catch(()=>{if(!disposed)stage.querySelector('.osi-stage-help').textContent='โหลด 3D ไม่ได้: ใช้ Stack และขั้นตอนด้านล่างได้เหมือนเดิม';});
-  const stop=()=>{clearInterval(timer);timer=null;q('[data-osi-action="play"]').textContent='เล่นการส่งข้อมูล';};
+  import('./osi-scene.js?v=flow-20261005').then(({mountOSI})=>{if(disposed)return;try{scene=mountOSI(stage);scene.showStep(model[index]);stage.classList.add('ready');}catch{stage.querySelector('.osi-stage-help').textContent='เปิด 3D ไม่ได้: ใช้ Stack และขั้นตอนด้านล่างได้เหมือนเดิม';}}).catch(()=>{if(!disposed)stage.querySelector('.osi-stage-help').textContent='โหลด 3D ไม่ได้: ใช้ Stack และขั้นตอนด้านล่างได้เหมือนเดิม';});
+  const stop=()=>{timer?.stop();timer=null;q('[data-osi-action="play"]').textContent='เล่นการส่งข้อมูล';};
   function draw(){
     const step=model[index];q('#osi-step').max=model.length-1;q('#osi-step').value=index;
     scene?.showStep(step);
@@ -85,9 +86,9 @@ export function initOSI(onComplete) {
     q('#osi-payload').textContent=step.layer===1?'ตัวอย่างบิตของข้อความ (ไม่รวม Header): '+[...new TextEncoder().encode(step.message)].slice(0,8).map(n=>n.toString(2).padStart(8,'0')).join(' '):'Payload เดิม: '+step.message;
     q('[data-osi-action="prev"]').disabled=index===0;q('[data-osi-action="next"]').disabled=index===model.length-1;
     root.classList.toggle('osi-dropped',Boolean(step.dropped));
-    if(index===model.length-1){if(step.dropped)dropSeen=true;else normalSeen=true;stop();}
+    if(index===model.length-1){if(step.dropped)dropSeen=true;else normalSeen=true;}
   }
-  const reset=()=>{stop();index=0;model=buildOSI(q('#osi-message').value,q('#osi-fault').value);q('#osi-feedback').textContent='';draw();};
+  const reset=()=>{stop();index=0;model=buildOSI(q('#osi-message').value,q('#osi-fault').value);q('#osi-feedback').textContent='';draw();scene?.replay?.();};
   root.addEventListener('click',event=>{
     const button=event.target.closest('button');if(!button)return;
     if(button.dataset.osiAnswer){q('#osi-feedback').textContent=button.dataset.osiAnswer!=='correct'?'ยังไม่ตรง: ดูจุดที่ Frame ถูกทิ้ง':!normalSeen||!dropSeen?'คำตอบถูก ลองดูทั้งส่งสำเร็จและ Frame เสียก่อน':'✓ ผ่าน: L2 ทิ้ง Frame เสีย ไม่ส่งต่อให้ L3';if(button.dataset.osiAnswer==='correct'&&normalSeen&&dropSeen)onComplete();return;}
@@ -95,7 +96,7 @@ export function initOSI(onComplete) {
     const action=button.dataset.osiAction;
     if(action==='reset'){normalSeen=false;dropSeen=false;scene?.resetView();reset();}
     else if(action==='prev'||action==='next'){stop();index=Math.max(0,Math.min(model.length-1,index+(action==='next'?1:-1)));draw();}
-    else if(action==='play'){if(timer){stop();return;}if(index===model.length-1)index=0;q('[data-osi-action="play"]').textContent='หยุดชั่วคราว';draw();timer=setInterval(()=>{index=Math.min(model.length-1,index+1);draw();},matchMedia('(prefers-reduced-motion: reduce)').matches?2000:1100);}
+    else if(action==='play'){if(timer){stop();return;}if(index===model.length-1)index=0;q('[data-osi-action="play"]').textContent='หยุดชั่วคราว';draw();timer=startFlowPlayback({scene:()=>scene,advance:()=>{index++;draw();},atEnd:()=>index===model.length-1,onEnd:stop,connected:()=>!disposed&&root.isConnected});}
   });
   q('#osi-step').addEventListener('input',()=>{stop();index=Number(q('#osi-step').value);draw();});
   q('#osi-message').addEventListener('input',()=>{normalSeen=false;dropSeen=false;reset();});

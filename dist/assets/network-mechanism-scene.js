@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { appliance, laptop, rack, material, box } from './scene.js';
 import { buildNetworkLab } from './network-lab-models.js';
+import {flowSchedule,flowDuration,FLOW_HOP_MS} from './flow-playback.js?v=flow-20261005';
 
 export function mountScene(container, {lesson, preview=false,initialModel}={}) {
   const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
@@ -20,13 +21,13 @@ export function mountScene(container, {lesson, preview=false,initialModel}={}) {
     'automation-tools':['current','plan','desired'],sdn:['mgmt','control','data'],
     hsrp:['vip'],
   };
-  let model=initialModel||buildNetworkLab(lesson), stepIndex=0, meshGroup=new THREE.Group(),objects=[],links=[],messages=[],started=0,packetMeter=null,byteSlots=[];scene.add(meshGroup);
+  let model=initialModel||buildNetworkLab(lesson), stepIndex=-1, meshGroup=new THREE.Group(),objects=[],links=[],messages=[],elapsed=0,lastTick=null,paused=false,packetMeter=null,meterFrom=0,meterTo=0,byteSlots=[];scene.add(meshGroup);
   const traffic=new THREE.Group();scene.add(traffic);
   function clearTraffic(){traffic.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});traffic.clear();for(const m of messages)m.label.remove();messages=[];}
   const positions=new Map();
   function clear(){clearTraffic();meshGroup.traverse(o=>{o.geometry?.dispose();for(const m of(Array.isArray(o.material)?o.material:[o.material])){m?.map?.dispose();m?.dispose();}});scene.remove(meshGroup);meshGroup=new THREE.Group();scene.add(meshGroup);labels.replaceChildren();objects=[];links=[];positions.clear();}
   function build(next){
-    model=next;clear();packetMeter=null;byteSlots=[];
+    model=next;clear();stepIndex=-1;packetMeter=null;byteSlots=[];
     if(lesson.id==='tcp-handshake'&&model.parameters.flow==='data'){
       for(let i=0;i<2;i++){
         const slot=new THREE.Mesh(new THREE.BoxGeometry(2.1,.3,.8),new THREE.MeshStandardMaterial({color:0x355666}));
@@ -64,8 +65,10 @@ export function mountScene(container, {lesson, preview=false,initialModel}={}) {
     model.links.forEach(l=>{const points=[positions.get(l.from),positions.get(l.to)];const logical=lesson.apiLab||(logicalNodes[lesson.id]||[]).some(id=>id===l.from||id===l.to);const mat=logical?new THREE.LineDashedMaterial({color:0x526d79,transparent:true,opacity:.65,dashSize:.35,gapSize:.2}):new THREE.LineBasicMaterial({color:0x526d79,transparent:true,opacity:.65});const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),mat);if(logical)line.computeLineDistances();meshGroup.add(line);links.push({id:l.id,line});});
   }
   function show(index){
+    index=Math.max(0,Math.min(index,model.steps.length-1));
+    if(index===stepIndex)return; // Redrawing evidence must not restart the flight.
     stepIndex=Math.max(0,Math.min(index,model.steps.length-1));const frame=model.steps[stepIndex];
-    if(packetMeter){const length=8*frame.datagramBytes/1600;packetMeter.scale.x=length;packetMeter.position.x=-4+length/2;packetMeter.material.color.set(frame.datagramBytes>model.pathMTU?0xed8e7c:0x73dfc5);}
+    if(packetMeter){meterFrom=packetMeter.scale.x;meterTo=8*frame.datagramBytes/1600;packetMeter.material.color.set(frame.datagramBytes>model.pathMTU?0xed8e7c:0x73dfc5);}
     if(byteSlots.length){
       const chunk=Math.min(Number(model.parameters.bytes),Number(model.parameters.rwnd),Number(model.parameters.cwnd));
       let delivered=0,buffered=0;
@@ -82,22 +85,29 @@ export function mountScene(container, {lesson, preview=false,initialModel}={}) {
     decision.classList.toggle('blocked',frame.status==='blocked');
     for(const o of objects){o.button.classList.toggle('active',frame.active.includes(o.id));o.button.classList.toggle('blocked',frame.status==='blocked'&&frame.active.includes(o.id));o.group.position.y=frame.active.includes(o.id)?.12:0;o.button.querySelector('span').textContent=frame.nodeUpdates[o.id]||model.nodes.find(n=>n.id===o.id).address;}
     for(const l of links){const active=frame.edges.includes(l.id);l.line.material.color.set(active?(frame.status==='blocked'?0xed8e7c:0x7ce4c6):0x526d79);l.line.material.opacity=active?1:.4;}
-    clearTraffic();started=performance.now();
-    frame.transfers.forEach((t,i)=>{
+    clearTraffic();elapsed=0;lastTick=null;paused=false;
+    flowSchedule(frame.transfers).forEach((t,i)=>{
       const from=positions.get(t.from)?.clone(),to=positions.get(t.to)?.clone();if(!from||!to)return;
       from.y+=.45;to.y+=.45;
       const color=frame.status==='blocked'?0xed8e7c:t.message.includes('ARP')?0xf4bd64:0x7ce4c6;
-      const marker=new THREE.Mesh(new THREE.BoxGeometry(.38,.24,.24),new THREE.MeshBasicMaterial({color}));traffic.add(marker);
+      // A message explicitly dropped before its receiver must not reach that receiver.
+      if(/DROP before|ก่อนถึง|ถูกกรอง/.test(t.message))to.lerp(from,.25);
+      const marker=new THREE.Mesh(new THREE.BoxGeometry(.38,.24,.24),new THREE.MeshBasicMaterial({color}));marker.position.copy(from);traffic.add(marker);
+      const halo=new THREE.Mesh(new THREE.BoxGeometry(.56,.38,.38),new THREE.MeshBasicMaterial({color,wireframe:true,transparent:true,opacity:.35}));marker.add(halo);
+      const trail=new THREE.Line(new THREE.BufferGeometry().setFromPoints([from,from]),new THREE.LineBasicMaterial({color,transparent:true,opacity:.65}));traffic.add(trail);
       const direction=to.clone().sub(from).normalize(),arrow=new THREE.ArrowHelper(direction,from,from.distanceTo(to),color,.35,.18);traffic.add(arrow);
       const label=document.createElement('span');label.className='mechanism-flight'+(frame.status==='blocked'?' blocked':'');label.textContent=t.message;label.hidden=preview;labels.append(label);
-      messages.push({from,to,marker,label,index:i});
+      messages.push({from,to,marker,trail,label,index:i,lane:t.lane});
     });
     renderer.domElement.dataset.step=String(stepIndex);
   }
   function resize(){const w=container.clientWidth,h=container.clientHeight;if(!w||!h)return;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();reset();}
   function reset(){const distance=Math.max(15,14/Math.max(camera.aspect,.45));camera.position.set(distance*.35,distance*.48,distance*.75);controls.target.set(0,.5,0);controls.update();}
   build(model);show(0);
-  let disposed=false,raf;const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let disposed=false,raf,reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const motion=document.createElement('button');motion.className='flow-motion-toggle';motion.hidden=preview;container.append(motion);
+  const motionLabel=()=>{motion.textContent=reduced?'▶ เปิดการไหลต่อเนื่อง':'ลดการเคลื่อนไหว';motion.setAttribute('aria-pressed',String(!reduced));};motionLabel();
+  motion.onclick=()=>{reduced=!reduced;elapsed=0;lastTick=null;paused=false;motionLabel();};
   function place(element,p,placed){
     if(preview||element.hidden)return;
     const w=element.offsetWidth,h=element.offsetHeight,left=w/2+8,right=container.clientWidth-w/2-8;
@@ -110,13 +120,13 @@ export function mountScene(container, {lesson, preview=false,initialModel}={}) {
     }
     placed.push({...best,w,h});element.style.left=best.x+'px';element.style.top=best.y+'px';
   }
-  function tick(){if(disposed)return;raf=requestAnimationFrame(tick);controls.update();const placed=[];for(const o of objects){const p=o.anchor.clone().project(camera);o.button.hidden=preview||p.z>1||p.z< -1||(objects.length>8&&!model.steps[stepIndex].active.includes(o.id));place(o.button,p,placed);}
+  function tick(now){if(disposed)return;raf=requestAnimationFrame(tick);if(lastTick!==null&&!paused&&!document.hidden)elapsed+=Math.min(50,now-lastTick);lastTick=now;controls.update();if(packetMeter){const p=reduced||preview?1:Math.min(1,elapsed/700),smooth=p*p*(3-2*p),length=meterFrom+(meterTo-meterFrom)*smooth;packetMeter.scale.x=length;packetMeter.position.x=-4+length/2;}const placed=[];for(const o of objects){const p=o.anchor.clone().project(camera);o.button.hidden=preview||p.z>1||p.z< -1||(objects.length>8&&!model.steps[stepIndex].active.includes(o.id));place(o.button,p,placed);}
     for(const b of byteSlots){const p=b.anchor.clone().project(camera);b.label.hidden=preview||p.z>1||p.z< -1;place(b.label,p,placed);}
     // Named transfers come from the teaching model, never inferred from every lit link.
-    for(const m of messages){const progress=(reduced||preview)? .5:Math.min(1,(performance.now()-started)/1100);m.marker.position.lerpVectors(m.from,m.to,progress);const midpoint=m.from.clone().lerp(m.to,.5);midpoint.y+=.65+m.index*.28;const p=midpoint.project(camera);m.label.hidden=preview||p.z>1||p.z< -1;place(m.label,p,placed);}
-    if(!preview&&!reduced)for(const l of links)if(model.steps[stepIndex].edges.includes(l.id))l.line.material.opacity=.78+Math.sin(performance.now()/450)*.2;
+    for(const m of messages){const local=elapsed-m.lane*FLOW_HOP_MS,progress=(reduced||preview)? .5:Math.max(0,Math.min(1,local/FLOW_HOP_MS));const handedOff=local>=FLOW_HOP_MS&&messages.some(next=>next.lane===m.lane+1&&next.from.distanceTo(m.to)<.01);m.marker.visible=(reduced||preview||local>=0)&&!handedOff;m.marker.position.lerpVectors(m.from,m.to,progress);if(!reduced&&!preview)m.marker.position.y+=Math.sin(progress*Math.PI)*.18;const position=m.trail.geometry.attributes.position;position.setXYZ(1,m.marker.position.x,m.marker.position.y,m.marker.position.z);position.needsUpdate=true;m.trail.visible=local>=0||preview||reduced;const anchor=m.marker.position.clone();anchor.y+=.7;const p=anchor.project(camera);m.label.hidden=preview||!m.marker.visible||p.z>1||p.z< -1;place(m.label,p,placed);m.marker.userData.progress=progress;}
+    renderer.domElement.dataset.flowProgress=String(Math.min(1,elapsed/flowDuration(model.steps[stepIndex].transfers)));renderer.domElement.dataset.flowPaused=String(paused);
     renderer.render(scene,camera);
   }
-  const observer=new ResizeObserver(resize);observer.observe(container);resize();tick();
-  return {setModel(next){build(next);show(0);},showStep:show,resetView:reset,snapshot(){return {step:stepIndex,transfers:messages.map(m=>({message:m.label.textContent,position:m.marker.position.toArray()}))};},dispose(){disposed=true;cancelAnimationFrame(raf);observer.disconnect();controls.dispose();clear();grid.geometry.dispose();grid.material.dispose();renderer.dispose();renderer.domElement.remove();labels.remove();decision.remove();}};
+  const observer=new ResizeObserver(resize);observer.observe(container);resize();tick(performance.now());
+  return {setModel(next){build(next);show(0);},showStep:show,replay(){const i=stepIndex;stepIndex=-1;show(i);},stepDuration(){return flowDuration(model.steps[stepIndex].transfers);},pause(){paused=true;},resume(){paused=false;lastTick=null;},resetView:reset,snapshot(){return {step:stepIndex,elapsed,paused,reduced,transfers:messages.map(m=>({message:m.label.textContent,progress:m.marker.userData.progress,position:m.marker.position.toArray()}))};},dispose(){disposed=true;cancelAnimationFrame(raf);observer.disconnect();controls.dispose();clear();grid.geometry.dispose();grid.material.dispose();renderer.dispose();renderer.domElement.remove();labels.remove();decision.remove();motion.remove();}};
 }

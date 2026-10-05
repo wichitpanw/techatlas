@@ -1,6 +1,6 @@
-import {qualityLessons} from './network-quality.js';
+import {qualityLessons} from './network-quality.js?v=flow-20261005';
 import {telecomLessons} from './telecom-labs.js';
-import {serviceLessons} from './service-tools.js';
+import {serviceLessons} from './service-tools.js?v=flow-20261005';
 import {coreLessons,coreOverrides} from './network-core-lessons.js';
 // Every state is an explicit educational example; no commands touch a real device.
 const state = (label, headline, rows, detail, ok = true) => ({

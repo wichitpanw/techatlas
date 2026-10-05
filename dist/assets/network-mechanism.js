@@ -1,3 +1,4 @@
+import {startFlowPlayback} from './flow-playback.js?v=flow-20261005';
 import {buildNetworkLab,networkLabSpecs,networkLabDefaults} from './network-lab-models.js';
 import {incidentReady,incidentRequirements,incidentPrompts} from './incident-evidence.js';
 import {telecomLessons} from './telecom-labs.js';
@@ -22,7 +23,7 @@ export function initMechanism(l,addScene){
   const observations=new Set();
   if(l.id==='troubleshooting')special.insertAdjacentHTML('afterend','<section class="cli-notebook"><h3>ภารกิจ: วิเคราะห์สาม Incident</h3><p>เลือกเครื่องมือ กดทดลอง แล้วอ่านถึงขั้นสุดท้ายเพื่อเก็บหลักฐาน เลือกแนวทางตรวจต่อด้านล่างให้ถูกทั้งสามเคส ก่อนตอบคำถามท้ายบท</p><div data-incident-evidence aria-live="polite"></div><div class="choices"><button type="button" data-diagnosis="0">ตรวจสาย / NIC / interface</button><button type="button" data-diagnosis="1">ตรวจ Resolver / DNS record</button><button type="button" data-diagnosis="2">ตรวจ Listening service / Firewall policy</button></div><p data-incident-feedback role="status"></p></section>');
   if(l.id==='network-commands')special.insertAdjacentHTML('afterend','<section class="cli-notebook"><h3>ภารกิจ: เก็บหลักฐานก่อนสรุป</h3><p>เลือกสถานการณ์ แล้วใช้ ip, ping และ nslookup อ่านถึงขั้น “อ่านผลอย่างระวัง” ทั้งสามคำสั่ง จากนั้นเปรียบเทียบสิ่งที่ยืนยันได้กับสิ่งที่ยังต้องตรวจ ไม่ใช่การรัน CLI จริง</p><div data-cli-notebook aria-live="polite">ยังไม่มีหลักฐาน</div></section>');
-  const stop=()=>{clearInterval(timer);timer=null;root.querySelector('[data-mechanism-action="play"]').textContent='▶ เล่นขั้นตอน';};
+  const stop=()=>{timer?.stop();timer=null;root.querySelector('[data-mechanism-action="play"]').textContent='▶ เล่นขั้นตอน';};
   function topologyHTML(frame){
     return `<div class="mechanism-actors">${model.nodes.map(n=>`<div class="mechanism-actor ${frame.active.includes(n.id)?frame.status==='blocked'?'blocked':'active':''}"><span>${esc(n.name)}</span><code>${esc(frame.nodeUpdates[n.id]||n.address)}</code></div>`).join('')}</div>${frame.transfers.length?`<div class="mechanism-messages ${frame.status==='blocked'?'blocked':''}">${frame.transfers.map(t=>`<div class="mechanism-message"><strong>${esc(model.nodes.find(n=>n.id===t.from).name)}</strong><span><code>${esc(t.message)}</code><svg viewBox="0 0 200 14" aria-hidden="true"><path d="M0 7 H190 M183 1 L190 7 L183 13" fill="none" stroke="currentColor" stroke-width="2"/></svg></span><strong>${esc(model.nodes.find(n=>n.id===t.to).name)}</strong></div>`).join('')}</div>`:''}<div class="mechanism-connections">${model.links.map(e=>`<span class="${frame.edges.includes(e.id)?frame.status==='blocked'?'blocked':'active':''}">${esc(model.nodes.find(n=>n.id===e.from).name)} ↔ ${esc(model.nodes.find(n=>n.id===e.to).name)}${e.label?' · '+esc(e.label):''}</span>`).join('')}</div>`;
   }
@@ -76,8 +77,8 @@ export function initMechanism(l,addScene){
     if(target.dataset.mechanismStep!==undefined){stop();index=Number(target.dataset.mechanismStep);draw();return;}
     const action=target.dataset.mechanismAction;if(!action)return;
     if(action==='view'){scene?.resetView();return;}
-    if(action==='play'){if(timer){stop();return;}if(!model||model.steps.length<2)return;if(index===model.steps.length-1)index=0;target.textContent='Ⅱ หยุด';draw();timer=setInterval(()=>{if(!root.isConnected){stop();return;}index++;draw();if(index>=model.steps.length-1)stop();},1400);return;}
-    stop();index=action==='reset'?0:Math.max(0,Math.min(model.steps.length-1,index+(action==='next'?1:-1)));draw();
+    if(action==='play'){if(timer){stop();return;}if(!model||model.steps.length<2)return;if(index===model.steps.length-1)index=0;target.textContent='Ⅱ หยุด';draw();timer=startFlowPlayback({scene:()=>scene,advance:()=>{index++;draw();},atEnd:()=>index===model.steps.length-1,onEnd:stop,connected:()=>!disposed&&root.isConnected});return;}
+    stop();index=action==='reset'?0:Math.max(0,Math.min(model.steps.length-1,index+(action==='next'?1:-1)));draw();if(action==='reset')scene?.replay?.();
   });
   range.addEventListener('input',()=>{stop();index=Number(range.value);draw();});
   form?.addEventListener('submit',e=>{e.preventDefault();rebuild(Object.fromEntries(new FormData(form)));});

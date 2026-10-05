@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {flowSchedule,flowDuration,startFlowPlayback} from '../dist/assets/flow-playback.js?v=flow-20261005';
+const chain=[{from:'a',to:'b'},{from:'b',to:'c'},{from:'c',to:'a'}];
+assert.deepEqual(flowSchedule(chain).map(t=>t.lane),[0,1,2]);
+assert.deepEqual(flowSchedule([{from:'a',to:'b'},{from:'a',to:'c'}]).map(t=>t.lane),[0,0]);
+assert.equal(chain[0].lane,undefined);assert.equal(flowDuration(chain),5250);
+let callbacks=new Map(),id=0,step=0,finished=0,paused=false;
+globalThis.document={hidden:false};globalThis.requestAnimationFrame=fn=>{callbacks.set(++id,fn);return id;};globalThis.cancelAnimationFrame=n=>callbacks.delete(n);
+const scene={resume(){paused=false;},pause(){paused=true;},stepDuration:()=>100};
+let player=startFlowPlayback({scene:()=>scene,advance:()=>step++,atEnd:()=>step===2,onEnd:()=>{finished++;player.stop();}});
+const tick=now=>{const pending=[...callbacks.values()];callbacks.clear();pending.forEach(fn=>fn(now));};
+for(let t=0;t<=800;t+=25)tick(t);
+assert.equal(step,2);assert.equal(finished,1);assert.equal(paused,true);assert.equal(callbacks.size,0);
+step=0;finished=0;player=startFlowPlayback({scene:()=>scene,advance:()=>step++,atEnd:()=>step===2,onEnd:()=>{finished++;player.stop();}});
+tick(0);document.hidden=true;tick(10000);assert.equal(step,0);document.hidden=false;tick(10025);player.stop();tick(11000);assert.equal(step,0);assert.equal(paused,true);
+console.log('PASS flow scheduler: dependent hops, parallel broadcast, immutable model, final-step dwell, pause and hidden-tab timing');

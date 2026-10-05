@@ -11,7 +11,7 @@ document.querySelector('#run').onclick=async()=>{report.textContent='RUNNING\n';
 for(const lesson of arrangeNetwork(networkLessons).filter(l=>!new URLSearchParams(location.search).has('ids')||new URLSearchParams(location.search).get('ids').split(',').includes(l.id))){
  const r={id:lesson.id,states:0,steps:0,canvas:false,playback:false};
  try{
- frame.src='../dist/?review=20261004#lesson/'+lesson.id;
+ frame.src='../dist/?review=flow20261005-final#lesson/'+lesson.id;
  await until(()=>frame.contentDocument?.querySelector('h1')?.textContent===lesson.title);
  const d=frame.contentDocument;
  await until(()=>d.querySelector('canvas')||d.querySelector('.no-webgl')||['vlsm','ipv6-address'].includes(lesson.id));

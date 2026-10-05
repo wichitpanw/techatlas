@@ -1,5 +1,10 @@
 // Version date describes this content edition, not a generated page-view date.
 export const updates=[
+  {date:'2026-10-05',version:'2026.10.05.2',title:'Flow 3D: เห็นข้อมูลเดินทางอย่างต่อเนื่อง',items:[
+    {lesson:'mtu-pmtud',name:'Network: ส่งต่อทีละช่วงทาง',detail:'ตัวเล่นร่วมรอให้การเดินทางจบก่อนเปลี่ยนขั้น เพิ่มแนวทางที่ส่งผ่านมา ป้ายตามข้อมูล และหยุด/เล่นต่อได้; จังหวะเพื่อการเรียนรู้ไม่ใช่ latency จริง'},
+    {lesson:'api-basics',name:'API ทั้ง 8 รูปแบบและบทนำ',detail:'คำขอ ข้อมูลตอบกลับ และ Events เคลื่อนตามกลไกของบท แทนการตัดภาพ; ไม่เปิดบริการภายนอกจริง'},
+    {lesson:'osi-model',name:'OSI และตัวเลือกการเคลื่อนไหว',detail:'เลื่อนข้อมูลผ่านแต่ละ Layer อย่างต่อเนื่อง พร้อมปุ่มเปิดการไหลเมื่ออุปกรณ์ตั้งลดการเคลื่อนไหวไว้'},
+  ]},
   {date:'2026-10-05',version:'2026.10.05.1',title:'Programming: เริ่มเรียน API ด้วยกลไก 3D',items:[
     {lesson:'api-basics',name:'API · พื้นฐานและ Contract',detail:'เพิ่ม API basics, REST, GraphQL, gRPC และ SOAP พร้อมคำขอ/คำตอบ ข้อตกลง และกรณีผิดพลาดที่เดินตามได้'},
     {lesson:'api-websocket',name:'Messages และ Events',detail:'เพิ่ม WebSocket, SSE, Long Polling และ Webhooks แยกช่องเปิด การรอคำตอบ และ Retry/Deduplication ด้วยแบบจำลองเฉพาะกลไก'},

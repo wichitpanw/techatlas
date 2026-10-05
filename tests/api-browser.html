@@ -4,7 +4,7 @@
 <body><main><h1>API-only Browser QA · ไม่แก้ความคืบหน้าผู้เรียน</h1><button id="run" class="button">ตรวจ API ใหม่ทั้ง 9 บท</button><pre id="results" role="status">พร้อมตรวจเฉพาะ API</pre><div id="fixture"></div></main>
 <script type="module">
 import {apiLessons} from '../dist/assets/api-curriculum.js';
-import {apiSurface,initAPI} from '../dist/assets/api-lab.js';
+import {apiSurface,initAPI} from '../dist/assets/api-lab.js?v=flow-20261005';
 import {buildAPI} from '../dist/assets/api-model.js';
 const out=document.querySelector('#results'),root=document.querySelector('#fixture');let controller;
 const check=(ok,message)=>{if(!ok)throw Error(message);};
@@ -27,7 +27,8 @@ document.querySelector('#run').onclick=async()=>{
    root.querySelector('[data-api-control=next]').click();check(root.querySelector('canvas').dataset.step==='1','next');
    root.querySelector('[data-api-control=previous]').click();check(root.querySelector('canvas').dataset.step==='0','previous');
    root.querySelector('[data-api-control=play]').click();await until(()=>root.querySelector('canvas').dataset.step==='1');
-   if(model.steps.length>2)root.querySelector('[data-api-control=play]').click();
+   // The final frame now stays playing until its flight/dwell has completed.
+   root.querySelector('[data-api-control=play]').click();
    check(root.querySelector('[data-api-control=play]').textContent.includes('เล่น'),'pause or natural completion');
    root.querySelector('[data-api-control=view]').click();
   }

@@ -27,20 +27,29 @@ export function mountOSI(container,{preview=false}={}) {
   const packet=cube(.55,.35,.55,0xffd166,-1.6,4.9,1.05);
   const packetLabel=document.createElement('span');packetLabel.className='osi-space-label osi-packet-label';container.append(packetLabel);
   const halo=new THREE.Mesh(new THREE.BoxGeometry(3.04,.58,1.64),new THREE.MeshBasicMaterial({color:0xffffff,wireframe:true}));scene.add(halo);
-  let disposed=false;const vector=new THREE.Vector3();
+  let disposed=false,raf,elapsed=1600,last=null,paused=false,current=null;
+  let reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const motion=document.createElement('button');motion.className='flow-motion-toggle';motion.hidden=preview;container.append(motion);
+  const motionLabel=()=>{motion.textContent=reduced?'▶ เปิดการไหลต่อเนื่อง':'ลดการเคลื่อนไหว';motion.setAttribute('aria-pressed',String(!reduced));};motionLabel();
+  motion.onclick=()=>{reduced=!reduced;from.copy(packet.position);elapsed=0;last=null;paused=false;motionLabel();};
+  const from=packet.position.clone(),target=packet.position.clone(),fromScale=packet.scale.clone(),targetScale=packet.scale.clone(),vector=new THREE.Vector3();
   function render(){if(disposed)return;renderer.render(scene,camera);for(const {label,mesh} of [...labels,{label:packetLabel,mesh:packet}]){vector.copy(mesh.position);vector.z+=.8;vector.project(camera);label.style.left=`${(vector.x*.5+.5)*container.clientWidth}px`;label.style.top=`${(-vector.y*.5+.5)*container.clientHeight}px`;}}
   function resize(){const w=container.clientWidth,h=container.clientHeight;if(!w||!h)return;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();render();}
   const observer=new ResizeObserver(resize);observer.observe(container);controls.addEventListener('change',render);
   function showStep(step){
+    if(step===current)return;
+    current=step;from.copy(packet.position);fromScale.copy(packet.scale);elapsed=0;last=null;paused=false;
     const active=slabs.find(s=>s.side===step.side&&s.layer===step.layer);
     for(const s of slabs){s.mesh.material.emissive.setHex(s===active?0x385c63:0);s.mesh.material.opacity=s===active?1:.7;s.mesh.material.transparent=true;}
     halo.visible=Boolean(active);if(active)halo.position.copy(active.mesh.position);
-    packet.position.set(step.side==='sender'?-1.5:step.side==='receiver'?1.5:0,step.side==='wire'?.5:step.layer*.7,1.05);
+    target.set(step.side==='sender'?-1.5:step.side==='receiver'?1.5:0,step.side==='wire'?.5:step.layer*.7,1.05);
     packet.material.color.setHex(step.dropped?0xff514f:0xffd166);
     packetLabel.textContent=preview?'Frame':step.dropped?'DROP':`${step.pdu} · ${step.bytes} B`;
     // Symbolic header growth, not a byte-accurate shape.
-    packet.scale.set(1+step.depth*.35,1,1+step.depth*.2);
+    targetScale.set(1+step.depth*.35,1,1+step.depth*.2);
+    if(preview||reduced){packet.position.copy(target);packet.scale.copy(targetScale);}
     container.dataset.side=step.side;container.dataset.layer=step.layer;container.dataset.dropped=Boolean(step.dropped);render();
   }
-  resize();return {showStep,resetView(){camera.position.set(0,5.5,16);controls.target.set(0,3,0);controls.update();render();},dispose(){disposed=true;observer.disconnect();controls.dispose();scene.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});renderer.dispose();renderer.domElement.remove();packetLabel.remove();labels.forEach(({label})=>label.remove());}};
+  function tick(now){if(disposed)return;raf=requestAnimationFrame(tick);if(last!==null&&!paused&&!document.hidden)elapsed+=Math.min(50,now-last);last=now;const p=preview||reduced?1:Math.min(1,elapsed/1600),smooth=p*p*(3-2*p);packet.position.lerpVectors(from,target,smooth);packet.scale.lerpVectors(fromScale,targetScale,smooth);container.dataset.flowProgress=String(p);container.dataset.flowPaused=String(paused);render();}
+  resize();tick(performance.now());return {showStep,replay(){if(current){const step=current;current=null;showStep(step);}},stepDuration:()=>2050,pause(){paused=true;},resume(){paused=false;last=null;},resetView(){camera.position.set(0,5.5,16);controls.target.set(0,3,0);controls.update();render();},dispose(){disposed=true;cancelAnimationFrame(raf);observer.disconnect();controls.dispose();scene.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});renderer.dispose();renderer.domElement.remove();packetLabel.remove();motion.remove();labels.forEach(({label})=>label.remove());}};
 }
