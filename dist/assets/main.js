@@ -11,19 +11,19 @@ import {
 import {
   arrangeNetwork,
   orderedSections as networkSections,
-} from "./network-foundations.js?v=always-flow-20261005";
-import { conceptSurface, initConcept } from "./network-concepts.js?v=always-flow-20261005";
-import { createPythonInteractive } from './python-interactive.js?v=python-next-20261004';
-import { initMechanism } from './network-mechanism.js?v=always-flow-20261005';
+} from "./network-foundations.js?v=speed-20261005";
+import { conceptSurface, initConcept } from "./network-concepts.js?v=speed-20261005";
+import { createPythonInteractive } from './python-interactive.js?v=speed-20261005';
+import { initMechanism } from './network-mechanism.js?v=speed-20261005';
 import {initFeedback} from './feedback.js';
-import {renderUpdates,initUpdateFooter} from './updates.js?v=always-flow-20261005';
-import {internetSurface,initInternet} from './internet-lab.js?v=always-flow-20261005';
-import { networkLabSpecs,buildNetworkLab } from './network-lab-models.js';
+import {renderUpdates,initUpdateFooter} from './updates.js?v=speed-20261005-final';
+import {internetSurface,initInternet} from './internet-lab.js?v=speed-20261005';
+import { networkLabSpecs,buildNetworkLab } from './network-lab-models.js?v=speed-20261005';
 import { bindPythonEditor } from './python-editor.js';
 import {programmingLessons as withdrawnProgrammingLessons, programmingSections} from './programming-curriculum.js';
 import {programmingSurface, initProgramming} from './programming-lab.js';
 import {apiLessons,apiSections} from './api-curriculum.js';
-import {apiSurface,initAPI} from './api-lab.js?v=always-flow-20261005';
+import {apiSurface,initAPI} from './api-lab.js?v=speed-20261005';
 import {buildAPI} from './api-model.js';
 import {initVisitCounter} from './visit-counter.js?v=counter-20261004';
 import {aiLessons as draftAILessons,aiSections} from './ai-curriculum.js';
@@ -146,16 +146,16 @@ async function addScene(el, options = {}) {
   try {
     const module = await import(
       options.preview
-        ? "./card-scene.js?v=always-flow-20261005"
+        ? "./card-scene.js?v=speed-20261005"
         : options.python
           ? "./python-scene.js?v=python-next-20261004"
         : options.mechanism
-          ? "./network-mechanism-scene.js?v=always-flow-20261005"
+          ? "./network-mechanism-scene.js?v=speed-20261005"
         : options.foundation
-          ? "./foundation-scene.js"
+          ? "./foundation-scene.js?v=speed-20261005"
           : options.interactive
-            ? "./lab-scene.js"
-            : "./scene.js"
+            ? "./lab-scene.js?v=speed-20261005"
+            : "./scene.js?v=speed-20261005"
     );
     if (version !== generation || !el.isConnected) return null;
     const scene = module.mountScene(el, options);

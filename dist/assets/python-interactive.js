@@ -1,3 +1,5 @@
+import {mountSpeed} from './animation-speed.js?v=speed-20261005';
+import {startFlowPlayback} from './flow-playback.js?v=speed-20261005';
 import { highlightPythonLine, clearPythonHighlights } from './python-editor.js';
 import { visualFor } from './python-visuals.js?v=python-next-20261004';
 const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -11,9 +13,11 @@ export function createPythonInteractive(lesson, addScene) {
   const viewButton=document.createElement('button');viewButton.className='hint';viewButton.textContent='มองหน้าจอตรง ๆ';
   area.querySelector('.python-trace-controls').append(viewButton);
   viewButton.addEventListener('click',()=>scene?.resetView());
+  const playbackSpeed=mountSpeed(area.querySelector('.python-trace-controls'),{inline:true});
+  const traceClock={speed:playbackSpeed.get,stepDuration:()=>700};
   const position = area.querySelector('.trace-position'), slider = area.querySelector('input');
   let scene, events = [], index = 0, timer, disposed = false, state = ['กดรันโค้ด แล้วดูผลบนจอนี้', 'idle'], context = {}, final = null;
-  function stop() { clearInterval(timer); timer = null; area.querySelector('[data-step="play"]').textContent = 'เล่นย้อนหลัง'; }
+  function stop() { timer?.stop(); timer = null; area.querySelector('[data-step="play"]').textContent = 'เล่นย้อนหลัง'; }
   function enable(value) { area.querySelectorAll('[data-step], input').forEach(el => el.disabled = !value); }
   function show(finalView = false) {
     if (!events.length) return;
@@ -38,7 +42,7 @@ export function createPythonInteractive(lesson, addScene) {
       if (timer) { stop(); return; }
       if (index === events.length - 1) index = 0;
       show(); area.querySelector('[data-step="play"]').textContent = 'หยุดย้อนหลัง';
-      timer = setInterval(() => { if (index >= events.length - 1) {stop(); show(true);} else {index++;show();} }, 700);
+      timer=startFlowPlayback({scene:()=>traceClock,advance:()=>{index++;show();},atEnd:()=>index>=events.length-1,onEnd:()=>{stop();show(true);},connected:()=>!disposed&&area.isConnected});
       return;
     }
     stop(); index = action === 'final' ? events.length - 1 : Math.max(0,Math.min(events.length - 1,index + (action === 'next' ? 1 : -1))); show(action === 'final');
@@ -63,6 +67,6 @@ export function createPythonInteractive(lesson, addScene) {
       if(events.length) show(true);
       else {position.textContent=data.type==='error'?'โค้ดเริ่มรันไม่ได้ · อ่านข้อผิดพลาดบนจอด้านบน':'ไม่มีเหตุการณ์ที่ติดตามได้';scene?.displayFrame(null,context);scene?.update(...state);}
     },
-    dispose(){ disposed=true;stop();clearPythonHighlights(); },
+    dispose(){ disposed=true;stop();playbackSpeed.dispose();clearPythonHighlights(); },
   };
 }

@@ -1,12 +1,15 @@
+import {mountSpeed} from './animation-speed.js?v=speed-20261005';
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { laptop, appliance, rack, material } from "./scene.js";
+import { laptop, appliance, rack, material } from "./scene.js?v=speed-20261005";
 
 // The model depicts forwarding roles, not a packet capture or a live network.
 export function mountScene(
   container,
   { variant = "network", preview = false } = {},
 ) {
+  const playbackSpeed=mountSpeed(container,{hidden:preview});
+  let clock=0,lastWall=null;
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
   renderer.shadowMap.enabled = true;
@@ -410,7 +413,8 @@ export function mountScene(
     element.style.top = (projected.y * -0.5 + 0.5) * h + offset + "px";
     element.style.visibility = projected.z > 1 ? "hidden" : "visible";
   }
-  function frame(now) {
+  function frame(wallNow) {
+    if(lastWall!==null&&!document.hidden)clock+=Math.min(50,wallNow-lastWall)*playbackSpeed.get();lastWall=wallNow;const now=clock;
     if (dead) return;
     controls.update();
     if (active) {
@@ -495,6 +499,7 @@ export function mountScene(
   }
   raf = requestAnimationFrame(frame);
   return {
+    speed:playbackSpeed.get,
     reset,
     setVlan(v) {
       const n = nodes[3];
@@ -518,7 +523,7 @@ export function mountScene(
       if (active) active.resolve();
       if (dead || path.length < 2) return Promise.resolve();
       return new Promise((resolve) => {
-        active = { path, step: 0, start: performance.now(), options, resolve };
+        active = { path, step: 0, start: clock, options, resolve };
         pulse.visible = true;
         payload.hidden = false;
         payload.textContent = options.labels?.[0] || "IP packet";
@@ -526,7 +531,7 @@ export function mountScene(
       });
     },
     dispose() {
-      dead = true;
+      dead = true;playbackSpeed.dispose();
       active?.resolve();
       cancelAnimationFrame(raf);
       resize.disconnect();

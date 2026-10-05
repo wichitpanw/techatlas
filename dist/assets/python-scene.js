@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { box, material } from './scene.js';
+import { box, material } from './scene.js?v=speed-20261005';
 import { visualFor } from './python-visuals.js';
 
 export function mountScene(el, { preview = false, lesson } = {}) {

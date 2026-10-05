@@ -1,4 +1,15 @@
-# Cloudflare Pages Free plan — ตรวจความเสี่ยง 2026-10-04
+# Cloudflare Pages Free plan — ความจุปัจจุบันและประวัติความเสี่ยง
+
+## ความจุ: ตรวจเอกสารและโค้ด 2026-10-05
+
+- หน้าเรียนและ assets เป็น static; ตาม [Pages Functions pricing](https://developers.cloudflare.com/pages/functions/pricing/) คำขอ static ที่ไม่ invoke Function ฟรีและไม่จำกัดจำนวน requests ไม่ใช่คำรับรองจำนวนผู้ใช้พร้อมกันหรือ SLA
+- Network/3D และ Python Pyodide ทำงานใน browser ผู้เรียน ไม่มี backend รัน Python ร่วมกัน ความเร็วขึ้นกับ GPU/RAM/อุปกรณ์ และ CDN ภายนอกด้วย
+- API ตัวนับ `/api/visits` อยู่ภายใต้โควตา Functions/Workers Free ร่วมบัญชี 100,000 requests/วัน รีเซ็ต 00:00 UTC (07:00 ไทย) ไม่ใช่จำนวนคน ทุก reload และบอตอาจเพิ่ม requests แม้ GET ตอบจาก cache
+- โค้ด Production ที่เผยแพร่ตั้งแต่ .4 วันที่ 2026-10-04 จำกัดการรับ token ใหม่ 60/นาที และ 2,000/วัน UTC เพื่อจำกัดงานเขียนฐานข้อมูล นี่เป็นเพดานการลงทะเบียนเซสชันของตัวนับ ไม่ใช่เพดานผู้เรียน ส่วนเกินอาจนับขาดแต่ยังเปิดบทเรียน static ได้
+- โค้ด counter ใช้ GET cache 30 วินาที, reload token เดิมใช้ GET, cleanup ครั้งละไม่เกิน 1,000 records สูงสุดวันละครั้ง ค่าเหล่านี้ไม่ป้องกัน request flood หรือโควตาร่วมบัญชีทั้งหมด
+- ยังไม่ได้ load test, วัด peak concurrency หรืออ่าน usage ล่าสุดรวมทุกแอป จึงไม่ระบุตัวเลขผู้ใช้พร้อมกันสูงสุด ไม่มีการปรับแพ็กเกจ/WAF/โควตา หรือยิง traffic ทดสอบ Production ในรอบนี้
+
+ข้อมูลด้านล่างเป็น snapshot 2026-10-04 รุ่น .2 ไม่ใช่การวัดฐานข้อมูลหรือ traffic ปัจจุบัน
 
 ## ข้อสรุป
 

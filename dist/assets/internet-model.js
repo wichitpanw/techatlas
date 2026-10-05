@@ -1,4 +1,4 @@
-// Illustrative networks and documentation addresses, never a map of Meta or a game vendor.
+// Illustrative networks and documentation addresses, never a map of any real service provider.
 export function buildInternet({service='social',route='peering',fault='none'}={}) {
   if(!['social','cdn','game'].includes(service)||!['peering','transit'].includes(route)||!['none','dns','gateway','uplink'].includes(fault))throw Error('ตัวเลือก Internet ไม่ถูกต้อง');
   const node=(id,name,address,kind,x,z)=>({id,name,address,kind,position:[x,z]});
@@ -20,7 +20,7 @@ export function buildInternet({service='social',route='peering',fault='none'}={}
   const port=service==='game'?'UDP/3074':'TCP/443';
   const add=(title,detail,fields,active=[],transfers=[],status='ok')=>steps.push({title,detail,fields,active,transfers,status,nodeUpdates:{},edges:transfers.map(t=>links.find(l=>(l.from===t.from&&l.to===t.to)||(l.from===t.to&&l.to===t.from))?.id).filter(Boolean)});
   const hop=(from,to,message,fields=[])=>add(`${nodes.find(n=>n.id===from).name} → ${nodes.find(n=>n.id===to).name}`,'ข้อความถูกส่งต่อบนช่วงนี้ อ่านค่าด้านล่างว่าเป็น DNS, IP forwarding หรือข้อมูล Application',fields,[from,to],[{from,to,message}]);
-  add('เลือกบริการ ไม่ใช่ Internet server กลาง','Internet เป็นเครือข่ายหลายผู้ดูแล ภาพนี้ย่อจำนวนอุปกรณ์และเมือง; Social คล้ายการเปิด Facebook แต่ไม่ใช่แผนผัง Meta',[['Service',host],['Destination',dest],['Transport',port]],['client']);
+  add('เลือกบริการ ไม่ใช่ Internet server กลาง','Internet เป็นเครือข่ายหลายผู้ดูแล ภาพนี้ย่อจำนวนอุปกรณ์และเมือง; Social เป็นบริการสมมติ ไม่ใช่แผนผังของผู้ให้บริการจริง',[['Service',host],['Destination',dest],['Transport',port]],['client']);
   add('เครื่องมี IP และ next hop','สมมติ DHCP lease และ ARP พร้อม; ไปต่าง subnet ส่ง Frame ให้ Home gateway ไม่หา MAC ของ Server ไกล',[['Source','192.168.10.25'],['Gateway','192.168.10.1'],['DNS','192.0.2.53']],['client','home']);
   if(fault==='gateway'){add('หยุดใน LAN: ไม่มี Default gateway','ไม่มี route อื่นไป Resolver/บริการใน Lab นี้ จึงยังไม่ส่งข้อมูลออกนอก LAN',[['Result','No route']],['client'],[],'blocked');return finish();}
   const dnsPath=['client','home','ont','access','dns'];

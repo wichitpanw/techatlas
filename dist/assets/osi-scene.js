@@ -1,3 +1,4 @@
+import {mountSpeed} from './animation-speed.js?v=speed-20261005';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 
@@ -27,6 +28,7 @@ export function mountOSI(container,{preview=false}={}) {
   const packet=cube(.55,.35,.55,0xffd166,-1.6,4.9,1.05);
   const packetLabel=document.createElement('span');packetLabel.className='osi-space-label osi-packet-label';container.append(packetLabel);
   const halo=new THREE.Mesh(new THREE.BoxGeometry(3.04,.58,1.64),new THREE.MeshBasicMaterial({color:0xffffff,wireframe:true}));scene.add(halo);
+  const playbackSpeed=mountSpeed(container,{hidden:preview});
   let disposed=false,raf,elapsed=1600,last=null,paused=false,current=null;
   const from=packet.position.clone(),target=packet.position.clone(),fromScale=packet.scale.clone(),targetScale=packet.scale.clone(),vector=new THREE.Vector3();
   function render(){if(disposed)return;renderer.render(scene,camera);for(const {label,mesh} of [...labels,{label:packetLabel,mesh:packet}]){vector.copy(mesh.position);vector.z+=.8;vector.project(camera);label.style.left=`${(vector.x*.5+.5)*container.clientWidth}px`;label.style.top=`${(-vector.y*.5+.5)*container.clientHeight}px`;}}
@@ -46,6 +48,6 @@ export function mountOSI(container,{preview=false}={}) {
     if(preview){packet.position.copy(target);packet.scale.copy(targetScale);}
     container.dataset.side=step.side;container.dataset.layer=step.layer;container.dataset.dropped=Boolean(step.dropped);render();
   }
-  function tick(now){if(disposed)return;raf=requestAnimationFrame(tick);if(last!==null&&!paused&&!document.hidden)elapsed+=Math.min(50,now-last);last=now;const p=preview?1:Math.min(1,elapsed/1600),smooth=p*p*(3-2*p);packet.position.lerpVectors(from,target,smooth);packet.scale.lerpVectors(fromScale,targetScale,smooth);container.dataset.flowProgress=String(p);container.dataset.flowPaused=String(paused);render();}
-  resize();tick(performance.now());return {showStep,replay(){if(current){const step=current;current=null;showStep(step);}},stepDuration:()=>2050,pause(){paused=true;},resume(){paused=false;last=null;},resetView(){camera.position.set(0,5.5,16);controls.target.set(0,3,0);controls.update();render();},dispose(){disposed=true;cancelAnimationFrame(raf);observer.disconnect();controls.dispose();scene.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});renderer.dispose();renderer.domElement.remove();packetLabel.remove();labels.forEach(({label})=>label.remove());}};
+  function tick(now){if(disposed)return;raf=requestAnimationFrame(tick);if(last!==null&&!paused&&!document.hidden)elapsed+=Math.min(50,now-last)*playbackSpeed.get();last=now;const p=preview?1:Math.min(1,elapsed/1600),smooth=p*p*(3-2*p);packet.position.lerpVectors(from,target,smooth);packet.scale.lerpVectors(fromScale,targetScale,smooth);container.dataset.flowProgress=String(p);container.dataset.flowPaused=String(paused);render();}
+  resize();tick(performance.now());return {showStep,replay(){if(current){const step=current;current=null;showStep(step);}},speed:playbackSpeed.get,stepDuration:()=>2050,pause(){paused=true;},resume(){paused=false;last=null;},resetView(){camera.position.set(0,5.5,16);controls.target.set(0,3,0);controls.update();render();},dispose(){disposed=true;cancelAnimationFrame(raf);observer.disconnect();controls.dispose();scene.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});renderer.dispose();renderer.domElement.remove();packetLabel.remove();playbackSpeed.dispose();labels.forEach(({label})=>label.remove());}};
 }

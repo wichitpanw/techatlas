@@ -1,10 +1,10 @@
-import { mechanismSurface } from './network-mechanism.js?v=always-flow-20261005';
-import {qualitySurface,initQuality} from './network-quality.js?v=always-flow-20261005';
-import {telecomLessons} from './telecom-labs.js';
-import {serviceLessons,serviceSurface,initService} from './service-tools.js?v=always-flow-20261005';
-import {repairSurface,initRepair} from './repair-lab.js?v=always-flow-20261005';
-import {osiSurface,initOSI} from './osi-lab.js?v=always-flow-20261005';
-import {networkLabSpecs} from './network-lab-models.js';
+import { mechanismSurface } from './network-mechanism.js?v=speed-20261005';
+import {qualitySurface,initQuality} from './network-quality.js?v=speed-20261005';
+import {telecomLessons} from './telecom-labs.js?v=speed-20261005';
+import {serviceLessons,serviceSurface,initService} from './service-tools.js?v=speed-20261005';
+import {repairSurface,initRepair} from './repair-lab.js?v=speed-20261005';
+import {osiSurface,initOSI} from './osi-lab.js?v=speed-20261005';
+import {networkLabSpecs} from './network-lab-models.js?v=speed-20261005';
 const esc = (s) =>
   String(s).replace(
     /[&<>"']/g,

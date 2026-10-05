@@ -1,9 +1,12 @@
+import {mountSpeed} from './animation-speed.js?v=speed-20261005';
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { appliance, laptop, material, box } from "./scene.js";
+import { appliance, laptop, material, box } from "./scene.js?v=speed-20261005";
 
 // Functional 3D teaching models: hardware, bits, protocol layers and link state.
 export function mountScene(container, { variant, preview = false } = {}) {
+  const playbackSpeed=mountSpeed(container,{hidden:preview,staticView:variant!=="physical"});
+  let clock=0,lastWall=null;
   container.dataset.variant = variant;
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
@@ -437,7 +440,8 @@ export function mountScene(container, { variant, preview = false } = {}) {
   });
   observer.observe(container);
   const point = new THREE.Vector3();
-  function frame(now) {
+  function frame(wallNow) {
+    if(lastWall!==null&&!document.hidden)clock+=Math.min(50,wallNow-lastWall)*playbackSpeed.get();lastWall=wallNow;const now=clock;
     if (dead) return;
     controls.update();
     if (variant === "physical" && signal.visible) {
@@ -493,7 +497,7 @@ export function mountScene(container, { variant, preview = false } = {}) {
   raf = requestAnimationFrame(frame);
   return {
     dispose() {
-      dead = true;
+      dead = true;playbackSpeed.dispose();
       cancelAnimationFrame(raf);
       observer.disconnect();
       controls.dispose();

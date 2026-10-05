@@ -1,19 +1,19 @@
-import { mountScene as networkScene } from "./lab-scene.js";
-import { mountScene as foundationScene } from "./foundation-scene.js";
-import { conceptPreview } from "./network-concepts.js";
+import { mountScene as networkScene } from "./lab-scene.js?v=speed-20261005";
+import { mountScene as foundationScene } from "./foundation-scene.js?v=speed-20261005";
+import { conceptPreview } from "./network-concepts.js?v=speed-20261005";
 import { mountScene as pythonScene } from './python-scene.js?v=python-next-20261004';
-import { mountScene as mechanismScene } from './network-mechanism-scene.js?v=always-flow-20261005';
-import { networkLabSpecs, buildNetworkLab } from './network-lab-models.js';
+import { mountScene as mechanismScene } from './network-mechanism-scene.js?v=speed-20261005';
+import { networkLabSpecs, buildNetworkLab } from './network-lab-models.js?v=speed-20261005';
 import {programmingPreview} from './programming-lab.js';
 import {aiPreview} from './ai-lab.js';
-import {osiPreview} from './osi-lab.js?v=always-flow-20261005';
-import {mountOSI} from './osi-scene.js?v=always-flow-20261005';
-import {buildOSI} from './osi-lab.js?v=always-flow-20261005';
-import {buildInternet} from './internet-model.js';
-import {qualityPreview,simulateQueue} from './network-quality.js?v=always-flow-20261005';
+import {osiPreview} from './osi-lab.js?v=speed-20261005';
+import {mountOSI} from './osi-scene.js?v=speed-20261005';
+import {buildOSI} from './osi-lab.js?v=speed-20261005';
+import {buildInternet} from './internet-model.js?v=speed-20261005';
+import {qualityPreview,simulateQueue} from './network-quality.js?v=speed-20261005';
 import {queueSceneModel} from './quality-scene-model.js';
-import {serviceLessons,serviceScene,simulateVideo,simulateRate} from './service-tools.js?v=always-flow-20261005';
-import {repairInitial,repairModel} from './repair-lab.js?v=always-flow-20261005';
+import {serviceLessons,serviceScene,simulateVideo,simulateRate} from './service-tools.js?v=speed-20261005';
+import {repairInitial,repairModel} from './repair-lab.js?v=speed-20261005';
 import {buildAPI} from './api-model.js';
 
 // Actual lesson renderers/data are the single source of truth for Explore previews.

@@ -1,3 +1,4 @@
+import {mountSpeed} from './animation-speed.js?v=speed-20261005';
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
@@ -214,6 +215,8 @@ export function mountScene(
   container,
   { variant = "network", interactive = false, hero = false } = {},
 ) {
+  const playbackSpeed=mountSpeed(container,{hidden:!interactive});
+  let clock=0,lastWall=null;
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
   renderer.shadowMap.enabled = true;
@@ -375,12 +378,13 @@ export function mountScene(
     camera.updateProjectionMatrix();
   });
   resize.observe(container);
-  function frame(t) {
+  function frame(wallNow) {
+    if(lastWall!==null&&!document.hidden)clock+=Math.min(50,wallNow-lastWall)*playbackSpeed.get();lastWall=wallNow;const t=clock;
     if (!alive) return;
     raf = requestAnimationFrame(frame);
     if (!visible && !animation) return;
-    if (t - last < 33) return;
-    last = t;
+    if (wallNow - last < 33) return;
+    last = wallNow;
     if (controls) controls.update();
     if (!interactive && !hero) group.rotation.y = Math.sin(t * 0.00018) * 0.17;
     if (animation) {
@@ -412,12 +416,13 @@ export function mountScene(
   }
   raf = requestAnimationFrame(frame);
   return {
+    speed:playbackSpeed.get,
     send(hops = 3, failure = false) {
       if (animation) return Promise.resolve();
       packet.material.color.set(failure ? 0xf69d72 : C.mint);
       halo.material.color.copy(packet.material.color);
       return new Promise((resolve) => {
-        animation = { start: performance.now(), hops, resolve };
+        animation = { start: clock, hops, resolve };
       });
     },
     setSubnet(prefix) {
@@ -443,7 +448,7 @@ export function mountScene(
       } else camera.lookAt(target);
     },
     dispose() {
-      alive = false;
+      alive = false;playbackSpeed.dispose();
       cancelAnimationFrame(raf);
       observer.disconnect();
       resize.disconnect();

@@ -17,6 +17,16 @@
 - Feedback เตรียม mailto/คัดลอก ไม่มี backend ticket หรืออัปโหลดรูป
 - ตัวนับเซสชัน Pages Functions + D1 ไม่เก็บ IP ในโค้ดแอป ไม่มีบัญชีผู้เรียน
 
+## Local · 2026.10.05.4 · ยังไม่อนุมัติ commit/push/deploy
+
+- เพิ่มตัวเลือกความเร็ว 0.5×–2× ใน renderer ที่มี animation ตามเวลา: Network รุ่นเดิม/early labs, shared Network/API/Internet/quality/service mechanisms, OSI, Physical signal และ Python trace replay ใช้นาฬิกาที่ปรับร่วมกับตัวเล่นขั้นตอน ไม่แก้ค่าคำนวณ/latency/ความเร็ว Python runtime
+- ภาพ preview การ์ดคงนิ่ง ฉาก foundation แบบคลิกดูโครงสร้าง (Computer/OS, เลขฐาน, devices, encapsulation) ระบุภาพนิ่งและปิด speed control เพราะไม่มี timeline ให้เร่ง ไม่สร้างการไหลที่โมเดลไม่ได้ระบุ เครื่องมือ 2D เดิมยังไม่ใช่ animation 3D
+- เปลี่ยนชื่อองค์กร/บริการจริงในสถานการณ์ NT/Social และคำอธิบาย Cloud เป็นตัวอย่างเป็นกลาง เพิ่ม disclaimer footer; ไม่ลบชื่อเทคโนโลยี/แหล่งเอกสารหลักที่จำเป็น ตรวจขอบเขต public release assets ไม่อ้างว่าตรวจ PDF เอกสารภายในหรือประวัติ Git ทั้งหมด และไม่รับประกันความเสี่ยงทางกฎหมายเป็นศูนย์
+- `tests/speed-model.mjs` ผ่าน rate boundaries, scheduler 0.5/1/2 และเปลี่ยนความเร็วระหว่างเล่น; `tests/speed-browser.html` ผ่าน shared Network/API clock/pause, OSI progress, early/original Network flight duration, Physical control และ static exceptions, Python synthetic trace replay/pause ไม่รัน Python curriculum ทั้งหมดซ้ำ
+- ตรวจหน้า MTU จริงเลือก 0.5× ได้และป้ายไม่บังฉากที่มุมตั้งต้น ภาพ `/tmp/techatlas-speed-public.jpg`; ไม่อ้างว่าทุกบท/ทุกมุม/ทุกอุปกรณ์ผ่าน ตรวจเฉพาะกลไกควบคุมที่แก้
+- อัปเดต AGENTS และ CLOUDFLARE-FREEPLAN.md: static requests ไม่จำกัด แต่ตัวนับมี shared Functions quota100,000/day และ admission60/min/2,000/day ไม่ใช่เพดานผู้เรียน ยังไม่ load test หรืออ่าน usage ล่าสุดรวมบัญชี
+- clean release `/tmp/techatlas-release-tIiVWR/dist` ตัด draft AI/Programming อื่นตามเดิม syntax/diff ตรวจแยกก่อนส่งงาน Production ยังคง .3 ต้องขออนุมัติใหม่
+
 ## 2026.10.05.3 · Flow ต่อเนื่องเสมอ · เผยแพร่แล้ว
 
 - ตามคำขอผู้ใช้ 2026-10-05 นำปุ่มลดการเคลื่อนไหว/เปิดการไหลต่อเนื่องออกจาก shared Network/API renderer และ OSI ให้ flow ต่อเนื่องเสมอ ไม่ขึ้นกับ prefers-reduced-motion; คงเล่น/หยุด/เดินทีละขั้น ภาพ preview การ์ดยังคงนิ่ง ไม่เปลี่ยน OS preference หรือ Python bounce

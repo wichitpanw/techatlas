@@ -1,4 +1,4 @@
-import {telecomLessons,buildTelecom} from './telecom-labs.js';
+import {telecomLessons,buildTelecom} from './telecom-labs.js?v=speed-20261005';
 import {coreSpecs,coreDefaults,buildCoreLab} from './network-core-models.js';
 // Bounded teaching models, not a network emulator. Each lesson owns its mechanism.
 const spec = (mode, title, controls = []) => ({ mode, title, controls });
@@ -513,12 +513,12 @@ export function buildNetworkLab(lesson, scenario = 0, parameters = {}) {
     case 'cloud-vpc': {
       const T=(from,to,message)=>({from,to,message}),tr=(...t)=>Object.assign(steps.at(-1),{transfers:t});
       const pub=scenario===0||scenario===3,none=scenario===2;
-      nodes=[node('vm','VM',pub?scenario===3?'10.0.1.10 · ไม่มี public IPv4':'10.0.1.10 + public IP':'10.0.2.10','client'),node('rt','Route table',pub?'0.0.0.0/0 → igw':none?'10.0.0.0/16 → local':'0.0.0.0/0 → nat-gw'),node('gw',pub?'Internet gateway':'NAT gateway',pub?'AWS-style VPC edge':'อยู่ใน public subnet'),node('internet','Internet server','203.0.113.80','server')];
+      nodes=[node('vm','VM',pub?scenario===3?'10.0.1.10 · ไม่มี public IPv4':'10.0.1.10 + public IP':'10.0.2.10','client'),node('rt','Route table',pub?'0.0.0.0/0 → igw':none?'10.0.0.0/16 → local':'0.0.0.0/0 → nat-gw'),node('gw',pub?'Internet gateway':'NAT gateway',pub?'ขอบเครือข่าย Cloud สมมติ':'อยู่ใน public subnet'),node('internet','Internet server','203.0.113.80','server')];
       links=[edge('vm','rt'),edge('rt','gw'),edge('gw','internet')];
       add('VM ส่งไป Internet','Security rule ขาออกต้องอนุญาต (กรณีนี้อนุญาต)',[['Source',pub?'10.0.1.10':'10.0.2.10'],['Destination','203.0.113.80:443']],['vm'],[]);tr(T('vm','rt','TCP/443 → 203.0.113.80'));
       if(none){add('Route table ไม่มี default route','มีเฉพาะ route ภายใน VPC',[['Match','10.0.0.0/16 → local เท่านั้น'],['0.0.0.0/0','ไม่มี']],['rt'],['vm-rt'],'blocked');add('ผลที่ VM เห็น','ตรวจ route table ก่อนสรุปว่า VM หรือ firewall มีปัญหา',[['ผล','ออก Internet ไม่ได้ (ไม่มีเส้นทาง)']],['vm'],[],'blocked');break;}
       add('Route table เลือก Target',pub?'default route ชี้ Internet gateway':'default route ชี้ NAT gateway',[['Route',pub?'0.0.0.0/0 → igw':'0.0.0.0/0 → nat-gw']],['rt'],['vm-rt']);
-      if(scenario===3){add('ไม่มี Public IPv4 mapping ของ VM','Subnet ยังเป็น public ตาม route แต่ IPv4 ผ่าน IGW โดยตรงในแบบ AWS นี้ต้องมี public mapping',[['Subnet type','Public'],['VM private IP','10.0.1.10'],['Public IPv4 mapping','ไม่มี'],['Result','ยังส่งถึง Internet server ไม่ได้']],['gw'],[],'blocked');break;}
+      if(scenario===3){add('ไม่มี Public IPv4 mapping ของ VM','Subnet ยังเป็น public ตาม route แต่ IPv4 ผ่าน IGW โดยตรงในแบบจำลอง Cloud นี้ต้องมี public mapping',[['Subnet type','Public'],['VM private IP','10.0.1.10'],['Public IPv4 mapping','ไม่มี'],['Result','ยังส่งถึง Internet server ไม่ได้']],['gw'],[],'blocked');break;}
       add(pub?'Gateway แปลง private ↔ public IP':'NAT gateway แปลง source',pub?'ตามแบบจำลอง VM เห็นเฉพาะ private IP; public IP ถูกแมปที่ gateway':'ใช้ public IP ของ NAT gateway ออกไป',[['Source หลังผ่านด่าน',pub?'public IP ของ VM (ตัวอย่าง 198.51.100.20)':'public IP ของ NAT gateway (ตัวอย่าง 198.51.100.30)']],['gw','internet'],['rt-gw','gw-internet']);tr(T('gw','internet','TCP/443 จาก public IP'));
       add('ขาเข้าต่างกัน',pub?'ถ้ามี public IP และ rule อนุญาต Internet เริ่มเชื่อมต่อเข้ามาได้':'ไม่มี public IP ของ VM Internet เริ่มเชื่อมต่อเข้ามาตรง ๆ ไม่ได้',[['Inbound จาก Internet',pub?'ได้เฉพาะ port ที่ rule อนุญาต':'เริ่มเชื่อมต่อเข้ามาไม่ได้']],['vm'],[],'ok');break;
     }

@@ -1,0 +1,31 @@
+<!doctype html><meta charset="utf-8"><title>Playback speed QA</title>
+<link rel="stylesheet" href="../dist/assets/style.css?v=speed-20261005">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+<h1>Speed control QA · presentation only</h1><button id="run">ตรวจความเร็ว</button><pre id="report"></pre><div id="stage" class="mechanism-stage is-3d" style="width:900px;height:440px"></div><div class="editor-wrap"><textarea id="code" class="editor">print(1)</textarea></div>
+<script type="module">
+import {mountScene as mechanism} from '../dist/assets/network-mechanism-scene.js?v=speed-20261005';
+import {mountOSI} from '../dist/assets/osi-scene.js?v=speed-20261005';
+import {buildOSI} from '../dist/assets/osi-lab.js?v=speed-20261005';
+import {mountScene as legacy} from '../dist/assets/lab-scene.js?v=speed-20261005';
+import {mountScene as original} from '../dist/assets/scene.js?v=speed-20261005';
+import {mountScene as foundation} from '../dist/assets/foundation-scene.js?v=speed-20261005';
+import {buildNetworkLab} from '../dist/assets/network-lab-models.js?v=speed-20261005';
+import {createPythonInteractive} from '../dist/assets/python-interactive.js?v=speed-20261005';
+const stage=document.querySelector('#stage'),report=document.querySelector('#report'),sleep=ms=>new Promise(r=>setTimeout(r,ms));let scene;
+const check=(ok,msg)=>{if(!ok)throw Error(msg);};
+function rate(value,root=stage){const select=root.querySelector('.animation-speed select');check(select&&!select.disabled,'enabled control');select.value=String(value);select.dispatchEvent(new Event('change'));}
+const clear=()=>{scene?.dispose();scene=null;stage.replaceChildren();};
+document.querySelector('#run').onclick=async()=>{report.textContent='';document.querySelector('#run').disabled=true;try{
+const lesson={id:'mtu-pmtud',title:'MTU'},model=buildNetworkLab(lesson);scene=mechanism(stage,{lesson,initialModel:model});
+const i=model.steps.findIndex(s=>s.transfers.length);scene.showStep(i);rate(.5);await sleep(60);const a=scene.snapshot().elapsed;await sleep(200);const slow=scene.snapshot().elapsed-a;rate(2);const b=scene.snapshot().elapsed;await sleep(200);const fast=scene.snapshot().elapsed-b;check(fast>slow*2.5,'shared scene 4x rate ratio');scene.pause();const p=scene.snapshot().elapsed;rate(.5);await sleep(100);check(scene.snapshot().elapsed===p,'rate change preserves pause');scene.resume();report.textContent+='PASS shared Network/API clock and pause\n';clear();
+scene=mountOSI(stage);const steps=buildOSI('Hello','none');scene.showStep(steps[0]);await sleep(1000);scene.showStep(steps[1]);rate(.5);await sleep(200);const slowOSI=Number(stage.dataset.flowProgress);scene.showStep(steps[2]);rate(2);await sleep(200);check(Number(stage.dataset.flowProgress)>slowOSI*2.5,'OSI rate');report.textContent+='PASS OSI clock\n';clear();
+for(const [name,mount,send] of [['early Network',()=>legacy(stage,{variant:'network'}),()=>scene.sendPath([0,1])],['original Network',()=>original(stage,{interactive:true}),()=>scene.send(1)]]){
+ scene=mount();rate(2);let start=performance.now();await send();const fast=performance.now()-start;rate(.5);start=performance.now();await send();const slow=performance.now()-start;check(slow>fast*2.5,name+' duration ratio');report.textContent+='PASS '+name+' flight speed\n';clear();
+}
+scene=foundation(stage,{variant:'physical'});rate(2);check(scene&&stage.querySelector('select').value==='2','physical control');report.textContent+='PASS Physical signal control\n';clear();
+scene=foundation(stage,{variant:'number-systems'});check(stage.querySelector('select').disabled,'static view explains no timed playback');report.textContent+='PASS static 3D scope\n';clear();
+const mock={update(){},displayFrame(){},resetView(){}};const python=createPythonInteractive({id:'python-start',title:'Python'},async()=>mock);
+const events=Array.from({length:10},()=>({file:'main.py',line:1,event:'line',function:'<module>',output:'1'}));python.record({type:'result',output:'1',trace:events},{code:'print(1)'});
+const area=document.querySelector('.python-monitor-wrap');rate(.5,area);area.querySelector('[data-step=play]').click();await sleep(800);check(area.querySelector('input').value==='0','Python slow trace');rate(2,area);await sleep(400);check(Number(area.querySelector('input').value)>=1,'Python fast trace');area.querySelector('[data-step=play]').click();const index=area.querySelector('input').value;await sleep(500);check(area.querySelector('input').value===index,'Python pause');python.dispose();area.remove();report.textContent+='PASS Python trace player (synthetic trace, not a runtime retest)\nDONE';
+}catch(e){report.textContent+='FAIL '+e.stack;}finally{clear();document.querySelector('#run').disabled=false;}};
+</script>

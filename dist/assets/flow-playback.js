@@ -12,7 +12,7 @@ export function startFlowPlayback({scene,advance,atEnd,onEnd,connected=()=>true}
   function tick(now){
     if(cancelled)return;
     if(!connected()){onEnd();return;}
-    if(last!==null&&!document.hidden)elapsed+=Math.min(50,now-last);
+    if(last!==null&&!document.hidden)elapsed+=Math.min(50,now-last)*(scene()?.speed?.()??1);
     last=now;
     if(elapsed>=(scene()?.stepDuration?.()??2050)){
       if(atEnd()){onEnd();return;}

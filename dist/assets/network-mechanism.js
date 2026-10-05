@@ -1,7 +1,7 @@
-import {startFlowPlayback} from './flow-playback.js?v=always-flow-20261005';
-import {buildNetworkLab,networkLabSpecs,networkLabDefaults} from './network-lab-models.js';
+import {startFlowPlayback} from './flow-playback.js?v=speed-20261005';
+import {buildNetworkLab,networkLabSpecs,networkLabDefaults} from './network-lab-models.js?v=speed-20261005';
 import {incidentReady,incidentRequirements,incidentPrompts} from './incident-evidence.js';
-import {telecomLessons} from './telecom-labs.js';
+import {telecomLessons} from './telecom-labs.js?v=speed-20261005';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function wireEvidence(frame) {
   if(!frame.wire)return '';

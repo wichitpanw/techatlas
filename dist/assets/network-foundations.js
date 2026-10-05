@@ -1,6 +1,6 @@
-import {qualityLessons} from './network-quality.js?v=always-flow-20261005';
-import {telecomLessons} from './telecom-labs.js';
-import {serviceLessons} from './service-tools.js?v=always-flow-20261005';
+import {qualityLessons} from './network-quality.js?v=speed-20261005';
+import {telecomLessons} from './telecom-labs.js?v=speed-20261005';
+import {serviceLessons} from './service-tools.js?v=speed-20261005';
 import {coreLessons,coreOverrides} from './network-core-lessons.js';
 // Every state is an explicit educational example; no commands touch a real device.
 const state = (label, headline, rows, detail, ok = true) => ({
@@ -1420,7 +1420,7 @@ export const foundationLessons = [
     "sdn",
     "automation",
     "SDN, Planes และ Catalyst Center",
-    "Data plane ส่งต่อ traffic Control plane สร้างข้อมูลการตัดสินใจ เช่น routes Management plane ใช้กำหนดค่า/ติดตาม SDN แยกหรือรวมศูนย์การควบคุมบางส่วนผ่าน controller แต่ไม่ได้แปลว่า controller forward ทุก packet Catalyst Center เดิม Cisco DNA Center ใช้จัดการเครือข่ายตาม capabilities ของระบบ",
+    "Data plane ส่งต่อ traffic Control plane สร้างข้อมูลการตัดสินใจ เช่น routes Management plane ใช้กำหนดค่า/ติดตาม SDN แยกหรือรวมศูนย์การควบคุมบางส่วนผ่าน controller แต่ไม่ได้แปลว่า controller forward ทุก packet ระบบ Network controller ใช้จัดการเครือข่ายตามความสามารถที่รองรับ",
     [
       state(
         "กำหนด Policy",
@@ -1811,7 +1811,7 @@ export const foundationLessons = [
     "cloud-vpc",
     "cloud",
     "Cloud VPC: Subnet, Route Table และ Gateway",
-    "Virtual private cloud (VPC) คือเครือข่ายเสมือนที่กำหนด CIDR และ route table บทนี้ใช้แบบจำลอง AWS-style: public subnet มี route ตรงไป Internet gateway ไม่ได้ตัดสินจากการมี public IP ของทุก instance สำหรับ instance ติดต่อ Internet แบบ IPv4 ผ่าน IGW ต้องมี public IPv4 mapping และกฎอนุญาตด้วย private subnet ไม่มี route ตรงไป IGW; ตัวอย่างนี้ใช้ NAT gateway สำหรับขาออก การมี NAT ไม่อนุญาตให้ Internet เริ่ม connection เข้า VM โดยอัตโนมัติ รูปแบบ gateway/security ของ cloud อื่นอาจต่างกัน",
+    "Virtual private cloud (VPC) คือเครือข่ายเสมือนที่กำหนด CIDR และ route table บทนี้ใช้แบบจำลอง Cloud ที่กำหนดพฤติกรรมไว้เฉพาะบท: public subnet มี route ตรงไป Internet gateway ไม่ได้ตัดสินจากการมี public IP ของทุก instance สำหรับ instance ติดต่อ Internet แบบ IPv4 ผ่าน IGW ต้องมี public IPv4 mapping และกฎอนุญาตด้วย private subnet ไม่มี route ตรงไป IGW; ตัวอย่างนี้ใช้ NAT gateway สำหรับขาออก การมี NAT ไม่อนุญาตให้ Internet เริ่ม connection เข้า VM โดยอัตโนมัติ รูปแบบ gateway/security ของ cloud อื่นอาจต่างกัน",
     [
       state(
         "Public subnet",
