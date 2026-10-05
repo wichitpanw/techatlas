@@ -17,6 +17,13 @@
 - Feedback เตรียม mailto/คัดลอก ไม่มี backend ticket หรืออัปโหลดรูป
 - ตัวนับเซสชัน Pages Functions + D1 ไม่เก็บ IP ในโค้ดแอป ไม่มีบัญชีผู้เรียน
 
+## Local · 2026.10.05.3 · Flow ต่อเนื่องเสมอ (ยังไม่เผยแพร่)
+
+- ตามคำขอผู้ใช้ 2026-10-05 นำปุ่มลดการเคลื่อนไหว/เปิดการไหลต่อเนื่องออกจาก shared Network/API renderer และ OSI ให้ flow ต่อเนื่องเสมอ ไม่ขึ้นกับ prefers-reduced-motion; คงเล่น/หยุด/เดินทีละขั้น ภาพ preview การ์ดยังคงนิ่ง ไม่เปลี่ยน OS preference หรือ Python bounce
+- อัปเดต AGENTS.md เป็นข้อยกเว้นเฉพาะฉากสื่อกลไกที่ผู้ใช้ขอ และ versioned imports เพื่อไม่ใช้ renderer รุ่นเก่าจาก cache จำนวนบทและโปรโตคอลไม่เปลี่ยน Production ยังคง .2
+- ตรวจเฉพาะพฤติกรรมที่แก้ผ่าน `tests/flow-browser.html?only=mtu-pmtud,tcp-handshake,api-rest`: 3 shared scenes + OSI ไหลทันทีโดยไม่คลิก opt-in ไม่มี toggle และ moving/pause/redraw/resume/reset ผ่าน; ไม่ตรวจหลักสูตรทั้งชุดซ้ำ ผลรอบ 57 ฉากเป็นหลักฐานรุ่น .2 ไม่ใช่การตรวจใหม่
+- ตรวจ MTU หน้า actual ไม่มีปุ่มสลับโหมด และแสดง footer รุ่น .3; ภาพ `/tmp/techatlas-always-flow.jpg` syntax renderer และ git diff --check ผ่าน ยังไม่มี commit/push/deploy รอบนี้
+
 ## Flow 3D 2026.10.05.2 · เผยแพร่แล้ว
 
 - คำขอผู้ใช้: ให้ Network ที่กระโดดภาพและ Programming API ไหลต่อเนื่องเหมือนบท `address`; คง renderer เดิมของ address ไม่เปลี่ยนเนื้อหา/โมเดลโปรโตคอลหรือเพิ่มหัวข้อ API

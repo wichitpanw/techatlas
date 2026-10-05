@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { appliance, laptop, rack, material, box } from './scene.js';
 import { buildNetworkLab } from './network-lab-models.js';
-import {flowSchedule,flowDuration,FLOW_HOP_MS} from './flow-playback.js?v=flow-20261005';
+import {flowSchedule,flowDuration,FLOW_HOP_MS} from './flow-playback.js?v=always-flow-20261005';
 
 export function mountScene(container, {lesson, preview=false,initialModel}={}) {
   const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
@@ -104,10 +104,7 @@ export function mountScene(container, {lesson, preview=false,initialModel}={}) {
   function resize(){const w=container.clientWidth,h=container.clientHeight;if(!w||!h)return;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();reset();}
   function reset(){const distance=Math.max(15,14/Math.max(camera.aspect,.45));camera.position.set(distance*.35,distance*.48,distance*.75);controls.target.set(0,.5,0);controls.update();}
   build(model);show(0);
-  let disposed=false,raf,reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const motion=document.createElement('button');motion.className='flow-motion-toggle';motion.hidden=preview;container.append(motion);
-  const motionLabel=()=>{motion.textContent=reduced?'▶ เปิดการไหลต่อเนื่อง':'ลดการเคลื่อนไหว';motion.setAttribute('aria-pressed',String(!reduced));};motionLabel();
-  motion.onclick=()=>{reduced=!reduced;elapsed=0;lastTick=null;paused=false;motionLabel();};
+  let disposed=false,raf;
   function place(element,p,placed){
     if(preview||element.hidden)return;
     const w=element.offsetWidth,h=element.offsetHeight,left=w/2+8,right=container.clientWidth-w/2-8;
@@ -120,13 +117,13 @@ export function mountScene(container, {lesson, preview=false,initialModel}={}) {
     }
     placed.push({...best,w,h});element.style.left=best.x+'px';element.style.top=best.y+'px';
   }
-  function tick(now){if(disposed)return;raf=requestAnimationFrame(tick);if(lastTick!==null&&!paused&&!document.hidden)elapsed+=Math.min(50,now-lastTick);lastTick=now;controls.update();if(packetMeter){const p=reduced||preview?1:Math.min(1,elapsed/700),smooth=p*p*(3-2*p),length=meterFrom+(meterTo-meterFrom)*smooth;packetMeter.scale.x=length;packetMeter.position.x=-4+length/2;}const placed=[];for(const o of objects){const p=o.anchor.clone().project(camera);o.button.hidden=preview||p.z>1||p.z< -1||(objects.length>8&&!model.steps[stepIndex].active.includes(o.id));place(o.button,p,placed);}
+  function tick(now){if(disposed)return;raf=requestAnimationFrame(tick);if(lastTick!==null&&!paused&&!document.hidden)elapsed+=Math.min(50,now-lastTick);lastTick=now;controls.update();if(packetMeter){const p=preview?1:Math.min(1,elapsed/700),smooth=p*p*(3-2*p),length=meterFrom+(meterTo-meterFrom)*smooth;packetMeter.scale.x=length;packetMeter.position.x=-4+length/2;}const placed=[];for(const o of objects){const p=o.anchor.clone().project(camera);o.button.hidden=preview||p.z>1||p.z< -1||(objects.length>8&&!model.steps[stepIndex].active.includes(o.id));place(o.button,p,placed);}
     for(const b of byteSlots){const p=b.anchor.clone().project(camera);b.label.hidden=preview||p.z>1||p.z< -1;place(b.label,p,placed);}
     // Named transfers come from the teaching model, never inferred from every lit link.
-    for(const m of messages){const local=elapsed-m.lane*FLOW_HOP_MS,progress=(reduced||preview)? .5:Math.max(0,Math.min(1,local/FLOW_HOP_MS));const handedOff=local>=FLOW_HOP_MS&&messages.some(next=>next.lane===m.lane+1&&next.from.distanceTo(m.to)<.01);m.marker.visible=(reduced||preview||local>=0)&&!handedOff;m.marker.position.lerpVectors(m.from,m.to,progress);if(!reduced&&!preview)m.marker.position.y+=Math.sin(progress*Math.PI)*.18;const position=m.trail.geometry.attributes.position;position.setXYZ(1,m.marker.position.x,m.marker.position.y,m.marker.position.z);position.needsUpdate=true;m.trail.visible=local>=0||preview||reduced;const anchor=m.marker.position.clone();anchor.y+=.7;const p=anchor.project(camera);m.label.hidden=preview||!m.marker.visible||p.z>1||p.z< -1;place(m.label,p,placed);m.marker.userData.progress=progress;}
+    for(const m of messages){const local=elapsed-m.lane*FLOW_HOP_MS,progress=(preview)? .5:Math.max(0,Math.min(1,local/FLOW_HOP_MS));const handedOff=local>=FLOW_HOP_MS&&messages.some(next=>next.lane===m.lane+1&&next.from.distanceTo(m.to)<.01);m.marker.visible=(preview||local>=0)&&!handedOff;m.marker.position.lerpVectors(m.from,m.to,progress);if(!preview)m.marker.position.y+=Math.sin(progress*Math.PI)*.18;const position=m.trail.geometry.attributes.position;position.setXYZ(1,m.marker.position.x,m.marker.position.y,m.marker.position.z);position.needsUpdate=true;m.trail.visible=local>=0||preview;const anchor=m.marker.position.clone();anchor.y+=.7;const p=anchor.project(camera);m.label.hidden=preview||!m.marker.visible||p.z>1||p.z< -1;place(m.label,p,placed);m.marker.userData.progress=progress;}
     renderer.domElement.dataset.flowProgress=String(Math.min(1,elapsed/flowDuration(model.steps[stepIndex].transfers)));renderer.domElement.dataset.flowPaused=String(paused);
     renderer.render(scene,camera);
   }
   const observer=new ResizeObserver(resize);observer.observe(container);resize();tick(performance.now());
-  return {setModel(next){build(next);show(0);},showStep:show,replay(){const i=stepIndex;stepIndex=-1;show(i);},stepDuration(){return flowDuration(model.steps[stepIndex].transfers);},pause(){paused=true;},resume(){paused=false;lastTick=null;},resetView:reset,snapshot(){return {step:stepIndex,elapsed,paused,reduced,transfers:messages.map(m=>({message:m.label.textContent,progress:m.marker.userData.progress,position:m.marker.position.toArray()}))};},dispose(){disposed=true;cancelAnimationFrame(raf);observer.disconnect();controls.dispose();clear();grid.geometry.dispose();grid.material.dispose();renderer.dispose();renderer.domElement.remove();labels.remove();decision.remove();motion.remove();}};
+  return {setModel(next){build(next);show(0);},showStep:show,replay(){const i=stepIndex;stepIndex=-1;show(i);},stepDuration(){return flowDuration(model.steps[stepIndex].transfers);},pause(){paused=true;},resume(){paused=false;lastTick=null;},resetView:reset,snapshot(){return {step:stepIndex,elapsed,paused,transfers:messages.map(m=>({message:m.label.textContent,progress:m.marker.userData.progress,position:m.marker.position.toArray()}))};},dispose(){disposed=true;cancelAnimationFrame(raf);observer.disconnect();controls.dispose();clear();grid.geometry.dispose();grid.material.dispose();renderer.dispose();renderer.domElement.remove();labels.remove();decision.remove();}};
 }

@@ -28,10 +28,6 @@ export function mountOSI(container,{preview=false}={}) {
   const packetLabel=document.createElement('span');packetLabel.className='osi-space-label osi-packet-label';container.append(packetLabel);
   const halo=new THREE.Mesh(new THREE.BoxGeometry(3.04,.58,1.64),new THREE.MeshBasicMaterial({color:0xffffff,wireframe:true}));scene.add(halo);
   let disposed=false,raf,elapsed=1600,last=null,paused=false,current=null;
-  let reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const motion=document.createElement('button');motion.className='flow-motion-toggle';motion.hidden=preview;container.append(motion);
-  const motionLabel=()=>{motion.textContent=reduced?'▶ เปิดการไหลต่อเนื่อง':'ลดการเคลื่อนไหว';motion.setAttribute('aria-pressed',String(!reduced));};motionLabel();
-  motion.onclick=()=>{reduced=!reduced;from.copy(packet.position);elapsed=0;last=null;paused=false;motionLabel();};
   const from=packet.position.clone(),target=packet.position.clone(),fromScale=packet.scale.clone(),targetScale=packet.scale.clone(),vector=new THREE.Vector3();
   function render(){if(disposed)return;renderer.render(scene,camera);for(const {label,mesh} of [...labels,{label:packetLabel,mesh:packet}]){vector.copy(mesh.position);vector.z+=.8;vector.project(camera);label.style.left=`${(vector.x*.5+.5)*container.clientWidth}px`;label.style.top=`${(-vector.y*.5+.5)*container.clientHeight}px`;}}
   function resize(){const w=container.clientWidth,h=container.clientHeight;if(!w||!h)return;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();render();}
@@ -47,9 +43,9 @@ export function mountOSI(container,{preview=false}={}) {
     packetLabel.textContent=preview?'Frame':step.dropped?'DROP':`${step.pdu} · ${step.bytes} B`;
     // Symbolic header growth, not a byte-accurate shape.
     targetScale.set(1+step.depth*.35,1,1+step.depth*.2);
-    if(preview||reduced){packet.position.copy(target);packet.scale.copy(targetScale);}
+    if(preview){packet.position.copy(target);packet.scale.copy(targetScale);}
     container.dataset.side=step.side;container.dataset.layer=step.layer;container.dataset.dropped=Boolean(step.dropped);render();
   }
-  function tick(now){if(disposed)return;raf=requestAnimationFrame(tick);if(last!==null&&!paused&&!document.hidden)elapsed+=Math.min(50,now-last);last=now;const p=preview||reduced?1:Math.min(1,elapsed/1600),smooth=p*p*(3-2*p);packet.position.lerpVectors(from,target,smooth);packet.scale.lerpVectors(fromScale,targetScale,smooth);container.dataset.flowProgress=String(p);container.dataset.flowPaused=String(paused);render();}
-  resize();tick(performance.now());return {showStep,replay(){if(current){const step=current;current=null;showStep(step);}},stepDuration:()=>2050,pause(){paused=true;},resume(){paused=false;last=null;},resetView(){camera.position.set(0,5.5,16);controls.target.set(0,3,0);controls.update();render();},dispose(){disposed=true;cancelAnimationFrame(raf);observer.disconnect();controls.dispose();scene.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});renderer.dispose();renderer.domElement.remove();packetLabel.remove();motion.remove();labels.forEach(({label})=>label.remove());}};
+  function tick(now){if(disposed)return;raf=requestAnimationFrame(tick);if(last!==null&&!paused&&!document.hidden)elapsed+=Math.min(50,now-last);last=now;const p=preview?1:Math.min(1,elapsed/1600),smooth=p*p*(3-2*p);packet.position.lerpVectors(from,target,smooth);packet.scale.lerpVectors(fromScale,targetScale,smooth);container.dataset.flowProgress=String(p);container.dataset.flowPaused=String(paused);render();}
+  resize();tick(performance.now());return {showStep,replay(){if(current){const step=current;current=null;showStep(step);}},stepDuration:()=>2050,pause(){paused=true;},resume(){paused=false;last=null;},resetView(){camera.position.set(0,5.5,16);controls.target.set(0,3,0);controls.update();render();},dispose(){disposed=true;cancelAnimationFrame(raf);observer.disconnect();controls.dispose();scene.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});renderer.dispose();renderer.domElement.remove();packetLabel.remove();labels.forEach(({label})=>label.remove());}};
 }

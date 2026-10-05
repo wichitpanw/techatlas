@@ -1,9 +1,9 @@
-import { mechanismSurface } from './network-mechanism.js?v=flow-20261005';
-import {qualitySurface,initQuality} from './network-quality.js?v=flow-20261005';
+import { mechanismSurface } from './network-mechanism.js?v=always-flow-20261005';
+import {qualitySurface,initQuality} from './network-quality.js?v=always-flow-20261005';
 import {telecomLessons} from './telecom-labs.js';
-import {serviceLessons,serviceSurface,initService} from './service-tools.js?v=flow-20261005';
-import {repairSurface,initRepair} from './repair-lab.js?v=flow-20261005';
-import {osiSurface,initOSI} from './osi-lab.js?v=flow-20261005';
+import {serviceLessons,serviceSurface,initService} from './service-tools.js?v=always-flow-20261005';
+import {repairSurface,initRepair} from './repair-lab.js?v=always-flow-20261005';
+import {osiSurface,initOSI} from './osi-lab.js?v=always-flow-20261005';
 import {networkLabSpecs} from './network-lab-models.js';
 const esc = (s) =>
   String(s).replace(

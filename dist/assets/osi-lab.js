@@ -1,4 +1,4 @@
-import {startFlowPlayback} from './flow-playback.js?v=flow-20261005';
+import {startFlowPlayback} from './flow-playback.js?v=always-flow-20261005';
 export const osiLayers = ['Physical','Data Link','Network','Transport','Session','Presentation','Application'];
 export const osiDefinitions = [
   'ส่งบิตเป็นสัญญาณผ่านสาย ใยแก้ว หรือคลื่นวิทยุ',
@@ -69,7 +69,7 @@ export function initOSI(onComplete) {
   stage.before(visualNote);
   const guide=document.createElement('section');guide.className='osi-layer-guide';guide.innerHTML='<h3>แต่ละ Layer ทำหน้าที่อะไร?</h3>'+[...osiLayers].reverse().map((name,i)=>`<article><strong>L${7-i} · ${name}</strong><p>${osiDefinitions[6-i]}</p></article>`).join('');
   q('.question-box').before(guide);
-  import('./osi-scene.js?v=flow-20261005').then(({mountOSI})=>{if(disposed)return;try{scene=mountOSI(stage);scene.showStep(model[index]);stage.classList.add('ready');}catch{stage.querySelector('.osi-stage-help').textContent='เปิด 3D ไม่ได้: ใช้ Stack และขั้นตอนด้านล่างได้เหมือนเดิม';}}).catch(()=>{if(!disposed)stage.querySelector('.osi-stage-help').textContent='โหลด 3D ไม่ได้: ใช้ Stack และขั้นตอนด้านล่างได้เหมือนเดิม';});
+  import('./osi-scene.js?v=always-flow-20261005').then(({mountOSI})=>{if(disposed)return;try{scene=mountOSI(stage);scene.showStep(model[index]);stage.classList.add('ready');}catch{stage.querySelector('.osi-stage-help').textContent='เปิด 3D ไม่ได้: ใช้ Stack และขั้นตอนด้านล่างได้เหมือนเดิม';}}).catch(()=>{if(!disposed)stage.querySelector('.osi-stage-help').textContent='โหลด 3D ไม่ได้: ใช้ Stack และขั้นตอนด้านล่างได้เหมือนเดิม';});
   const stop=()=>{timer?.stop();timer=null;q('[data-osi-action="play"]').textContent='เล่นการส่งข้อมูล';};
   function draw(){
     const step=model[index];q('#osi-step').max=model.length-1;q('#osi-step').value=index;

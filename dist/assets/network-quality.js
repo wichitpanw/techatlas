@@ -1,4 +1,4 @@
-import {startFlowPlayback} from './flow-playback.js?v=flow-20261005';
+import {startFlowPlayback} from './flow-playback.js?v=always-flow-20261005';
 import {queueSceneModel} from './quality-scene-model.js';
 export function simulateQueue({capacity=2,buffer=8,policy='fifo',baseDelay=20,burst=4}={}){
  if(!Number.isInteger(capacity)||capacity<1||capacity>8||!Number.isInteger(buffer)||buffer<1||buffer>32||!Number.isInteger(burst)||burst<0||burst>8||!Number.isFinite(baseDelay)||baseDelay<0||baseDelay>200||!['fifo','priority'].includes(policy))throw Error('ค่าของแบบจำลองอยู่นอกช่วง');
@@ -27,7 +27,7 @@ export function initQuality(l,complete){
  const stage=document.createElement('div');stage.className='mechanism-stage is-3d quality-3d';stage.style.height='380px';stage.setAttribute('aria-label','คิว Packet สามมิติ');root.querySelector('.quality-stage').before(stage);
  const notice=document.createElement('p');notice.textContent='3D INTERACTIVE · คิวภายใน Router แสดงเป็นพื้นที่เชิงตรรกะ; สี/เส้นแสดงผลจำลอง ไม่ใช่การจับ Packet จริง';stage.before(notice);
  const view=document.createElement('button');view.textContent='รีเซ็ตมุมมอง 3D';view.type='button';view.onclick=()=>scene?.resetView();root.querySelector('.mechanism-controls').append(view);
- import('./network-mechanism-scene.js?v=flow-20261005').then(({mountScene})=>{if(disposed)return;scene=mountScene(stage,{lesson:l,initialModel:queueSceneModel(model)});scene.showStep(index);}).catch(()=>{notice.textContent='3D โหลดไม่สำเร็จ · ใช้ภาพคิวและข้อมูลด้านล่างได้ครบ';});
+ import('./network-mechanism-scene.js?v=always-flow-20261005').then(({mountScene})=>{if(disposed)return;scene=mountScene(stage,{lesson:l,initialModel:queueSceneModel(model)});scene.showStep(index);}).catch(()=>{notice.textContent='3D โหลดไม่สำเร็จ · ใช้ภาพคิวและข้อมูลด้านล่างได้ครบ';});
  const stop=()=>{timer?.stop();timer=null;play.textContent='▶ เล่นคิว';};
  const packets=p=>p.length?p.map(v=>`<span class="quality-packet ${v.kind}">${v.kind==='game'?'◆':'▣'} #${v.id}</span>`).join(' '):'ไม่มี';
  function draw(){const s=model.steps[index];range.value=index;root.querySelector('.quality-stage').innerHTML=`<p>เวลา ${s.tick*10} ms · ขั้น ${index+1}/24 · ลิงก์ ${model.bandwidth.toFixed(1)} Mbps</p><div><strong>เข้า:</strong> ${packets(s.incoming)}</div><div><strong>รอในคิว:</strong> ${packets(s.queue)}</div><div><strong>ส่งออก:</strong> ${packets(s.outgoing)}</div><div><strong>Drop เพราะคิวเต็ม:</strong> ${packets(s.lost)}</div>`;

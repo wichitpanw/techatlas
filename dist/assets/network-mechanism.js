@@ -1,4 +1,4 @@
-import {startFlowPlayback} from './flow-playback.js?v=flow-20261005';
+import {startFlowPlayback} from './flow-playback.js?v=always-flow-20261005';
 import {buildNetworkLab,networkLabSpecs,networkLabDefaults} from './network-lab-models.js';
 import {incidentReady,incidentRequirements,incidentPrompts} from './incident-evidence.js';
 import {telecomLessons} from './telecom-labs.js';

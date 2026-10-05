@@ -3,25 +3,25 @@
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
 <h1>Flow QA · Network และ API · ไม่เขียน progress</h1><button id="run">ตรวจ Flow</button><pre id="report"></pre><div id="stage" class="mechanism-stage is-3d" style="height:440px;width:900px"></div>
 <script type="module">
-import {mountScene} from '../dist/assets/network-mechanism-scene.js?v=flow-20261005';
-import {mountOSI} from '../dist/assets/osi-scene.js?flow=20261005';
-import {buildOSI} from '../dist/assets/osi-lab.js?v=flow-20261005';
+import {mountScene} from '../dist/assets/network-mechanism-scene.js?v=always-flow-20261005';
+import {mountOSI} from '../dist/assets/osi-scene.js?v=always-flow-20261005';
+import {buildOSI} from '../dist/assets/osi-lab.js?v=always-flow-20261005';
 import {networkLessons} from '../dist/assets/network-curriculum.js';
 import {arrangeNetwork} from '../dist/assets/network-foundations.js';
 import {networkLabSpecs,buildNetworkLab} from '../dist/assets/network-lab-models.js';
 import {apiLessons} from '../dist/assets/api-curriculum.js';
 import {buildAPI} from '../dist/assets/api-model.js';
 import {buildInternet} from '../dist/assets/internet-model.js';
-import {qualityLessons,simulateQueue} from '../dist/assets/network-quality.js?v=flow-20261005';
+import {qualityLessons,simulateQueue} from '../dist/assets/network-quality.js?v=always-flow-20261005';
 import {queueSceneModel} from '../dist/assets/quality-scene-model.js';
-import {serviceLessons,simulateVideo,simulateRate,serviceScene} from '../dist/assets/service-tools.js?v=flow-20261005';
+import {serviceLessons,simulateVideo,simulateRate,serviceScene} from '../dist/assets/service-tools.js?v=always-flow-20261005';
 const sleep=ms=>new Promise(r=>setTimeout(r,ms)),check=(ok,msg)=>{if(!ok)throw Error(msg);};
 const stage=document.querySelector('#stage'),report=document.querySelector('#report');let scene;
 document.querySelector('#run').onclick=async()=>{document.querySelector('#run').disabled=true;report.textContent='';let count=0;
 try{
 const lessons=[...arrangeNetwork(networkLessons).filter(l=>networkLabSpecs[l.id]?.mode==='3d'),...apiLessons,...qualityLessons,...serviceLessons,{id:'internet',title:'Internet'}];
 for(const lesson of lessons.filter(l=>!new URLSearchParams(location.search).has('only')||new URLSearchParams(location.search).get('only').split(',').includes(l.id))){
- scene?.dispose();stage.replaceChildren();const model=lesson.id==='internet'?buildInternet():qualityLessons.includes(lesson)?queueSceneModel(simulateQueue()):serviceLessons.includes(lesson)?serviceScene(lesson,lesson.id==='video-buffer'?simulateVideo():simulateRate()):lesson.apiLab?buildAPI(lesson):buildNetworkLab(lesson);scene=mountScene(stage,{lesson,initialModel:model});if(scene.snapshot().reduced)stage.querySelector('.flow-motion-toggle').click();
+ scene?.dispose();stage.replaceChildren();const model=lesson.id==='internet'?buildInternet():qualityLessons.includes(lesson)?queueSceneModel(simulateQueue()):serviceLessons.includes(lesson)?serviceScene(lesson,lesson.id==='video-buffer'?simulateVideo():simulateRate()):lesson.apiLab?buildAPI(lesson):buildNetworkLab(lesson);scene=mountScene(stage,{lesson,initialModel:model});check(!stage.querySelector('.flow-motion-toggle'),'no motion toggle '+lesson.id);
  const i=model.steps.findIndex(s=>s.transfers.length);if(i>=0)scene.showStep(i);
  await sleep(100);const a=scene.snapshot();await sleep(150);const b=scene.snapshot();check(b.elapsed>a.elapsed,'clock advances '+lesson.id);
  if(i>=0)check(b.transfers.some((m,j)=>m.position.some((v,k)=>Math.abs(v-a.transfers[j].position[k])>.0001)),'continuous movement '+lesson.id+' '+JSON.stringify({a,b}));
@@ -31,7 +31,7 @@ for(const lesson of lessons.filter(l=>!new URLSearchParams(location.search).has(
  scene.setModel(model);check(scene.snapshot().step===0,'reset '+lesson.id);
  report.textContent+='PASS '+lesson.id+' · moving / pause / redraw / resume / reset\n';count++;
 }
-scene?.dispose();stage.replaceChildren();scene=mountOSI(stage);if(stage.querySelector('.flow-motion-toggle').getAttribute('aria-pressed')==='false')stage.querySelector('.flow-motion-toggle').click();const steps=buildOSI('Hello','none');scene.showStep(steps[0]);await sleep(100);scene.showStep(steps[1]);await sleep(120);const a=Number(stage.dataset.flowProgress);await sleep(120);check(Number(stage.dataset.flowProgress)>a,'OSI smooth');scene.pause();await sleep(50);const p=stage.dataset.flowProgress;await sleep(100);check(p===stage.dataset.flowProgress,'OSI pause');report.textContent+='PASS OSI interpolation / pause\nDONE '+count+' shared scenes + OSI';
+scene?.dispose();stage.replaceChildren();scene=mountOSI(stage);check(!stage.querySelector('.flow-motion-toggle'),'no OSI motion toggle');const steps=buildOSI('Hello','none');scene.showStep(steps[0]);await sleep(100);scene.showStep(steps[1]);await sleep(120);const a=Number(stage.dataset.flowProgress);await sleep(120);check(Number(stage.dataset.flowProgress)>a,'OSI smooth');scene.pause();await sleep(50);const p=stage.dataset.flowProgress;await sleep(100);check(p===stage.dataset.flowProgress,'OSI pause');report.textContent+='PASS OSI interpolation / pause\nDONE '+count+' shared scenes + OSI';
 }catch(e){report.textContent+='FAIL '+e.stack;}finally{scene?.dispose();document.querySelector('#run').disabled=false;}
 };
 </script>
