@@ -14,9 +14,11 @@ import {qualityPreview,simulateQueue} from './network-quality.js';
 import {queueSceneModel} from './quality-scene-model.js';
 import {serviceLessons,serviceScene,simulateVideo,simulateRate} from './service-tools.js';
 import {repairInitial,repairModel} from './repair-lab.js';
+import {buildAPI} from './api-model.js';
 
 // Actual lesson renderers/data are the single source of truth for Explore previews.
 export function mountScene(container, { lesson } = {}) {
+  if(lesson.apiLab){const samples={basics:[0,0],rest:[1,3],graphql:[1,0],grpc:[1,3],soap:[0,0],websocket:[0,4],sse:[0,2],'long-polling':[0,1],webhooks:[1,3]};const [scenario,step]=samples[lesson.kind],model=buildAPI(lesson,scenario),frame=model.steps[step];const scene=mechanismScene(container,{lesson,preview:true,initialModel:model});scene.showStep(step);const note=document.createElement('span');note.className='api-card-caption';note.textContent=lesson.kind.toUpperCase()+' · '+frame.title+' · '+(frame.transfers[0]?.message||'PENDING · ยังไม่มี response');container.append(note);return {dispose(){scene.dispose();note.remove();}};}
   if(lesson.id==='noc-incident')return mechanismScene(container,{lesson,preview:true,initialModel:repairModel(repairInitial('uplink'))});
   if(serviceLessons.some(s=>s.id===lesson.id)){const m=lesson.id==='video-buffer'?simulateVideo():simulateRate();const scene=mechanismScene(container,{lesson,preview:true,initialModel:serviceScene(lesson,m)});scene.showStep(3);return scene;}
   if(['network-quality','qos-queues'].includes(lesson.id)){const scene=mechanismScene(container,{lesson,preview:true,initialModel:queueSceneModel(simulateQueue())});scene.showStep(3);return scene;}

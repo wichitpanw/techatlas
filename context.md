@@ -1,23 +1,25 @@
 # TechAtlas — สถานะปัจจุบัน
 
-อัปเดต 2026-10-04 · Warapon Wichitpan · wichitpan.w@gmail.com
+อัปเดต 2026-10-05 · Warapon Wichitpan · wichitpan.w@gmail.com
 
 อ่าน AGENTS.md ก่อนทำงาน ไฟล์นี้ไม่ใช่อนุมัติ commit/push/deploy ผลตรวจเก่าอยู่ PROJECT-HISTORY.md
 
 ## Production
 
-- https://techatlas-aoh.pages.dev · release 2026.10.04.5 · immutable https://1add9443.techatlas-aoh.pages.dev
-- Network **64** / Python **48** บท / พจนานุกรม **320** รายการ
+- https://techatlas-aoh.pages.dev · release 2026.10.05.1 · immutable https://b498c03b.techatlas-aoh.pages.dev
+- Network **64** / Python **48** / Programming API **9** บท / พจนานุกรม **372** รายการ
 - Internet เหลือบทเดียว ฉากใหม่ 13 จุด เป็นบทสุดท้ายเฟส 4 หลัง Cloud; #lesson/packet ส่งต่อ #lesson/internet และรักษาความคืบหน้า
 - ลำดับร่วม Explore/Path/ก่อน–ถัดไป: เฟส 0 → เฟส 1 ขั้น 01–14 → เฟส 2 WAN/Provider/MPLS → เฟส 3 Cloud → เฟส 4 Internet
 - Telecom แผนสิบชุดส่งมอบในขอบเขตแบบจำลองแล้ว: CLI/evidence, troubleshooting/repair/retest/rollback, FTTH, subscriber, quality, QoS/video/token bucket, enterprise, BGP, CGNAT/IPv6, NOC
 - Network 62 บทมีภาพ 3D; VLSM/IPv6 addressing ใช้เครื่องมือ 2D เพื่อคำนวณตามข้อยกเว้น ไม่จำลองระบบบริษัทจริง
 - Python รันจริง Pyodide Worker; Tab/Shift+Tab, trace highlight และจอผลลัพธ์อ่านชัด
-- Programming/AI คงการ์ด 03/04 กำลังเตรียมบทเรียน ปิด route และไม่รวม draft assets ใน release
+- Programming เปิดเฉพาะ API บทนำและ 8 รูปแบบ; บทเว็บ/JS/TS/Node.js เดิมยังไม่เปิด ส่วน AI คงการ์ด 04 กำลังเตรียมบทเรียน ปิด route และไม่รวม draft assets ใน release
 - Feedback เตรียม mailto/คัดลอก ไม่มี backend ticket หรืออัปโหลดรูป
 - ตัวนับเซสชัน Pages Functions + D1 ไม่เก็บ IP ในโค้ดแอป ไม่มีบัญชีผู้เรียน
 
 ## รายละเอียดรุ่น 2026.10.04.4
+
+ดู Local prototype API รอบ 2026-10-05 ในหัวข้อท้ายไฟล์; ไม่ใช่สถานะ Production
 
 ผู้ใช้อนุมัติ migration/commit/push/deploy รอบนี้แล้ว และเผยแพร่ Production 2026.10.04.4 สำเร็จวันที่ 2026-10-04
 
@@ -62,6 +64,32 @@
 - localhost preview: python3 -m http.server 4174 --bind 127.0.0.1 จาก project เข้า /dist/ และ /tests/python-next.html
 - CLOUDFLARE-FREEPLAN.md เป็น quota/snapshot รอบก่อน ไม่ใช่ account usage ปัจจุบัน
 - เรียบเรียงอ้างอิงใหม่ ไม่เผยแพร่ PDF/ebook ไม่รับประกันสิทธิ์จากการให้เครดิตอย่างเดียว
+
+## Local prototype · 2026-10-05 · API-only
+
+- บันทึกการพัฒนาและตรวจรับก่อนเผยแพร่รุ่น 2026.10.05.1; เผยแพร่แล้วตามหัวข้อด้านล่าง ข้อความที่ระบุยังไม่ deploy ในรายการนี้เป็นประวัติ ณ เวลาตรวจ
+- Programming เปิดเฉพาะ API **9** บท: basics → REST → GraphQL → gRPC → SOAP → WebSocket → SSE → Long Polling → Webhooks; AI และ draft เว็บ/JS/TS/Node.js ยังไม่เปิด
+- Network 64 / Python 48 ไม่เพิ่มหรือลด; API glossary เพิ่ม **52** รายการ รวม Local 372
+- แหล่ง reference อ่านคำบรรยาย Instagram AlgoZen แล้วตรวจกลไกกับ MDN/RFC/Fielding/GraphQL/gRPC/W3C/WHATWG/GitHub Docs รายละเอียด API-CONTENT-NOTES.md; ไม่ได้กล่าวว่าอ่าน/ชมวิดีโอครบทั้งหมด
+- api-model.js คำนวณ 27 scenarios โดยข้อความ/สถานะ/ผล/ภาพตัวอย่างใช้โมเดลเดียวกัน; ไม่เรียกบริการภายนอก ไม่ encode Protobuf หรือเปิด socket จริง
+- ทุกบทมี 3D จาก logical pipeline พร้อมป้ายอ่านชัด, Request/Response/Events, controls เล่น–หยุด–เดิน–เริ่มใหม่, input ที่เกี่ยวข้องกับกรณีนั้น และภารกิจเฉพาะเรื่อง ต้องดูทั้งสามกรณีจนจบก่อน quiz ผ่าน
+- renderer ร่วมเพิ่มเฉพาะการรองรับ node.logical และเส้นเชิงตรรกะของ API; ไม่เปลี่ยนกลไก Network และไม่ตรวจ Lab เก่าซ้ำตามกฎ
+- tests/api-model.mjs ผ่าน 162 model/input combinations พร้อม invariants เฉพาะ 9 บทใหม่และศัพท์
+- tests/api-browser.html ผ่าน 9/9 × 3 scenarios ใน Browser/WebGL จริง: steps ตรง evidence/canvas, play/pause/natural completion, next/previous/reset/view, quiz gate, XML well-formed, SSE เก็บหลาย Events และ output markup เป็นข้อความไม่รัน HTML; ไม่เขียน progress/storage ผู้เรียน
+- ตรวจหน้า REST จริงด้วย input ปากกาสีฟ้าได้ JSON ชื่อตรง input; เปิดพจนานุกรมได้ 52 คำในหมวด Programming; Explore เห็น API 9 บท/AI placeholder และลำดับหมวด Network→Python→Programming
+- clean release script ผ่าน และเก็บ api-*.js แต่ตัด ai-*.js/programming-*.js ตามเดิม; ต้องสร้าง release ใหม่และขออนุมัติรอบนี้ก่อน Deploy
+- Recheck official ตามคำขอผู้ใช้ครบ 8 รูปแบบ (ยังคงบทนำ): แก้ SOAP VersionMismatch ให้ตอบ Fault รูปแบบ 1.1 พร้อม Upgrade; แยก gRPC status/HTTP stream headers ออกจาก application messages; ระบุ Webhook retry เป็นนโยบายจำลองและ GitHub ไม่ retry อัตโนมัติ รายละเอียด/แหล่งหลักใน API-CONTENT-NOTES.md
+- หลังแก้ official audit: tests/api-model.mjs ผ่าน 162 combinations และ Browser fixture ผ่าน 9/9 บท × 3 scenarios อีกครั้ง ไม่เขียน progress ผู้เรียน; git diff --check ผ่าน
+- ตรวจ GraphQL จริงที่ viewport390px: document scrollWidth375 ไม่ล้นแนวนอน ป้าย Client/Schema/Resolver กว้าง80px และแยกกัน; ตรวจเฉพาะหน้านี้ ไม่อ้างว่าทุกบท/ทุกมุมบนมือถือผ่าน รีเซ็ต viewport แล้ว
+- หลักฐานภาพผล Query/Response `/tmp/techatlas-api-official-review.jpg`; clean release รอบล่าสุด `/tmp/techatlas-release-7O8aIt/dist`; ยังไม่มี commit/push/deploy ของ API
+
+## รายละเอียดรุ่น 2026.10.05.1 · เผยแพร่แล้ว
+
+- ผู้ใช้อนุมัติรอบนี้ด้วยข้อความ “commit/push/deploy ได้เลย” วันที่ 2026-10-05 ขอบเขต API ที่ตรวจแล้วและเอกสาร/ชุดตรวจที่เกี่ยวข้อง ใช้ข้อความ commit `Add API lessons and verified interactive simulations`; การอนุมัตินี้ไม่ครอบคลุมรอบถัดไป
+- สร้าง clean release `/tmp/techatlas-release-IC9VZw/dist` ตัด AI และ Programming drafts ตามเดิม คง API assets แล้ว deploy ด้วย Wrangler4.147.0 ไป Pages project techatlas branch main สำเร็จ ไม่ทำ D1 migration หรือเปลี่ยน hosting config
+- หลัง deploy เว็บหลัก HTTP200 และตรวจ byte-for-byte ของ updates/main/card-scene/api-curriculum/api-model/api-lab/lesson-terms/style/network-mechanism-scene ตรง clean release ทั้งหมด
+- GET /api/visits HTTP200 และตอบยอดเป็นตัวเลขโดยไม่สร้าง token ทดสอบ; เปิดหน้า Updates ใน Browser จริงแสดง 5 ตุลาคม 2026 รุ่น2026.10.05.1 พร้อมรายการ API ใหม่ การเปิดเว็บปกติยังใช้ตัวนับตามเดิม
+- ใช้หลักฐานทดสอบ API รอบก่อนที่เพิ่งผ่าน 162 combinations และ 27 Browser scenarios ไม่รัน Lab เก่าซ้ำในรอบ deploy
 
 ## รายละเอียดรุ่น 2026.10.04.5 · เผยแพร่แล้ว
 

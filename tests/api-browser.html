@@ -1,0 +1,52 @@
+<!doctype html><html lang="th"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>API-only Browser QA</title>
+<link rel="stylesheet" href="../dist/assets/style.css">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+<body><main><h1>API-only Browser QA · ไม่แก้ความคืบหน้าผู้เรียน</h1><button id="run" class="button">ตรวจ API ใหม่ทั้ง 9 บท</button><pre id="results" role="status">พร้อมตรวจเฉพาะ API</pre><div id="fixture"></div></main>
+<script type="module">
+import {apiLessons} from '../dist/assets/api-curriculum.js';
+import {apiSurface,initAPI} from '../dist/assets/api-lab.js';
+import {buildAPI} from '../dist/assets/api-model.js';
+const out=document.querySelector('#results'),root=document.querySelector('#fixture');let controller;
+const check=(ok,message)=>{if(!ok)throw Error(message);};
+const until=async fn=>{const start=performance.now();while(!fn()){if(performance.now()-start>15000)throw Error('3D load timeout');await new Promise(r=>setTimeout(r,30));}};
+document.querySelector('#run').onclick=async()=>{
+ document.querySelector('#run').disabled=true;out.textContent='';let completed=0;
+ try{for(const l of apiLessons){
+  controller?.dispose();root.innerHTML=apiSurface(l);let passed=0;controller=initAPI(l,{complete:id=>{check(id===l.id,'completion id');passed++;}});
+  await until(()=>root.querySelector('canvas')&&root.querySelector('[data-api-stage]').classList.contains('has-webgl'));
+  root.querySelector(`[data-api-answer="${l.answer}"]`).click();check(passed===0,'quiz gated');
+  for(let s=0;s<3;s++){
+   root.querySelector(`[data-api-case="${s}"]`).click();const model=buildAPI(l,s);
+   for(let i=0;i<model.steps.length;i++){
+    // Re-query after every redraw; no stale step button is reused.
+    root.querySelector(`[data-api-step="${i}"]`).click();
+    check(root.querySelector('canvas').dataset.step===String(i),l.id+' 3D step');
+    check(root.querySelector('.mechanism-evidence').textContent.includes(model.steps[i].title),'evidence step');
+   }
+   root.querySelector('[data-api-control=reset]').click();check(root.querySelector('canvas').dataset.step==='0','reset');
+   root.querySelector('[data-api-control=next]').click();check(root.querySelector('canvas').dataset.step==='1','next');
+   root.querySelector('[data-api-control=previous]').click();check(root.querySelector('canvas').dataset.step==='0','previous');
+   root.querySelector('[data-api-control=play]').click();await until(()=>root.querySelector('canvas').dataset.step==='1');
+   if(model.steps.length>2)root.querySelector('[data-api-control=play]').click();
+   check(root.querySelector('[data-api-control=play]').textContent.includes('เล่น'),'pause or natural completion');
+   root.querySelector('[data-api-control=view]').click();
+  }
+  root.querySelector(`[data-api-answer="${l.answer}"]`).click();check(passed===1,'quiz after observation');
+  check(root.dataset===undefined||!root.querySelector('.mechanism-error').textContent,'no model error');
+  if(l.kind==='rest'){
+   root.querySelector('[data-api-case="1"]').click();const input=root.querySelector('[name=message]');input.value='<img src=x onerror=alert(1)>';
+   root.querySelector('form').requestSubmit();root.querySelector('[data-api-step="3"]').click();
+   check(root.querySelector('[data-api-response]').textContent.includes('<img'),'literal output');check(root.querySelectorAll('img').length===0,'not interpreted HTML');
+   input.value='';root.querySelector('form').requestSubmit();root.querySelector('[data-api-step="1"]').click();check(root.querySelector('.mechanism-evidence').textContent.includes('400'),'empty name error');
+  }
+  if(l.kind==='soap')for(const s of [0,1,2]){const m=buildAPI(l,s);for(const text of [m.steps[0].request,m.steps.at(-1).response])check(!new DOMParser().parseFromString(text,'text/xml').querySelector('parsererror'),'well-formed XML');}
+  if(l.kind==='sse'){
+   root.querySelector('[data-api-case="0"]').click();root.querySelector('[data-api-step="3"]').click();
+   const text=root.querySelector('[data-api-response]').textContent;check(text.includes('id: 1')&&text.includes('id: 2'),'both events retained');
+  }
+  completed++;out.textContent+=`PASS ${l.id}: 3 scenarios, 3D/evidence, play/pause/step/reset/view/quiz\n`;
+ }
+ out.textContent+=`PASS ${completed}/9 API lessons · no Network/Python lab rerun · no storage writes`;
+ }catch(e){out.textContent+='FAIL '+e.stack;}finally{document.querySelector('#run').disabled=false;}
+};
+</script></body></html>

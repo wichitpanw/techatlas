@@ -323,14 +323,68 @@ append|เพิ่มสมาชิกหนึ่งชิ้นท้าย 
 len|ฟังก์ชันคืนจำนวนสมาชิก/ความยาวที่ออบเจ็กต์รองรับ
 sum|ฟังก์ชันรวมค่าของ Iterable ที่ใช้บวกได้
 `;
+const apiData=`
+API|Application Programming Interface · ข้อตกลงให้ซอฟต์แวร์เรียกใช้ความสามารถของอีกส่วน ไม่จำเป็นต้องผ่าน Internet
+Client|ส่วนที่เริ่มเรียกใช้บริการ ใน Webhook ผู้ส่ง Event เป็น Client ของ HTTP delivery นั้น
+Service|ส่วนให้บริการที่ตรวจคำขอและทำงานตามข้อตกลง ไม่ใช่ฐานข้อมูลเสมอ
+Request|คำขอที่ส่ง เช่น method/path/headers/body หรือ typed call ตามรูปแบบที่ใช้
+Response|คำตอบของคำขอ; ข้อความใน stream ไม่ใช่ HTTP response ใหม่ทุกครั้ง
+Endpoint|จุดเข้าถึงบริการ เช่น URL หรือ method ที่เรียกได้ตาม contract
+Contract|ข้อตกลงชื่อ รูปแบบ input/output และพฤติกรรมที่ผู้เรียกกับบริการใช้ร่วมกัน
+HTTP|Hypertext Transfer Protocol · โปรโตคอลคำขอ/คำตอบที่หลายรูปแบบ API ใช้งาน
+REST|Representational State Transfer · รูปแบบสถาปัตยกรรม ไม่ใช่ชื่อโปรโตคอลหรือคำพ้องของ JSON
+Resource|สิ่งที่ API ระบุและจัดการ เช่น สินค้าแต่ละรายการ
+Method|การทำงานที่ร้องขอ; HTTP method และ RPC method อยู่คนละระดับ
+GET|HTTP method อ่าน representation ของ resource โดยไม่ร้องขอให้แก้สถานะ
+POST|HTTP method ให้ resource ประมวลผลข้อมูลตามความหมายที่บริการกำหนด ไม่ได้แปลว่าสร้างเสมอ
+PATCH|HTTP method สำหรับแก้ resource บางส่วน; ต้องมีบริการรองรับตาม contract
+Status|รหัสสถานะ เช่น HTTP 404 หรือ gRPC NOT_FOUND ต้องแยกตาม protocol
+Header|ข้อมูลประกอบข้อความ เช่น Content-Type ไม่ใช่เนื้อหาหลักใน Body
+Body|เนื้อหาข้อความ; SOAP Body อยู่ภายใน XML Envelope
+JSON|รูปแบบข้อมูลข้อความที่ใช้ object/array/number/string/boolean/null ไม่ใช่ API เอง
+GraphQL|ภาษาสำหรับ query และกลไกทำงานตาม Schema พร้อมเลือก Fields
+Schema|ข้อตกลงชนิดข้อมูลและ Fields/Operations ที่บริการรองรับ
+Field|รายการข้อมูลที่เลือก เช่น name หรือ price
+Validation|ตรวจว่าคำขอถูกตามข้อตกลงก่อนทำงาน ไม่เหมือนการตรวจผลระหว่างทำงาน
+Resolver|ฟังก์ชันฝั่งบริการที่หาค่าของ Field ใน GraphQL
+gRPC|Framework สำหรับเรียก method ของบริการระยะไกล รองรับ unary และ streaming
+RPC|Remote Procedure Call · เรียก procedure/method ฝั่งบริการโดยข้อตกลง input/output
+Protocol Buffers|Protobuf · ใช้กำหนดข้อความและ serialize ข้อมูล เป็นรูปแบบปกติของ gRPC
+Protobuf|ชื่อเรียกสั้นของ Protocol Buffers; Lab นี้ไม่ encode bytes จริง
+IDL|Interface Definition Language · ภาษาอธิบายชนิดข้อมูลและ interface ของบริการ
+Stub|ตัวช่วยฝั่ง Client แปลงการเรียก method ไปเป็น RPC ตาม contract
+Serializer|ส่วนแปลงข้อมูลเป็นรูปแบบข้อความที่ส่งได้ ไม่จำเป็นต้องเป็นเครื่องกลาง
+Unary|RPC ที่ Client ส่งหนึ่ง request message และรับหนึ่ง response message
+Streaming|ส่งหลาย messages ใน call/channel เดิม; ต้องดูว่าฝั่งไหนส่งได้
+Deadline|เวลาสิ้นสุดที่ผู้เรียกยอมรอ; เกินแล้วไม่ได้รับประกันว่า Service ไม่มี side effect
+SOAP|Messaging framework ที่ใช้ XML Envelope; ความปลอดภัยต้องออกแบบเพิ่ม
+XML|รูปแบบข้อความใช้ element/attribute/namespace ไม่ใช่กลไกความปลอดภัยเอง
+Envelope|ส่วนห่อข้อความ SOAP มี Body และอาจมี Header
+Namespace|ชื่อ URI ที่ใช้แยกชื่อ XML; namespace ของ SOAP Envelope บอกเวอร์ชัน
+Fault|รูปแบบแจ้งข้อผิดพลาด SOAP อยู่ใน Envelope
+WebSocket|Protocol สำหรับช่อง messages สองทิศทางหลัง handshake
+Handshake|ขั้นตกลงเปิดการสื่อสาร; ตัวอย่าง WebSocket ใช้ HTTP/1.1 Upgrade
+Event|เหตุการณ์/ข้อมูลอัปเดตที่ระบบสร้าง ไม่ใช่ HTTP response ใหม่เสมอ
+SSE|Server-Sent Events · Server ส่ง event blocks ใน HTTP response stream ไป Client
+EventSource|Browser API สำหรับเปิดและรับ SSE รวมกลไก reconnect
+Last-Event-ID|ID ล่าสุดที่ EventSource ส่งตอน reconnect; replay ต้องอาศัยบริการรองรับและมี history
+Long Polling|Client ส่ง request แล้ว Server รอจนมีข้อมูล/หมดเวลาจึงตอบ; รอบถัดไป Client ต้องส่งใหม่
+Cursor|ตำแหน่งอ้างอิงข้อมูลล่าสุดที่รับแล้ว เช่น Event ID เพื่อขอรายการต่อไป
+Webhook|ระบบต้นทางเรียก callback URL เมื่อเกิด event มักเป็น HTTP delivery ไป backend ผู้รับ
+Callback|จุด/ฟังก์ชันที่อีกระบบเรียกกลับเมื่อเงื่อนไขที่กำหนดเกิดขึ้น
+Signature|ข้อมูลสำหรับตรวจความน่าเชื่อถือ/ความถูกต้องของ delivery; ต้องใช้วิธีที่ provider กำหนด
+ACK|Acknowledgement · การตอบรับ ในบท Webhook คือรับ delivery ไม่ยืนยันว่างานทั้งหมดเสร็จ
+Retry|ลองส่ง/เรียกซ้ำหลังเงื่อนไขล้มเหลว ต้องดู policy และผลข้างเคียง
+Deduplication|ตรวจ ID ที่เคยรับเพื่อไม่ทำผลข้างเคียงซ้ำ ต้องออกแบบการบันทึกกับงานให้สอดคล้อง
+`;
 const parse=(data,track)=>data.trim().split('\n').map(row=>{const [name,meaning]=row.split('|');return {name,meaning,track};});
-export const glossaryEntries=[...parse(networkData,'network'),...parse(pythonData,'python')];
+export const glossaryEntries=[...parse(networkData,'network'),...parse(pythonData,'python'),...parse(apiData,'programming')];
 const aliases={'DHCP Relay':['Relay'],'DHCP DISCOVER':['DISCOVER','DHCPDISCOVER'],'DHCP OFFER':['OFFER','DHCPOFFER'],'DHCP REQUEST':['REQUEST','DHCPREQUEST'],'DHCP ACK':['ACK','DHCPACK'],'DHCP NAK':['NAK','DHCPNAK'],'TCP ACK':['ACK','SYN-ACK'],'Dictionary':['Dict','พจนานุกรม'],'Variable':['ตัวแปร'],'Indentation':['ย่อหน้า'],'Function':['ฟังก์ชัน'],'Reference':['การอ้างถึง'],'Index':['ดัชนี'],'Operator':['ตัวดำเนินการ'],'Bit':['บิต'],'Byte':['ไบต์']};
 const escapeRE=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 export function searchGlossary(rows,value){const query=value.trim().toLowerCase();if(!query)return rows;const exact=new RegExp(`(^|[^a-z0-9])${escapeRE(query)}($|[^a-z0-9])`,'i'),words=rows.filter(row=>exact.test(row[0])),names=rows.filter(row=>row[0].toLowerCase().includes(query));return words.length?words:names.length?names:rows.filter(row=>row[1].toLowerCase().includes(query));}
 export function termsForLesson(lesson){
  const collect=value=>typeof value==='string'?value:Array.isArray(value)?value.map(collect).join(' '):value&&typeof value==='object'?Object.values(value).map(collect).join(' '):'';
- const text=['title','scenario','explain','states','termMechanisms','starter','work','question','choices','hint','reason'].map(key=>collect(lesson[key])).join(' '),dhcp=/dhcp/i.test(text);
+ const text=['title','scenario','explain','cases','states','termMechanisms','starter','work','question','choices','hint','reason'].map(key=>collect(lesson[key])).join(' '),dhcp=/dhcp/i.test(text);
  return glossaryEntries.filter(e=>e.track===lesson.track).map(e=>{
   if((e.name==='TCP ACK'&&dhcp)||(e.name.startsWith('DHCP ')&&!dhcp))return null;
   if(e.name==='ACK'&&(dhcp||/tcp/i.test(text)))return null;

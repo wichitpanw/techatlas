@@ -1,5 +1,10 @@
 // Version date describes this content edition, not a generated page-view date.
 export const updates=[
+  {date:'2026-10-05',version:'2026.10.05.1',title:'Programming: เริ่มเรียน API ด้วยกลไก 3D',items:[
+    {lesson:'api-basics',name:'API · พื้นฐานและ Contract',detail:'เพิ่ม API basics, REST, GraphQL, gRPC และ SOAP พร้อมคำขอ/คำตอบ ข้อตกลง และกรณีผิดพลาดที่เดินตามได้'},
+    {lesson:'api-websocket',name:'Messages และ Events',detail:'เพิ่ม WebSocket, SSE, Long Polling และ Webhooks แยกช่องเปิด การรอคำตอบ และ Retry/Deduplication ด้วยแบบจำลองเฉพาะกลไก'},
+    {name:'ศัพท์และภารกิจ API',detail:'เพิ่มคำขยายความ 52 รายการ ภารกิจเฉพาะแต่ละบท และเก็บหลักฐานจากทั้งสามสถานการณ์ก่อนบันทึกผ่าน; ยังไม่เปิด Programming หัวข้ออื่นหรือ AI'},
+  ]},
   {date:'2026-10-04',version:'2026.10.04.5',title:'Network: ภาพตรงกลไก และทดลองโปรโตคอลได้ลึกขึ้น',items:[
     {lesson:'dhcp',name:'DHCP: DORA และ Lease',detail:'เพิ่ม T1/T2, renewal/rebinding, expiry/NAK และป้าย IP ตามสถานะ Client พร้อมปรับเวลาและคำตอบ Server'},
     {lesson:'tcp-handshake',name:'TCP Byte stream',detail:'เพิ่มข้อมูลหาย/สลับลำดับ, cumulative ACK, buffer, window และ FIN/RST พร้อมอ่าน seq/ack จริงตามแบบจำลอง'},

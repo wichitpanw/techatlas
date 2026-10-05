@@ -87,7 +87,8 @@
 - ห้ามเปิด auto-deploy หรือ push ไป branch ที่ทำให้ Deploy โดยไม่รับอนุมัติ
 - ใช้ Cloudflare Pages project `techatlas` เผยแพร่เฉพาะ `dist` และ Functions ตาม workflow ที่ตั้งไว้ ไม่ upload repository, `docs`, context หรือ credentials
 - URL หลัก: `https://techatlas-aoh.pages.dev` ไม่สร้าง Worker เดิมบน `cyfence-inventory.workers.dev` กลับมา
-- ขณะพัก AI/Programming ห้าม upload `dist` ต้นฉบับที่ยังมี draft assets: รัน `node scripts/prepare-release.mjs` เพื่อสร้างชุด dist ชั่วคราว ไม่รวมไฟล์เนื้อหาสองหมวดและ imports แล้วตรวจ Preview/ไฟล์ก่อน Deploy
+- ขณะพัก draft AI/Programming ห้าม upload `dist` ต้นฉบับที่ยังมี draft assets: รัน `node scripts/prepare-release.mjs` เพื่อสร้างชุด dist ชั่วคราว ไม่รวม `ai-*.js` และ `programming-*.js`/imports แล้วตรวจ Preview/ไฟล์ก่อน Deploy
+- ขอบเขต Programming รอบ 2026-10-05: เปิดเฉพาะชุด `api-*.js` ตามคำขอผู้ใช้ รักษาบทเว็บ/JavaScript/TypeScript/Node.js เดิมและ AI เป็น draft; การเพิ่ม API ไม่ใช่อนุมัติปล่อยหัวข้ออื่นหรือ Deploy
 - คำสั่งหลังได้รับอนุมัติ: `npx --yes wrangler@4.147.0 pages deploy <absolute-release-dist-path> --project-name techatlas --branch main` ใช้ path ที่ script คืน และรันจากโฟลเดอร์ project เพื่อคง Functions/D1 config
 - ตรวจเว็บหลักหลัง Deploy แล้วจึงอัปเดตสถานะใน `context.md`
 

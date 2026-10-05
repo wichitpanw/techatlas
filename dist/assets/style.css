@@ -2235,3 +2235,13 @@ footer a {
 .lesson-terms dt { margin-top: .8rem; font-weight: 700; color: #197a78; }
 .lesson-terms dd { margin: .25rem 0 0; line-height: 1.65; }
 #terms input[type="search"] { display: block; width: 100%; padding: .7rem; margin-top: .5rem; }
+/* API uses readable DOM text; no code or output baked into 3D textures. */
+.api-messages{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:20px;background:#eff6f8}
+.api-messages section{min-width:0}.api-messages h3{font-size:14px;margin:0 0 10px}
+.api-messages pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:260px;overflow:auto;background:#102732;color:#d9eeee;padding:16px;border-radius:8px;font-size:13px;margin:0}
+.api-lab .mechanism-inputs [hidden]{display:none}
+.api-lab .mechanism-inputs input{max-width:100%;min-width:0}
+.api-lab .mechanism-device{width:max-content;min-width:80px;max-width:145px}
+.api-lab .mechanism-flight{width:max-content;max-width:180px}
+.api-card-caption{position:absolute;bottom:38px;left:14px;right:14px;font-size:10px;color:#b8e7e0;background:#102732dd;border-radius:4px;padding:5px;z-index:2}
+@media(max-width:650px){.api-messages{grid-template-columns:1fr;padding:14px}.api-lab .mechanism-inputs label{width:100%}.api-lab .mechanism-device{max-width:120px}.api-lab .mechanism-flight{max-width:120px}}

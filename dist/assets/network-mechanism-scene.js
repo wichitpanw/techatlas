@@ -49,7 +49,7 @@ export function mountScene(container, {lesson, preview=false,initialModel}={}) {
       const count=model.nodes.length;
       const x=n.position?.[0]??(count===3?[-4,0,4][i]:count===4?[-5,-1.8,1.8,5][i]:-6+i*12/(count-1));
       const z=n.position?.[1]??(count===3&&i===1?-3:count>=4?(i%2?-.9:.9):.5);
-      const logical=(logicalNodes[lesson.id]||[]).includes(n.id);
+      const logical=!!n.logical||(logicalNodes[lesson.id]||[]).includes(n.id);
       const group=logical?new THREE.Group():n.kind==='client'?laptop():n.kind==='server'?rack():appliance(n.kind==='switch'?'switch':n.kind==='ap'?'router':'router');
       if(logical){box(group,0,.8,0,2,1.3,.3,material(0x426a87));box(group,0,.8,.17,1.7,1,.03,material(0x153742));}
       group.scale.setScalar(n.kind==='server'?.55:.85);group.position.set(x,0,z);meshGroup.add(group);positions.set(n.id,new THREE.Vector3(x,.6,z));
@@ -61,7 +61,7 @@ export function mountScene(container, {lesson, preview=false,initialModel}={}) {
         const ring=new THREE.Mesh(new THREE.RingGeometry(1.2,2,64),new THREE.MeshBasicMaterial({color:[0x73dfc5,0x75bafa,0xf4bd64][i],side:THREE.DoubleSide,transparent:true,opacity:.25}));ring.rotation.x=-Math.PI/2;ring.position.set(x,.02,z);meshGroup.add(ring);
       }
     });
-    model.links.forEach(l=>{const points=[positions.get(l.from),positions.get(l.to)];const logical=(logicalNodes[lesson.id]||[]).some(id=>id===l.from||id===l.to);const mat=logical?new THREE.LineDashedMaterial({color:0x526d79,transparent:true,opacity:.65,dashSize:.35,gapSize:.2}):new THREE.LineBasicMaterial({color:0x526d79,transparent:true,opacity:.65});const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),mat);if(logical)line.computeLineDistances();meshGroup.add(line);links.push({id:l.id,line});});
+    model.links.forEach(l=>{const points=[positions.get(l.from),positions.get(l.to)];const logical=lesson.apiLab||(logicalNodes[lesson.id]||[]).some(id=>id===l.from||id===l.to);const mat=logical?new THREE.LineDashedMaterial({color:0x526d79,transparent:true,opacity:.65,dashSize:.35,gapSize:.2}):new THREE.LineBasicMaterial({color:0x526d79,transparent:true,opacity:.65});const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),mat);if(logical)line.computeLineDistances();meshGroup.add(line);links.push({id:l.id,line});});
   }
   function show(index){
     stepIndex=Math.max(0,Math.min(index,model.steps.length-1));const frame=model.steps[stepIndex];
