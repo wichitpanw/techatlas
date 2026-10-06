@@ -13,8 +13,9 @@ export function mountFoundationScene(host,read,advance){
  function clear(){labels.forEach(l=>l.el.remove());labels=[];motions=[];if(group){group.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});scene.remove(group);}group=new THREE.Group();scene.add(group);}
  function rebuild(s){clear();elapsed=0;
   if(s.topic==='data'){
-   s.pixels.forEach((v,i)=>{const from=V(-3+(i%3)*.7,1.1-Math.floor(i/3)*.7),to=V(1.4+(i%3)*.75,1.1-Math.floor(i/3)*.7);const m=cube(from,new THREE.Color(v/255,v/255,v/255),.55);if(s.step>=1)motions.push({m,from,to});label(`${i+1}: ${s.step===2?s.normalized[i].toFixed(2):v}`,to.clone().add(V(0,.45)));});
-   label('ภาพ 3×3\nแถว1 → แถว2 → แถว3',V(-2.3,2.5));label(s.step===2?'Vector · ค่า ÷ 255':'Vector · ลำดับเดิม\nแบ่ง3แถวเพื่ออ่านง่าย',V(2.2,2.5));
+   s.pixels.forEach((v,i)=>{const row=Math.floor(i/3),from=V(-3+(i%3)*.7,1.2-row*1.2),to=V(.5+(i%3)*1.1,1.2-row*1.2);const m=cube(from,new THREE.Color(v/255,v/255,v/255),.55);if(s.step>=1)motions.push({m,from,to});});
+   for(let row=0;row<3;row++){const values=s.pixels.slice(row*3,row*3+3).map((v,col)=>`${row*3+col+1}: ${s.step===2?s.normalized[row*3+col].toFixed(2):v}`);label(values.join('  |  '),V(1.6,1.85-row*1.2));}
+   label('ภาพ 3×3\nแถว1 → แถว2 → แถว3',V(-2.3,3.2));label(s.step===2?'Vector · ค่า ÷ 255':'Vector · ลำดับเดิม\nแบ่ง3แถวเพื่ออ่านง่าย',V(1.6,3.2));
   }else if(s.topic==='vector'){
    s.dot.products.forEach((v,i)=>{const y=1-i*1.7;label(`x${i+1} ${s.x[i]} × w${i+1} ${s.w[i]}`,V(-3.2,y));label(`ผลคูณ ${v.toFixed(3)}`,V(-.3,y));const from=V(-2,y),to=s.step===2?V(3,0):V(-.8,y),m=cube(from,v>=0?0x77dcbf:0xc49cf3,.3);motions.push({m,from,to});path([from,to]);});label(`Σ ผลคูณ\nDot ${s.dot.sum.toFixed(3)}`,V(3,1));label('Σ = บวกสมาชิกทั้งหมด ไม่ใช่เพิ่ม Dimension',V(0,-2));
   }else if(s.topic==='activation'){

@@ -30,11 +30,11 @@ for (const [from,to] of replacements) {
   main=main.replace(from,to);
 }
 await writeFile(mainPath,main);
-if (publishAI) {
-  const tile=/<article class="subject-tile planned-subject"><span class="subject-code">04 \/ ARTIFICIAL INTELLIGENCE<\/span>[\s\S]*?<\/article>/;
-  assert(tile.test(main),'AI entry transform out of date');
-  main=main.replace(tile,'<a class="subject-tile planned-subject" href="prototypes/ai-foundations.html"><span class="subject-code">04 / ARTIFICIAL INTELLIGENCE</span><h2>ปัญญาประดิษฐ์</h2><p>ข้อมูล → Neural Network → ฝึกและตรวจโมเดล</p><span>10 บททดลอง · 3D Interactive · เปิดเรียน ↗</span></a>');
+if (!publishAI) {
+  main=main.replace("import {aiLessons,aiSections,aiCardPreview} from './ai-course.js?v=ai-catalog-20261006';", "const aiLessons=[],aiSections=[];const aiCardPreview=()=>'';");
   await writeFile(mainPath,main);
+}
+if (publishAI) {
   await mkdir(join(output,'prototypes'),{recursive:true});
   for (const name of ['ai-foundations.html','ai-neural.html','ai-training.html','ai-neural.css']) {
     let content=await readFile(join(root,'prototypes',name),'utf8');
@@ -42,7 +42,7 @@ if (publishAI) {
     await writeFile(join(output,'prototypes',name),content);
   }
   for (const name of await readdir(join(root,'dist/assets'))) {
-    if (/^ai-(foundation|neural|training)-(lab|model|scene)\.js$/.test(name)) await copyFile(join(root,'dist/assets',name),join(output,'assets',name));
+    if (name==='ai-course.js'||/^ai-(foundation|neural|training)-(lab|model|scene)\.js$/.test(name)) await copyFile(join(root,'dist/assets',name),join(output,'assets',name));
   }
 }
 const cardPath=join(output,'assets/card-scene.js');
@@ -54,10 +54,10 @@ assert(start>=0 && end>start,'Card release transform out of date');
 card=card.slice(0,start)+card.slice(end);
 await writeFile(cardPath,card);
 const assets=await readdir(join(output,'assets'));
-const allowedAI=name=>publishAI && /^ai-(foundation|neural|training)-(lab|model|scene)\.js$/.test(name);
+const allowedAI=name=>publishAI && (name==='ai-course.js'||/^ai-(foundation|neural|training)-(lab|model|scene)\.js$/.test(name));
 assert(!assets.some(name=>excluded.test(name)&&!allowedAI(name)),'Draft files in release');
 for (const name of assets.filter(name=>name.endsWith('.js'))) {
   const code=await readFile(join(output,'assets',name),'utf8');
-  if (!allowedAI(name)) assert(!/(?:from\s*|import\s*\()\s*['"]\.\/(?:ai|programming)-/.test(code),'Draft import in '+name);
+  if (!allowedAI(name)&&!(publishAI&&name==='main.js')) assert(!/(?:from\s*|import\s*\()\s*['"]\.\/(?:ai|programming)-/.test(code),'Draft import in '+name);
 }
 console.log(output);

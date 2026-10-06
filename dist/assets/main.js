@@ -26,6 +26,7 @@ import {apiLessons,apiSections} from './api-curriculum.js';
 import {apiSurface,initAPI} from './api-lab.js?v=speed-20261005';
 import {buildAPI} from './api-model.js';
 import {initVisitCounter} from './visit-counter.js?v=counter-20261004';
+import {aiLessons,aiSections,aiCardPreview} from './ai-course.js?v=ai-catalog-20261006';
 import {networkLearningGuide} from './network-learning-guide.js';
 import {glossaryEntries,lessonTermsSurface,searchGlossary} from './lesson-terms.js?v=python-next-20261004';
 import {canonicalLessonId,mergeLegacyProgress} from './lesson-aliases.js';
@@ -33,7 +34,7 @@ initVisitCounter();
 const networkLessons = arrangeNetwork(originalNetworkLessons);
 // Drafts remain on disk; withdrawing a course must not erase saved learner work.
 const programmingLessons = apiLessons;
-const aiLessons = []; // New AI labs have their own standalone entry point.
+// The catalog opens the current standalone labs, not retired AI routes.
 
 const lessons = [...networkLessons, ...pythonLessons, ...programmingLessons, ...aiLessons];
 const main = document.querySelector("main");
@@ -53,6 +54,7 @@ const normalize = (value) =>
     .join("\n")
     .trim();
 const courses = [
+  {id:'ai',name:'AI',description:'ข้อมูล → Neural Network → การฝึกและตรวจโมเดล · 10 บททดลอง',sections:aiSections,lessons:aiLessons},
   {id:'programming',name:'Programming',description:'API เท่านั้น · คำขอ/คำตอบ → REST/GraphQL/gRPC/SOAP → ช่องข้อความและ Events',sections:apiSections,lessons:programmingLessons},
   {
     id: "network",
@@ -202,6 +204,7 @@ function intro(title, description, label = "EXPLORE AT YOUR OWN PACE") {
   return `<section class="intro"><div><p class="eyebrow">${label}</p><h1>${title}</h1><p>${description}</p></div><span class="number">NETWORK · PYTHON · PROGRAMMING · AI</span></section>`;
 }
 function card(l) {
+  if(l.track==='ai')return `<a class="card" href="${l.href}"><div class="card-visual">${aiCardPreview(l)}<span class="label">${l.tag}</span><span class="lab-badge">3D INTERACTIVE</span></div><div class="card-body"><h3>${l.title}</h3><p>${l.subtitle}</p><div class="card-meta"><span>${l.time} นาที · คำนวณและทดลอง</span><span>เปิดบทเรียน ↗</span></div></div></a>`;
   const mode = networkLabSpecs[l.id]?.mode;
   if(l.id==='osi-model')return `<a class="card ${progress[l.id]?'done':''}" href="#lesson/${l.id}"><div class="card-visual" data-card-scene="${l.id}"><span class="label">OSI / ENCAPSULATION</span><span class="lab-badge">3D INTERACTIVE</span></div><div class="card-body"><h3>${l.title}</h3><p>ส่งลง 7 → 1 แล้วรับขึ้น 1 → 7 · ดู Header และ Frame เสีย</p><div class="card-meta"><span>${l.time} นาที · ทดลองทีละชั้น</span><span>${progress[l.id]?'✓ ผ่านแล้ว':'เปิดบทเรียน ↗'}</span></div></div></a>`;
   const badge = l.track === 'ai' ? 'AI VISUAL LAB' : l.apiLab ? '3D API LAB' : l.track === 'programming' ? 'LIVE WEB LAB' : l.track === 'python' ? 'LIVE PYTHON' : mode === '3d' || !l.conceptLab || l.section === 'foundation' ? '3D INTERACTIVE' : mode === 'tool' ? 'INTERACTIVE SANDBOX' : 'INTERACTIVE SEQUENCE';
@@ -209,8 +212,8 @@ function card(l) {
 }
 function renderExplore() {
   main.className = "";
-  main.innerHTML = `${intro("วันนี้อยาก<strong>สำรวจเรื่องไหน?</strong>", "เลือกเรื่องที่สนใจ เห็นภาพ ทดลอง และค้นหาคำตอบด้วยตัวเอง", "TECHATLAS · LEARN BY EXPLORING")}<section class="subject-grid" aria-label="หมวดการเรียนรู้"><button class="subject-tile network-subject" data-subject="network"><span class="subject-code">01 / NETWORK</span><h2>เครือข่าย</h2><p>อุปกรณ์เชื่อมต่อกันอย่างไร ข้อมูลเดินทางไปไหน</p><span>${networkLessons.length} บท · แบบจำลองและภารกิจ</span></button><button class="subject-tile python-subject" data-subject="python"><span class="subject-code">02 / PYTHON</span><h2>เขียนโปรแกรม Python</h2><p>เริ่มจากศูนย์ เขียนโค้ดและทดลองรันด้วยตัวเอง</p><span>${pythonLessons.length} บท · รันโค้ดในหน้าเรียน</span></button><button class="subject-tile programming-subject" data-subject="programming"><span class="subject-code">03 / PROGRAMMING</span><h2>API: โปรแกรมคุยกันอย่างไร</h2><p>Request · Response · Contract · Events</p><span>${programmingLessons.length} บท · ทดลองกลไกใน 3D</span></button><article class="subject-tile planned-subject"><span class="subject-code">04 / ARTIFICIAL INTELLIGENCE</span><h2>ปัญญาประดิษฐ์</h2><p>เข้าใจ AI ทดลองใช้งาน และตรวจสอบคำตอบ</p><span>กำลังเตรียมบทเรียน</span></article></section><div class="filterbar" role="group" aria-label="กรองบทเรียน"><button class="filter active" data-filter="all">ภาพรวมทุกหมวด</button><button class="filter" data-filter="network">Network ${networkLessons.length}</button><button class="filter" data-filter="python">Python ${pythonLessons.length}</button><button class="filter" data-filter="programming">Programming ${programmingLessons.length}</button><button class="filter" data-filter="completed">ผ่านแล้ว</button><label class="search"><input id="search" type="search" placeholder="ค้นหาหัวข้อ เช่น VLAN, List…" aria-label="ค้นหาบทเรียน"></label></div><div id="catalog"></div>`;
-  let filter = "all";
+  main.innerHTML = `${intro("วันนี้อยาก<strong>สำรวจเรื่องไหน?</strong>", "เลือกเรื่องที่สนใจ เห็นภาพ ทดลอง และค้นหาคำตอบด้วยตัวเอง", "TECHATLAS · LEARN BY EXPLORING")}<section class="subject-grid" aria-label="หมวดการเรียนรู้"><button class="subject-tile network-subject" data-subject="network"><span class="subject-code">01 / NETWORK</span><h2>เครือข่าย</h2><p>อุปกรณ์เชื่อมต่อกันอย่างไร ข้อมูลเดินทางไปไหน</p><span>${networkLessons.length} บท · แบบจำลองและภารกิจ</span></button><button class="subject-tile python-subject" data-subject="python"><span class="subject-code">02 / PYTHON</span><h2>เขียนโปรแกรม Python</h2><p>เริ่มจากศูนย์ เขียนโค้ดและทดลองรันด้วยตัวเอง</p><span>${pythonLessons.length} บท · รันโค้ดในหน้าเรียน</span></button><button class="subject-tile programming-subject" data-subject="programming"><span class="subject-code">03 / PROGRAMMING</span><h2>API: โปรแกรมคุยกันอย่างไร</h2><p>Request · Response · Contract · Events</p><span>${programmingLessons.length} บท · ทดลองกลไกใน 3D</span></button>${aiLessons.length ? `<button class="subject-tile ai-subject" data-subject="ai"><span class="subject-code">04 / ARTIFICIAL INTELLIGENCE</span><h2>ปัญญาประดิษฐ์</h2><p>ข้อมูล → Neural Network → ฝึกและตรวจโมเดล</p><span>${aiLessons.length} บท · เลือกบทเรียนและทดลอง 3D</span></button>` : `<article class="subject-tile planned-subject"><span class="subject-code">04 / ARTIFICIAL INTELLIGENCE</span><h2>ปัญญาประดิษฐ์</h2><p>เข้าใจ AI ทดลองใช้งาน และตรวจสอบคำตอบ</p><span>กำลังเตรียมบทเรียน</span></article>`}</section><div class="filterbar" role="group" aria-label="กรองบทเรียน"><button class="filter active" data-filter="all">ภาพรวมทุกหมวด</button><button class="filter" data-filter="network">Network ${networkLessons.length}</button><button class="filter" data-filter="python">Python ${pythonLessons.length}</button><button class="filter" data-filter="programming">Programming ${programmingLessons.length}</button>${aiLessons.length ? `<button class="filter" data-filter="ai">AI ${aiLessons.length}</button>` : ""}<button class="filter" data-filter="completed">ผ่านแล้ว</button><label class="search"><input id="search" type="search" placeholder="ค้นหาหัวข้อ เช่น VLAN, List…" aria-label="ค้นหาบทเรียน"></label></div><div id="catalog"></div>`;
+  let filter = location.hash === '#explore/ai' && aiLessons.length ? 'ai' : 'all';
 
   function draw() {
     const query = document.querySelector("#search").value.trim().toLowerCase();
@@ -255,6 +258,7 @@ function renderExplore() {
         .querySelectorAll("[data-filter]")
         .forEach((b) => b.classList.toggle("active", b.dataset.filter === value));
       draw();
+      history.replaceState(null,'',value==='ai'?'#explore/ai':'#explore');
   }
   document.querySelectorAll("[data-filter]").forEach((button) => button.addEventListener("click", () => chooseFilter(button.dataset.filter)));
   main.onclick = function selectSubject(event) {
@@ -264,6 +268,7 @@ function renderExplore() {
     document.querySelector(".filterbar").scrollIntoView({ behavior: "smooth", block: "start" });
   };
   document.querySelector("#search").addEventListener("input", draw);
+  if(filter==='ai')chooseFilter('ai');
 }
 function renderPath() {
   main.className = "";
@@ -369,6 +374,7 @@ function renderLesson(id) {
     return;
   }
   currentLesson = l;
+  if(l.track==='ai'){location.assign(l.href);return;}
   // Lesson-specific reports remain outside the lab's event handlers.
   main.className = "lab-page";
   const group = lessons.filter((x) => x.track === l.track),

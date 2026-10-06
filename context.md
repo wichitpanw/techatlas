@@ -8,8 +8,12 @@
 
 ## Cleanup ในเครื่อง · 2026-10-05
 
+- 2026-10-06 ผู้ใช้ชี้แจงว่าปัญหาคือทางเข้า AI ไม่ใช่แค่ layout: เพิ่ม `ai-course.js` catalogใหม่10บทเข้าระบบ Explore/Path/Search เดียวกับหมวดอื่น การ์ดหมวดAIกรองรายการก่อนเลือกบท ไม่เปิดบทแรกทันที; แบ่ง6+4บทและการ์ดภาพแนวคิดนิ่ง เพิ่ม hashตรงบทในFoundations/Trainingและปุ่มกลับ `#explore/ai` ทั้ง3หน้า Versioned assets ป้องกันแคชเดิม ตรวจbrowserคลิกหมวดเห็น10การ์ด เลือกActivationเปิดถูกหัวข้อและกลับเห็น10การ์ด; `tests/ai-course.mjs`ตรวจ10IDs/sections/targets/backlinksผ่านและreleaseทั้งสองโหมดผ่าน ไม่ replay บทเก่า ภาพ `/tmp/techatlas-ai-catalog.png` ยังไม่commit/push/deploy รอบนี้
+
+- 2026-10-06 แก้ layout AI ในเครื่อง: ป้าย Pixel/Vector เปลี่ยนจาก9ป้ายทับกันเป็น3แถว อ่านครบ9ค่า; spacing 3D/เมนู button-link และพื้นที่ input ปรับด้วย CSS ร่วม ตรวจ Browser Foundations มุมตั้งต้นและเดินขั้น3ค่าหาร255ตรงกับตาราง syntax/release builderผ่าน ภาพ `/tmp/techatlas-ai-layout-fixed.png` ยังไม่ตรวจทุกมุม/มือถือหรือ AI ทุกบทใหม่ และยังไม่ commit/push/deploy รอบนี้
+
 - ตามคำขอผู้ใช้ลบ AI เก่า 4 บท: curriculum/lab/models, แบบทดสอบเฉพาะชุดเก่า, styles และ AI-PLAN.md เดิม ถอด imports/renderer เก่าและปรับ release builder; AI ใหม่ 10 บทและข้อมูลความคืบหน้าของผู้เรียนไม่ถูกลบ ไฟล์เก่ากู้คืนได้จาก Git ก่อนหน้า บันทึก Local prototype ด้านล่างเป็นประวัติ ไม่ใช่สถานะปัจจุบัน
-- การ cleanup รอบนี้ยังไม่ commit/push/deploy; production ล่าสุดยังเป็น 58664a97 ที่เผยแพร่ AI ใหม่แล้ว
+- Cleanup ได้รับอนุมัติแล้ว: commit `a65d44f` push origin/main และ deploy วันที่ 2026-10-05 ไป https://5a9fbbaa.techatlas-aoh.pages.dev; main และหน้า Foundations บนเว็บหลักตรงชุด `/tmp/techatlas-release-IRM8ux/dist` หลังตาม redirect ไม่ตรวจบทเดิมซ้ำ บันทึกหลังเผยแพร่บรรทัดนี้ยังเป็น local change
 
 ## Production ล่าสุด
 
