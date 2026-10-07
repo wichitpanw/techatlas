@@ -16,15 +16,15 @@ import { conceptSurface, initConcept } from "./network-concepts.js?v=speed-20261
 import { createPythonInteractive } from './python-interactive.js?v=speed-20261005';
 import { initMechanism } from './network-mechanism.js?v=speed-20261005';
 import {initFeedback} from './feedback.js';
-import {renderUpdates,initUpdateFooter} from './updates.js?v=speed-20261005-final';
+import {renderUpdates,initUpdateFooter} from './updates.js?v=api-review-20261007-r2';
 import {internetSurface,initInternet} from './internet-lab.js?v=speed-20261005';
 import { networkLabSpecs,buildNetworkLab } from './network-lab-models.js?v=speed-20261005';
 import { bindPythonEditor } from './python-editor.js';
 import {programmingLessons as withdrawnProgrammingLessons, programmingSections} from './programming-curriculum.js';
 import {programmingSurface, initProgramming} from './programming-lab.js';
-import {apiLessons,apiSections} from './api-curriculum.js';
-import {apiSurface,initAPI} from './api-lab.js?v=speed-20261005';
-import {buildAPI} from './api-model.js';
+import {apiLessons,apiSections} from './api-curriculum.js?v=api-review-20261007-r2';
+import {apiSurface,initAPI} from './api-lab.js?v=api-review-20261007-r2';
+import {buildAPI} from './api-model.js?v=api-review-20261007-r2';
 import {initVisitCounter} from './visit-counter.js?v=counter-20261004';
 import {aiLessons,aiSections,aiCardPreview} from './ai-course.js?v=ai-catalog-20261006';
 import {networkLearningGuide} from './network-learning-guide.js';
@@ -144,7 +144,7 @@ async function addScene(el, options = {}) {
   try {
     const module = await import(
       options.preview
-        ? "./card-scene.js?v=speed-20261005"
+        ? "./card-scene.js?v=api-review-20261007-r2"
         : options.python
           ? "./python-scene.js?v=python-next-20261004"
         : options.mechanism

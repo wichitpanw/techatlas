@@ -22,13 +22,16 @@ export function mountScene(container, {lesson, preview=false,initialModel}={}) {
     'automation-tools':['current','plan','desired'],sdn:['mgmt','control','data'],
     hsrp:['vip'],
   };
-  let model=initialModel||buildNetworkLab(lesson), stepIndex=-1, meshGroup=new THREE.Group(),objects=[],links=[],messages=[],elapsed=0,lastTick=null,paused=false,packetMeter=null,meterFrom=0,meterTo=0,byteSlots=[];scene.add(meshGroup);
+  let model=initialModel||buildNetworkLab(lesson), stepIndex=-1, meshGroup=new THREE.Group(),objects=[],links=[],messages=[],elapsed=0,lastTick=null,paused=false,packetMeter=null,meterFrom=0,meterTo=0,byteSlots=[],apiSlots=[];scene.add(meshGroup);
   const traffic=new THREE.Group();scene.add(traffic);
   function clearTraffic(){traffic.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});traffic.clear();for(const m of messages)m.label.remove();messages=[];}
   const positions=new Map();
   function clear(){clearTraffic();meshGroup.traverse(o=>{o.geometry?.dispose();for(const m of(Array.isArray(o.material)?o.material:[o.material])){m?.map?.dispose();m?.dispose();}});scene.remove(meshGroup);meshGroup=new THREE.Group();scene.add(meshGroup);labels.replaceChildren();objects=[];links=[];positions.clear();}
   function build(next){
-    model=next;clear();stepIndex=-1;packetMeter=null;byteSlots=[];
+    model=next;clear();stepIndex=-1;packetMeter=null;byteSlots=[];apiSlots=[];
+    if(lesson.apiLab){
+      for(let i=0;i<3;i++){const slot=new THREE.Mesh(new THREE.BoxGeometry(2.7,.25,.9),new THREE.MeshStandardMaterial({color:0x355666}));slot.position.set((i-1)*3,.25,4);meshGroup.add(slot);const label=document.createElement('span');label.className='mechanism-flight';label.hidden=preview;labels.append(label);apiSlots.push({slot,label,anchor:new THREE.Vector3((i-1)*3,1,4)});}
+    }
     if(lesson.id==='tcp-handshake'&&model.parameters.flow==='data'){
       for(let i=0;i<2;i++){
         const slot=new THREE.Mesh(new THREE.BoxGeometry(2.1,.3,.8),new THREE.MeshStandardMaterial({color:0x355666}));
@@ -81,6 +84,7 @@ export function mountScene(container, {lesson, preview=false,initialModel}={}) {
       });
       renderer.domElement.dataset.deliveredBytes=String(delivered);renderer.domElement.dataset.bufferedBytes=String(buffered);
     }
+    if(apiSlots.length){const cells=frame.visual||[];apiSlots.forEach((b,i)=>{const c=cells[i];b.label.textContent=c?c.label+' · '+c.value:'';b.slot.material.color.set(c?.state==='blocked'?0xed8e7c:c?.state==='ok'?0x73dfc5:0x355666);});renderer.domElement.dataset.apiVisual=JSON.stringify(cells);}
     decision.replaceChildren();const title=document.createElement('strong');title.textContent=frame.title;decision.append(title);
     for(const [key,value] of frame.fields.slice(0,3)){const row=document.createElement('span');row.textContent=`${key}: ${value}`;decision.append(row);}
     decision.classList.toggle('blocked',frame.status==='blocked');
@@ -120,7 +124,7 @@ export function mountScene(container, {lesson, preview=false,initialModel}={}) {
     placed.push({...best,w,h});element.style.left=best.x+'px';element.style.top=best.y+'px';
   }
   function tick(now){if(disposed)return;raf=requestAnimationFrame(tick);if(lastTick!==null&&!paused&&!document.hidden)elapsed+=Math.min(50,now-lastTick)*playbackSpeed.get();lastTick=now;controls.update();if(packetMeter){const p=preview?1:Math.min(1,elapsed/700),smooth=p*p*(3-2*p),length=meterFrom+(meterTo-meterFrom)*smooth;packetMeter.scale.x=length;packetMeter.position.x=-4+length/2;}const placed=[];for(const o of objects){const p=o.anchor.clone().project(camera);o.button.hidden=preview||p.z>1||p.z< -1||(objects.length>8&&!model.steps[stepIndex].active.includes(o.id));place(o.button,p,placed);}
-    for(const b of byteSlots){const p=b.anchor.clone().project(camera);b.label.hidden=preview||p.z>1||p.z< -1;place(b.label,p,placed);}
+    for(const b of [...byteSlots,...apiSlots]){const p=b.anchor.clone().project(camera);b.label.hidden=preview||p.z>1||p.z< -1;place(b.label,p,placed);}
     // Named transfers come from the teaching model, never inferred from every lit link.
     for(const m of messages){const local=elapsed-m.lane*FLOW_HOP_MS,progress=(preview)? .5:Math.max(0,Math.min(1,local/FLOW_HOP_MS));const handedOff=local>=FLOW_HOP_MS&&messages.some(next=>next.lane===m.lane+1&&next.from.distanceTo(m.to)<.01);m.marker.visible=(preview||local>=0)&&!handedOff;m.marker.position.lerpVectors(m.from,m.to,progress);if(!preview)m.marker.position.y+=Math.sin(progress*Math.PI)*.18;const position=m.trail.geometry.attributes.position;position.setXYZ(1,m.marker.position.x,m.marker.position.y,m.marker.position.z);position.needsUpdate=true;m.trail.visible=local>=0||preview;const anchor=m.marker.position.clone();anchor.y+=.7;const p=anchor.project(camera);m.label.hidden=preview||!m.marker.visible||p.z>1||p.z< -1;place(m.label,p,placed);m.marker.userData.progress=progress;}
     renderer.domElement.dataset.flowProgress=String(Math.min(1,elapsed/flowDuration(model.steps[stepIndex].transfers)));renderer.domElement.dataset.flowPaused=String(paused);

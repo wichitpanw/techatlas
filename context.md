@@ -1,10 +1,21 @@
 # TechAtlas — สถานะปัจจุบัน
 
-อัปเดต 2026-10-05 · Warapon Wichitpan · wichitpan.w@gmail.com
+อัปเดต 2026-10-07 · Warapon Wichitpan · wichitpan.w@gmail.com
 
 อ่าน AGENTS.md ก่อนทำงาน ไฟล์นี้ไม่ใช่อนุมัติ commit/push/deploy ผลตรวจเก่าอยู่ PROJECT-HISTORY.md
 
 ## Production
+
+## Local revision · API 2026.10.07.1 · ยังไม่เผยแพร่
+
+- ผู้ใช้อนุมัติแก้ตาม API audit วันที่ 2026-10-07 ไม่ใช่อนุมัติ commit/push/deploy; Production ล่าสุดยังเป็นรอบ AI catalog 2026-10-06 ด้านล่าง
+- แก้ Long Polling current round/history, SOAP Upgrade namespace, HTTP status/headers/body; เพิ่มเป้าหมายและ contract/schema ย่อ ชื่อช่องเฉพาะบท และ checklist
+- API 9 บท/8 รูปแบบเดิม ไม่เพิ่มหัวข้อ; สามแผ่นสถานะ 3D จากโมเดล (fields/messages/events/channel/round/dedup) แสดง ACK สูญหายก่อนถึงต้นทางและคลิกป้ายอ่านบริบทได้ ไม่จำลอง timer/latency หรือบริการจริง
+- ผ่านภารกิจต้องดูครบทุกขั้นของสามกรณี; REST ต้องทดลอง POST ชื่อใหม่และชื่อว่างครบทุกขั้นเพิ่มด้วย ไม่ใช้ final-step-only gate
+- `tests/api-model.mjs` ผ่าน 162 combinations และ request-round/SOAP-namespace/semantic-state regressions; clean release `--publish-ai` สร้างได้ โดย API teaching asset รวมอยู่และ JS/TS/Node drafts ยังไม่เผยแพร่
+- Browser `tests/api-browser.html?fix=20261007` รอบสุดท้ายผ่าน9/9×3กรณี: semantic3D/evidence/controls/quiz, ห้ามข้ามตรงขั้นสุดท้าย, REST custom+empty POST, SOAP Upgrade namespace และ natural-end2×ทุกบท ไม่เขียน learner storage; Webhook0.5×pauseค้าง flowProgress0.154463 หลังรออ่านซ้ำ ตรวจเฉพาะ API ที่แก้ ไม่ replay หมวดอื่น
+- จอ390pxตรวจทั้ง9หน้าตั้งต้น: canvas/semantic snapshot/guide ครบ, document scrollWidth375 ไม่ล้นแนวนอน; ตรวจภาพ GraphQL/Webhook desktop และ Long Polling current/history จริง Webhook0.5×flow/pauseผ่าน ไม่อ้างทุกมุมหรือ usability study
+- รายงาน `API-AUDIT-2026-10-07.md`, notes `API-CONTENT-NOTES.md`; ภาพ `/tmp/techatlas-api-improved-20261007.png` รายการอัปเดตหน้าเว็บเตรียมรุ่น2026.10.07.1ไว้ในเครื่อง ไม่ใช่ production
 
 ## Cleanup ในเครื่อง · 2026-10-05
 
@@ -16,6 +27,8 @@
 - Cleanup ได้รับอนุมัติแล้ว: commit `a65d44f` push origin/main และ deploy วันที่ 2026-10-05 ไป https://5a9fbbaa.techatlas-aoh.pages.dev; main และหน้า Foundations บนเว็บหลักตรงชุด `/tmp/techatlas-release-IRM8ux/dist` หลังตาม redirect ไม่ตรวจบทเดิมซ้ำ บันทึกหลังเผยแพร่บรรทัดนี้ยังเป็น local change
 
 ## Production ล่าสุด
+
+- 2026-10-06 ผู้ใช้อนุมัติรอบ catalog/layout AI: commit `3ecc016` push origin/main และ deploy `/tmp/techatlas-release-SGs152/dist` ไป https://200b0662.techatlas-aoh.pages.dev สำเร็จ หน้า Explore เปิด AI เป็นรายการ10การ์ด (6+4), เลือก Activation เปิดตรงหัวข้อและกลับเห็น10การ์ด ตรวจ Browser บนเว็บหลักจริงผ่าน ภาพ `/tmp/techatlas-ai-catalog-live.png` ไม่เปลี่ยน D1/config และไม่เปิด Programming ที่พักไว้ ผลนี้ตรวจการนำทาง ไม่ใช่ replay ทุกบท/ทุกจอ บันทึกหลังเผยแพร่ส่วนนี้ยังเป็น local change
 
 - 2026-10-05: ผู้ใช้อนุมัติ “deploy เลย” เผยแพร่ AI รุ่นทดลอง 10 บทผ่านการ์ด 04 ใน Explore ไป immutable https://58664a97.techatlas-aoh.pages.dev ชุด `/tmp/techatlas-release-0HRDU2/dist` ใช้ `prepare-release.mjs --publish-ai`; ไม่รวม AI เก่า/Programming ที่พักไว้ ไม่เปลี่ยน D1/config โมเดลผ่านชุดทดสอบรอบก่อน ตรวจ main และหน้า Foundations บนเว็บหลักตรงไฟล์ release (หน้า HTML ตาม redirect) และ training scene HTTP200 ยังไม่ตรวจทุกบทซ้ำ/มือถือ; ไม่มี progress หรือวิดีโอสำหรับ AI รุ่นนี้
 

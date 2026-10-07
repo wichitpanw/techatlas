@@ -2,7 +2,7 @@ import { mountScene as networkScene } from "./lab-scene.js?v=speed-20261005";
 import { mountScene as foundationScene } from "./foundation-scene.js?v=speed-20261005";
 import { conceptPreview } from "./network-concepts.js?v=speed-20261005";
 import { mountScene as pythonScene } from './python-scene.js?v=python-next-20261004';
-import { mountScene as mechanismScene } from './network-mechanism-scene.js?v=speed-20261005';
+import { mountScene as mechanismScene } from './network-mechanism-scene.js?v=api-review-20261007-r2';
 import { networkLabSpecs, buildNetworkLab } from './network-lab-models.js?v=speed-20261005';
 import {programmingPreview} from './programming-lab.js';
 import {osiPreview} from './osi-lab.js?v=speed-20261005';
@@ -13,7 +13,7 @@ import {qualityPreview,simulateQueue} from './network-quality.js?v=speed-2026100
 import {queueSceneModel} from './quality-scene-model.js';
 import {serviceLessons,serviceScene,simulateVideo,simulateRate} from './service-tools.js?v=speed-20261005';
 import {repairInitial,repairModel} from './repair-lab.js?v=speed-20261005';
-import {buildAPI} from './api-model.js';
+import {buildAPI} from './api-model.js?v=api-review-20261007-r2';
 
 // Actual lesson renderers/data are the single source of truth for Explore previews.
 export function mountScene(container, { lesson } = {}) {

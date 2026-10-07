@@ -1,5 +1,15 @@
 # Programming · API เท่านั้น
 
+## Local revision · 2026-10-07 (ยังไม่เผยแพร่)
+
+- เพิ่มเป้าหมาย/ข้อตกลงย่อของทั้ง 9 บท, schema GraphQL และ contract gRPC ที่ระบุชัดว่าไม่ใช่ไฟล์ compile จริง; ชื่อช่องและหัวข้อคำขอ/คำตอบเฉพาะบท
+- SOAP transition ใช้ `s:Upgrade` / `s:SupportedEnvelope` ใน SOAP 1.1 namespace ส่วน `qname="up:Envelope"` ชี้ SOAP 1.2 ตาม W3C Appendix A Example 8; มี regression namespace ทั้ง model และ DOMParser
+- Long Polling เก็บคำตอบรอบก่อนแยก history และรอบใหม่แสดงยังไม่ได้รับคำตอบ; REST/basic แสดง HTTP status/headers/body ไม่เหมารวมเป็น JSON body อย่างเดียว
+- เพิ่มสามแผ่นสถานะใน 3D เฉพาะ API จาก snapshot ของโมเดล: fields/messages/events/channel/request round/event ID และงานรับใหม่; เป็นมาตรวัดเชิงแนวคิด ไม่ใช่อุปกรณ์เพิ่มเติมหรือ timer/latency จริง
+- Webhook ACK ที่หายมีเที่ยวข้อความหยุดก่อนถึงต้นทาง ไม่เพิ่ม received response; retry ID เดิมไม่เพิ่มงานรับใหม่
+- เก็บหลักฐานทุกขั้นต่อ scenario/input; ห้ามข้ามตรงขั้นสุดท้ายแล้วนับครบ REST ต้องทดลองชื่อใหม่และชื่อว่างจริง มี checklist แสดงสิ่งที่ยังขาด การดูขั้นไม่ใช่หลักฐานว่าผู้เรียนเข้าใจ จึงยังต้องตอบ quiz
+- การตรวจ/ข้อจำกัดล่าสุดดู `API-AUDIT-2026-10-07.md` และ `context.md`; ยังไม่ commit/push/deploy ในรอบนี้
+
 วันที่ 2026-10-05 · เผยแพร่รุ่น 2026.10.05.1 หลังผู้ใช้อนุมัติ commit/push/deploy · รายละเอียด deployment ใน context.md
 
 ## ขอบเขต

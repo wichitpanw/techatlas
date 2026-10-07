@@ -1,5 +1,10 @@
 // Version date describes this content edition, not a generated page-view date.
 export const updates=[
+  {date:'2026-10-07',version:'2026.10.07.1',title:'API: โจทย์ชัดเจน และภาพอธิบายกลไกเฉพาะบท',items:[
+    {lesson:'api-basics',name:'API ทั้ง 9 บท',detail:'เพิ่มเป้าหมายและข้อตกลงตัวอย่าง ใช้ชื่อช่องเฉพาะบท ต้องดูครบทุกขั้นก่อนตอบ; REST ทดลอง POST ชื่อใหม่และชื่อว่าง'},
+    {lesson:'api-graphql',name:'ภาพกลไก 3D',detail:'เพิ่มแผ่นสถานะเฉพาะเรื่อง: เลือก fields, นับ messages/events, สถานะช่อง, รอบคำขอ และการตรวจ Event ID ซ้ำ; ยังเป็นแบบจำลอง ไม่เรียกบริการจริง'},
+    {lesson:'api-long-polling',name:'Long Polling และ SOAP',detail:'แยกคำตอบรอบเก่าออกจากคำขอที่กำลังรอ และแก้ namespace ของ SOAP Upgrade ในกรณี VersionMismatch'},
+  ]},
   {date:'2026-10-05',version:'2026.10.05.4',title:'ปรับความเร็วภาพกลไก และใช้สถานการณ์สมมติที่เป็นกลาง',items:[
     {lesson:'mtu-pmtud',name:'Network และ API',detail:'เลือกความเร็วการแสดงผล 0.5×–2× ได้โดยไม่เปลี่ยนค่าคำนวณหรือ latency ของแบบจำลอง; ฉากโครงสร้างที่ไม่มีเวลาเคลื่อนไหวระบุเป็นภาพนิ่ง'},
     {lesson:'osi-model',name:'OSI และ Python',detail:'ปรับความเร็วการเดินผ่าน Layer และการย้อน trace Python ได้ ไม่ใช่การเร่งหรือหน่วงการรัน Python จริง'},

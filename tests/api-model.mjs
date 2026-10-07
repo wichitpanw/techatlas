@@ -34,6 +34,7 @@ assert(model('soap',2).steps.at(-1).response.includes('VersionMismatch'));
 const versionFault=model('soap',2).steps.at(-1).response;
 assert(versionFault.includes('xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"'));
 assert(versionFault.includes('<faultcode>s:VersionMismatch</faultcode>'));
+assert(versionFault.includes('<s:Upgrade><s:SupportedEnvelope qname="up:Envelope"/></s:Upgrade>'),'Upgrade follows SOAP 1.1 transition namespace');
 assert(!versionFault.includes('<env:Code>'),'SOAP 1.1 fault is not SOAP 1.2 fault shape');
 assert.equal(model('grpc').steps.filter(s=>s.response!==undefined).length,1,'status not second unary message');
 assert.equal(model('grpc',1).steps.filter(s=>s.response!==undefined).length,2,'status not third stream message');
@@ -51,6 +52,14 @@ assert(!model('sse',2).steps.at(-1).response,'invalid reverse channel does not f
 assert(model('sse',1).steps.at(-1).response.startsWith('id: 2'));
 assert(!model('long-polling',2).steps.at(-1).response);
 assert(model('long-polling').steps.at(-1).request.endsWith('after=1'));
+for(const s of [0,1]){const m=model('long-polling',s),last=apiMessages(m,m.steps.length-1);assert.equal(last.round,2);assert.equal(last.response,'ยังไม่ได้รับคำตอบ');assert(last.history,'old response retained separately');}
+assert(apiMessages(model('rest',1),99).response.includes('Location: /products/2'));
+assert(apiMessages(model('rest',2),99).response.includes('Allow: GET'));
+assert(model('webhooks',1).steps.find(s=>s.title.startsWith('ACK')).transfers[0].message.includes('ก่อนถึง'));
+for(const l of apiLessons)for(let s=0;s<3;s++){const m=buildAPI(l,s);for(const f of m.steps){assert.equal(f.visual.length,3);assert(f.visual.every(c=>c.label&&typeof c.value==='string'));}}
+assert.equal(model('graphql',2).steps.at(-1).visual[2].state,'blocked');
+assert.equal(model('grpc',1).steps.at(-1).visual[1].value,'2');
+assert.equal(model('webhooks',1).steps.at(-1).visual[1].value,'1');
 assert(!model('webhooks',1).steps.find(s=>s.title.startsWith('ACK')).response);
 assert.equal(model('webhooks',1).steps.at(-1).nodeUpdates.work,'processed = 1');
 assert.equal(model('webhooks',2).steps.at(-1).nodeUpdates.work,'processed = 0');

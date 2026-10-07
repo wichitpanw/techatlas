@@ -1,9 +1,10 @@
+import {apiVisual} from './api-teaching.js?v=api-review-20261007-r2';
 const product={id:1,name:'สมุด',price:80};
 // Headers/status are not extra application messages. One source for the DOM and tests.
 export function apiMessages(model,index){
  let request='ยังไม่ส่ง',head='',rpc='',latest='',received=[];
  for(const frame of model.steps.slice(0,index+1)){
-  if(frame.request!==undefined)request=frame.request;
+  if(frame.request!==undefined){request=frame.request;if(model.kind==='long-polling'){latest='';head='';}}
   if(frame.sentMessage!==undefined)request+='\n\n'+frame.sentMessage;
   if(frame.responseHead!==undefined)head=frame.responseHead;
   if(frame.rpcStatus!==undefined)rpc=frame.rpcStatus;
@@ -11,7 +12,8 @@ export function apiMessages(model,index){
  }
  const streaming=['sse','grpc','websocket'].includes(model.kind);
  const parts=[head,streaming?received.join('\n\n'):latest,rpc?'RPC status · '+rpc:''].filter(Boolean);
- return {request,response:parts.join('\n\n')||'ยังไม่ได้รับคำตอบ',messages:received.length};
+ const round=model.kind==='long-polling'?model.steps.slice(0,index+1).filter(f=>f.request!==undefined).length:1;
+ return {request,response:parts.join('\n\n')||'ยังไม่ได้รับคำตอบ',messages:received.length,round,history:model.kind==='long-polling'&&round>1?received.at(-1)||'':''};
 }
 export function buildAPI(lesson,scenario=0,input={}){
  if(!lesson.apiLab||!Number.isInteger(scenario)||scenario<0||scenario>2)throw Error('เลือกสถานการณ์ API ที่รองรับ');
@@ -56,17 +58,17 @@ export function buildAPI(lesson,scenario=0,input={}){
   node('client','Client','XML Envelope',[-5,1],true);node('contract','Envelope / Contract','SOAP 1.2',[0,-2]);node('service','Service','GetProduct',[5,1]);link('client','contract');link('contract','service');
   const ns=scenario===2?'http://schemas.xmlsoap.org/soap/envelope/':'http://www.w3.org/2003/05/soap-envelope',op=scenario===1?'RemoveEverything':'GetProduct';
   add('XML Envelope → Service','Body ใช้ operation ของ contract ตัวอย่าง ไม่มี arbitrary XML execution',[['Namespace',ns],['Operation',op]],[move('client','contract','Envelope / Body')],{request:`<env:Envelope xmlns:env="${ns}" xmlns:p="urn:techatlas:products"><env:Body><p:${op}><p:id>${p.id}</p:id></p:${op}></env:Body></env:Envelope>`});
-  if(scenario>0){const fault=scenario===2?`<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" xmlns:up="http://www.w3.org/2003/05/soap-envelope"><s:Header><up:Upgrade><up:SupportedEnvelope qname="up:Envelope"/></up:Upgrade></s:Header><s:Body><s:Fault><faultcode>s:VersionMismatch</faultcode><faultstring>The product service accepts SOAP 1.2 operations</faultstring></s:Fault></s:Body></s:Envelope>`:`<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope"><env:Body><env:Fault><env:Code><env:Value>env:Sender</env:Value></env:Code><env:Reason><env:Text xml:lang="en">Unsupported product operation</env:Text></env:Reason></env:Fault></env:Body></env:Envelope>`;add('คืน SOAP Fault',scenario===2?'บริการนี้ไม่รับ operation SOAP 1.1 แต่ตอบ VersionMismatch เป็นโครงสร้าง SOAP 1.1 เพื่อให้ผู้ส่งเดิมอ่านได้ ตาม version transition rules; ไม่เรียก GetProduct':'SOAP 1.2 Sender Fault แจ้งว่าคำขอ operation ไม่อยู่ใน contract',[['Fault',scenario===2?'s:VersionMismatch':'env:Sender'],['Response Envelope',scenario===2?'SOAP 1.1':'SOAP 1.2']],[move('contract','client','SOAP Fault')],{status:'blocked',...response(fault)});}
+  if(scenario>0){const fault=scenario===2?`<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" xmlns:up="http://www.w3.org/2003/05/soap-envelope"><s:Header><s:Upgrade><s:SupportedEnvelope qname="up:Envelope"/></s:Upgrade></s:Header><s:Body><s:Fault><faultcode>s:VersionMismatch</faultcode><faultstring>The product service accepts SOAP 1.2 operations</faultstring></s:Fault></s:Body></s:Envelope>`:`<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope"><env:Body><env:Fault><env:Code><env:Value>env:Sender</env:Value></env:Code><env:Reason><env:Text xml:lang="en">Unsupported product operation</env:Text></env:Reason></env:Fault></env:Body></env:Envelope>`;add('คืน SOAP Fault',scenario===2?'บริการนี้ไม่รับ operation SOAP 1.1 แต่ตอบ VersionMismatch เป็นโครงสร้าง SOAP 1.1 เพื่อให้ผู้ส่งเดิมอ่านได้ ตาม version transition rules; ไม่เรียก GetProduct':'SOAP 1.2 Sender Fault แจ้งว่าคำขอ operation ไม่อยู่ใน contract',[['Fault',scenario===2?'s:VersionMismatch':'env:Sender'],['Response Envelope',scenario===2?'SOAP 1.1':'SOAP 1.2']],[move('contract','client','SOAP Fault')],{status:'blocked',...response(fault)});}
   else{add('อ่าน Body → เรียก Operation','ย่อการตรวจ contract ไม่ได้รัน WSDL/XSD validator เต็มระบบ',[['Operation','GetProduct']],[move('contract','service','GetProduct id '+p.id)]);add('ส่ง XML Response','การหาข้อมูลอยู่ใน operation ไม่ใช่หน้าที่ของ SOAP เอง',[['Result',found?'Found':'Not found']],[move('service','contract','ผล operation'),move('contract','client','XML Envelope')],response(`<env:Envelope xmlns:env="${ns}" xmlns:p="urn:techatlas:products"><env:Body><p:GetProductResponse><p:found>${found}</p:found>${found?'<p:name>สมุด</p:name>':''}</p:GetProductResponse></env:Body></env:Envelope>`));}
  }else if(kind==='webhooks'){
   node('source','Event producer','ระบบต้นทาง',[-5,1]);node('receiver','Callback backend','/hooks/orders',[0,-2]);node('work','งานที่รับแล้ว','processed = 0',[5,1]);link('source','receiver');link('receiver','work');
   add('เกิด Event ฝั่งต้นทาง','สมมติ callback URL ลงทะเบียนพร้อมแล้ว Producer เป็น HTTP client ของ delivery นี้ ไม่ใช่ browser ของผู้เรียน',[['Event ID','evt-1']],[move('source','receiver','POST /hooks/orders · evt-1')],{request:'POST /hooks/orders\nContent-Type: application/json\nX-TechAtlas-Signature: '+(scenario===2?'invalid-fixture':'valid-fixture')+'\n\n'+JSON.stringify({id:'evt-1',type:'order.created',note:p.message})});
   if(scenario===2)add('ตรวจ Signature ไม่ผ่าน','Lab กำหนดผลการตรวจ signature ไม่ทำ HMAC จริง จึงไม่รับ event และไม่ทำงาน',[['HTTP in mock',403],['Processed',0]],[move('receiver','source','403 rejected')],{status:'blocked',...response({accepted:false}),nodeUpdates:{work:'processed = 0'}});
   else{add('ตรวจแล้วบันทึก ID ก่อนรับงาน','สมมติบันทึก ID กับงานแบบ atomic เพื่อลดผลซ้ำ นโยบายจริงขึ้นกับ backend',[['Signature','valid (fixture)'],['Processed',1]],[move('receiver','work','รับ evt-1 ครั้งแรก')],{nodeUpdates:{work:'processed = 1'}});
-   add(scenario===1?'ACK หายก่อนถึง Producer':'ตอบรับ Delivery','ตอบรับไม่จำเป็นต้องหมายถึงงานปลายทางเสร็จทั้งหมด',[['HTTP in mock',202],['Producer received ACK',scenario===0]],scenario===0?[move('receiver','source','202 Accepted')]:[],{...(scenario===0?response({accepted:true}):{}),status:scenario===1?'blocked':'ok',nodeUpdates:{work:'processed = 1'}});
+   add(scenario===1?'ACK หายก่อนถึง Producer':'ตอบรับ Delivery','ตอบรับไม่จำเป็นต้องหมายถึงงานปลายทางเสร็จทั้งหมด',[['HTTP in mock',202],['Producer received ACK',scenario===0]],[move('receiver','source',scenario===0?'202 Accepted':'202 ACK สูญหายก่อนถึง Producer')],{...(scenario===0?response({accepted:true}):{}),status:scenario===1?'blocked':'ok',nodeUpdates:{work:'processed = 1'}});
    if(scenario===1){add('Producer Retry ID เดิม','ไม่ได้รับ ACK จึงส่งซ้ำตาม policy สมมติ ไม่ใช่มาตรฐาน retry ของทุก provider เช่น GitHub ไม่ redeliver failed delivery อัตโนมัติ',[['Event ID','evt-1']],[move('source','receiver','POST retry · evt-1')],{nodeUpdates:{work:'processed = 1'}});add('Receiver พบ ID เดิม → ไม่ทำงานซ้ำ','การตอบรับซ้ำไม่เพิ่มจำนวน processed',[['Processed',1],['Duplicate',true]],[move('receiver','source','202 · duplicate accepted')],{...response({accepted:true,duplicate:true}),nodeUpdates:{work:'processed = 1'}});}}
  }else{
-  node('client','Client','ยังไม่เปิดช่อง',[-4,1],true);node('server','Service','event log: 1, 2',[4,1]);link('client','server');
+  node('client','Client',kind==='websocket'?'ยังไม่เปิดช่อง':'ยังไม่ส่งคำขอ',[-4,1],true);node('server','Service',kind==='websocket'?'ช่องยังไม่เปิด':'event log: 1, 2',[4,1]);link('client','server');
   if(kind==='websocket'){
    add('HTTP Upgrade handshake','Lab เลือก classic HTTP/1.1 ไม่จำลองกลไก handshake ทุกรูปแบบ',[['Request','Upgrade: websocket']],[move('client','server','GET /chat · Upgrade')],{request:'GET /chat HTTP/1.1\nUpgrade: websocket\nConnection: Upgrade\n(ย่อ key/version headers)'});
    if(scenario===1)add('ไม่เปิด WebSocket','policy ของบริการจำลองไม่อนุญาต จึงยังไม่มีช่อง message',[['HTTP',403]],[move('server','client','403 Forbidden')],{status:'blocked',...response('Handshake rejected')});
@@ -84,5 +86,8 @@ export function buildAPI(lesson,scenario=0,input={}){
  }
  // API frames preserve the state already established (OPEN, cursor, processed count).
  let states={};for(const frame of steps){states={...states,...frame.nodeUpdates};frame.nodeUpdates={...states};}
- return {id:lesson.id,kind,title:lesson.title,nodes,links,steps,mode:'3d',parameters:p,scenario};
+ const model={id:lesson.id,kind,title:lesson.title,nodes,links,steps,mode:'3d',parameters:p,scenario};
+ for(const frame of steps)if(['basics','rest'].includes(kind)&&frame.response!==undefined){const fields=Object.fromEntries(frame.fields);frame.responseHead='HTTP '+fields.HTTP+'\nContent-Type: application/json'+(fields.Allow&&fields.Allow!=='—'?'\nAllow: '+fields.Allow:'')+(fields.Location&&fields.Location!=='—'?'\nLocation: '+fields.Location:'');}
+ steps.forEach((frame,i)=>frame.visual=apiVisual(model,i));
+ return model;
 }
